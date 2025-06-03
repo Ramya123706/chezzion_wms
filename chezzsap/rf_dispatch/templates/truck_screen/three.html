@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="col-md-6 col-sm-12 mx-auto ">
+        <div class="card p-4">
+            <div class="sap-header bg-light" style="font-size: 24px; font-style: italic; padding: 10px;"><b>SAP</b></div>
+            <h5 class="text mb-4 mt-3">Plan dispatch vessel date and time</h5>
+
+            
+            <div class="mb-3 row">
+
+                <label class="col-sm-4 col-form-label">Truck Number</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control">
+                </div>
+            </div>
+
+            <div class="mb-3 row">
+                <label class="col-sm-4 col-form-label">Vessel Name</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control">
+                </div>
+            </div>
+
+            <div class="mb-3 row">
+                <label class="col-sm-4 col-form-label">Document No</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control">
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label class="col-sm-4 col-form-label">Port</label>
+                <div class="col-sm-8">
+                <input type="text" class="form-control">
+            </div>
+            
+
+            <div class="d-flex justify-content-between mt-4 gap-2">
+                <button class="btn btn-secondary">F7 BACK</button>
+                <button class="btn btn-secondary">F2 NEXT</button>
+                <button class="btn btn-secondary">ENTER</button> 
+            </div>
+            
+        </div>
+    </div>    
+</div>
+
+{% endblock %}

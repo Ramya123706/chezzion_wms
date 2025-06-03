@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div class="container mt-5">
+        <div class="col-md-6 col-sm-12 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Chezzion</h5>
+                </div>
+                <div class="card-body">
+                    <h5><img src="https://staging.chezzion.com/static/assets/img/logo-icon.png" width="50"
+                            alt="SAP logo"></h5>
+                    <div class="form-group">
+                        <label for="warehouse">Warehouse No.</label>
+                        <input type="text" class="form-control" id="warehouse" placeholder="Enter warehouse number">
+                    </div>
+                    <div class="form-group">
+                        <label for="resource">Resource</label>
+                        <input type="text" class="form-control" id="resource" placeholder="Resource Number">
+                    </div>
+                    <div class="form-group">
+                        <label for="device">Device</label>
+                        <input type="text" class="form-control" placeholder="device" value="RF">
+                    </div>
+
+                    <a href="#" class="btn btn-success mt-5 text-center"><i class="fa-solid fa-check"></i></a>
+                    <a href="#" class="btn btn-danger mt-5 text-center"><i class="fa-solid fa-xmark"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5 mb-5">
+        <div class="col-md-6 col-sm-12 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Chezzion</h5>
+                </div>
+                <div class="card-body">
+                    <h5><img src="https://staging.chezzion.com/static/assets/img/logo-icon.png" width="50"
+                            alt="SAP logo"></h5>
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">01 System
+                        Guided</button>
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">02 Manual
+                        Selection</button>
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">03 Inbound
+                        process</button>
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">04 outbound
+                        process</button>
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black"> 05 Internal
+                        Process</button>
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black"> 06
+                        Queries</button>
+                    <div class="form-group">
+                        <div class="search d-flex">
+                            <input type="text" class="form-control m-2" id="vehicle" placeholder="Search">
+                            <button class="btn btn-primary" type="submit"><i
+                                    class="fa-solid fa-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+{% endblock %}

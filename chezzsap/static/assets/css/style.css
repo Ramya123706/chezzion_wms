@@ -3,3 +3,28 @@
     padding: 0;
     box-sizing: border-box;
 }
+.sap-box {
+            border: 2px solid #000;
+            padding: 20px;
+            max-width: 500px;
+            margin: auto;
+            margin-bottom: 30px;
+        }
+.table td,
+.table th {
+            vertical-align: middle;
+        }
+body {
+      background-color: #f3f5f4;
+    }
+.sap-header {
+      background-color: #dce6c3;
+      padding: 10px;
+      font-weight: bold;
+      font-style: italic;
+    }
+table input {
+      width: 100%;
+      border: none;
+      background-color: #f9f9f9;
+    }
