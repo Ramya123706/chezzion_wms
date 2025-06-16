@@ -6,16 +6,15 @@ def index(request):
 def home(request):
     return render(request, 'home.html')
 
-def fifth(request):
-    return render(request, 'fifth.html')
+def outbound3(request):
+    return render(request, 'outbound3.html')
 
 def sixth(request):
     return render(request, 'sixth.html')
 
 def first(request):
     return render(request, 'first.html')
-def second(request):
-    return render(request, 'second.html')
+
 def hu1(request):
     return render(request, 'hu1.html')
 def hu12(request):
@@ -48,3 +47,17 @@ def eight1(request):
     return render(request, 'truck_screen/eight.html')
 def nine1(request):
     return render(request, 'truck_screen/nine.html')
+def outbound1(request):
+    return render(request, 'outbound1.html')
+def outbound2(request):
+    return render(request, 'outbound2.html')
+def outbound3(request):
+    return render(request, 'outbound3.html')
+def outbound4(request):
+    return render(request, 'outbound4.html')
+def outbound5(request):
+    return render(request, 'outbound5.html')
+def outbound6(request):
+    return render(request, 'outbound6.html')
+def outbound7(request):
+    return render(request, 'outbound7.html')

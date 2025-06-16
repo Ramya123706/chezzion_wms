@@ -1,6 +1,8 @@
 {% extends "base.html" %}
-
 {% block content %}
+
+    
+
 <div class="container mt-5">
     <div class="col-md-6 col-sm-12 mx-auto ">
         <div class="card p-4">
@@ -11,24 +13,22 @@
                         Selection</button>
                     <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">03 Inbound
                         process</button>
-                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">04 Outbound
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black">04 outbound
                         process</button>
                     <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black"> 05 Internal
                         Process</button>
-                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black"> 06 Warehouse</button>
-
-                    <div class="form-group d-flex gap-2 mt-4">
-                        <label for="warehouse">Menu</label>
-                        <input type="text" class="sm-form-control" id="hu" >
-                        
+                    <button class="btn btn-tertiary bg-light m-2 w-100" style="border:1px solid black"> 06
+                        Queries</button>
+                    <div class="form-group">
+                    <div class="search d-flex">
+                        <input type="text" class="form-control m-2" id="vehicle" placeholder="Search">
+                        <button class="btn btn-primary" type="submit"><i
+                                    class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
-                    
-                    <div class="d-flex flex-wrap justify-content-center mt-4 gap-2">
-                        <button class="btn btn-secondary btn-sap">F1 Logoff</button>
-                        <button class="btn btn-secondary btn-sap">F3 Enter</button>
-                        <button class="btn btn-secondary btn-sap">F7 Back</button>
             </div>
         </div>
     </div>
-</div>  
+</div>
+
+
 {% endblock %}

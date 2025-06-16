@@ -63,16 +63,16 @@
 
 
             <div class="d-flex justify-content-between mt-4">
-                <button class="btn btn-secondary">F7 BACK</button>
-                <button class="btn btn-secondary">F2 PQC</button>
-                <button class="btn btn-secondary">F3 TKST</button>
-                <button class="btn btn-secondary">F4 CKIN</button> 
+                <a class="btn btn-secondary" >F7 BACK</a>
+                <a href="{% url 'two' %}" class="btn btn-secondary" >F2 PQC</a>
+                <a class="btn btn-secondary">F3 TKST</a>
+                <a class="btn btn-secondary">F4 CKIN</a>
             </div>
             <div class="d-flex justify-content-between mt-4">
                 <button class="btn btn-secondary">F5 CKOUT</button>
-                <button class="btn btn-secondary">F6 ADOD</button>
+                <a href="{% url 'three' %}" class="btn btn-secondary" >F6 ADOD</a>
                 <button class="btn btn-secondary">ENTER</button>
-                <button class="btn btn-secondary">LOAD</button>
+                <a href="{% url 'four' %}" class="btn btn-secondary" >LOAD</a>
             </div>
         </div>
     </div>    
