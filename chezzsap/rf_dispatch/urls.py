@@ -2,6 +2,8 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
+from django.urls import path
+from .views import yard_checkin_view, truck_inspection_view
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -23,8 +25,8 @@ urlpatterns = [
     path('new2/', views.new2, name='new2'),
     path('new3/', views.new3, name='new3'),
     path('new4/', views.new4, name='new4'),
-    path('one/', views.one, name='one'),
-    path('two/', views.two, name='two'),
+    path('one/', views.yard_checkin_view, name='one'),
+    path('two/', views.truck_inspection_view, name='two'),
     path('three/', views.three, name='three'),
     path('four/', views.four, name='four'),
     path('five1/', views.five1, name='five1'),
@@ -32,6 +34,10 @@ urlpatterns = [
     path('seven1/', views.seven1, name='seven1'),
     path('eight1/', views.eight1, name='eight1'),
     path('nine1/', views.nine1, name='nine1'),
+    path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
+    path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
 

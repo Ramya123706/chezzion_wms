@@ -29,10 +29,104 @@ def new3(request):
     return render(request, 'new3.html')
 def new4(request):
     return render(request, 'new4.html')
-def one(request):
-    return render(request, 'truck_screen/one.html')
-def two(request):
-    return render(request, 'truck_screen/two.html')
+# def one(request):
+#     return render(request, 'truck_screen/one.html')
+# rf_dispatch/views.py
+from django.shortcuts import render, redirect
+from .forms import YardHdrForm
+
+def yard_checkin_view(request):
+    if request.method == 'POST':
+        form = YardHdrForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+
+            scan = instance.yard_scan.lower()
+            if 'door' in scan:
+                instance.truck_status = 'door'
+            elif 'parking' in scan:
+                instance.truck_status = 'parking'
+            elif 'gate' in scan:
+                instance.truck_status = 'gate'
+            elif 'checkout' in scan:
+                instance.truck_status = 'checkout'
+            else:
+                instance.truck_status = 'not planned'
+
+            instance.save()
+
+            # ✅ Redirect to truck_inspection_view with truck_no
+            return redirect('truck_inspection', truck_no=instance.truck_no)
+
+    else:
+        form = YardHdrForm()
+
+    return render(request, 'truck_screen/one.html', {'form': form})
+
+
+
+
+# def two(request):
+#     return render(request, 'truck_screen/two.html')
+
+# from django.shortcuts import render, redirect
+# from .forms import TruckInspectionForm
+
+# def truck_inspection_view(request):
+#     truck= request.GET.objects.all()
+#     if truck:
+#         truck_no = truck[0].truck_no
+#     else:
+#         truck_no = None
+#     if request.method == 'POST':
+#         form = TruckInspectionForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('two')  
+#     else:
+#         form = TruckInspectionForm()
+#     return render(request, 'truck_screen/two.html', {'form': form})
+from django.shortcuts import render, redirect
+from .forms import TruckInspectionForm
+
+def truck_inspection_view(request, truck_no):
+    from .models import YardHdr
+    from .forms import TruckInspectionForm
+
+    try:
+        # Get the existing truck instance
+        existing_truck = YardHdr.objects.get(truck_no=truck_no)
+        seal_no = existing_truck.seal_no
+    except YardHdr.DoesNotExist:
+        existing_truck = None
+        seal_no = ''
+
+    if request.method == 'POST':
+        # Bind the form to existing instance (if it exists)
+        form = TruckInspectionForm(request.POST, instance=existing_truck)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.truck_no = truck_no  # ensure truck_no is set
+            if not instance.seal_no:
+                instance.seal_no = seal_no  # fallback seal_no
+            instance.save()
+            return redirect('yard_checkin')
+        else:
+            print(form.errors)  # debug: shows form errors
+    else:
+        # Load form with existing instance or initial data
+        if existing_truck:
+            form = TruckInspectionForm(instance=existing_truck)
+        else:
+            form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
+
+    return render(request, 'truck_screen/two.html', {
+        'form': form,
+        'truck_no': truck_no,
+        'seal_no': seal_no,
+    })
+
+
 def three(request):
     return render(request, 'truck_screen/three.html')
 def four(request):  

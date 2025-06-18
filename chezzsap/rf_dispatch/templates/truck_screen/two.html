@@ -2,30 +2,38 @@
 {% block content %}
 
 <div class="container mt-5">
-    <div class="col-md-6 col-sm-12 mx-auto ">
-        <div class="card p-4">
-        <div class="sap-header bg-light" style="font-size: 24px; font-style: italic; padding: 10px;"><b>SAP</b></div>
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+            <h5>Chezzion</h5>
+            </div>
+            <div class="card-body">
+                <h5><img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50"
+                            alt="SAP logo"></h5>
+            
             <div class="mb-3 row mt-3">
                 <label class="col-sm-4 col-form-label">Truck No</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control">
+                <input type="text" class="form-control" name="truck_no" value="{{ form.truck_no.value }}" readonly>
                 </div>
             </div>
+            <form method="POST">
+                {% csrf_token %}
 
             <div class="form-group d-flex justify-content-between mt-4 gap-2">
                 <div class="mb-3 row">
                     <label class="col-sm-4 col-form-label">Is the lock secure?</label>
                     <div class="col-sm-8">
-                        <select class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
+                        <select class="form-select" name="is_the_lock_secure">
+                        <option value="Yes"> Yes</option>
+                        <option value="No">No</option>
                         </select>
                     </div>
                 </div>
                 <div class="mb-3 row">
                     <label class="col-sm-4 col-form-label">Seal Number</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control">
+                        <input type="text" class="form-control" name="seal_no" value="{{ form.seal_no.value }}" readonly>
                     </div>
                 </div>
             </div>
@@ -85,8 +93,8 @@
                     <option>No</option>
                 </select>
             </div>
-
-
+            <button type="submit" class="btn btn-secondary">ENTER</button>  
+            </form>
             <div class="d-flex justify-content-between mt-4">
                 <a href="{% url 'one' %}" class="btn btn-secondary" >F7 BACK</a>
                 <button class="btn btn-secondary">PQC</button>

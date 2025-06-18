@@ -79,14 +79,15 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+# 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chezzsap',
-        'USER': 'root',
-        'PASSWORD':'',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'chezzsap',           # same name you created in pgAdmin
+        'USER': 'postgres',              # your PostgreSQL username
+        'PASSWORD': 'chezzion@2025',     # the password you set during install
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',
     }
 }
 

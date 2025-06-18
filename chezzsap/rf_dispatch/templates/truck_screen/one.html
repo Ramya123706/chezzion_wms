@@ -2,80 +2,147 @@
 {% block content %}
 
 <div class="container mt-5">
-    <div class="col-md-6 col-sm-12 mx-auto ">
-        <div class="card p-4">
-            <div class="sap-header bg-light" style="font-size: 24px; font-style: italic; padding: 10px;"><b>SAP</b></div>
-            <h5 class="text-center mb-4 mt-3">Truck check-in and Check-out</h5>
-            <div class="mb-3 row">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+            <h5>Chezzion</h5>
+            </div>
+            <div class="card-body">
+                <h5><img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50"
+                            alt="SAP logo"></h5>
+               <h5 class="text-center mb-4 mt-3">Truck check-in and Check-out</h5>
+                <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3 row">
+
+                    <label class="col-sm-4 col-form-label">WHS. No</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" name="whs_no">
+                    </div>
+                </div>
+                <div class="mb-3 row">
 
                 <label class="col-sm-4 col-form-label">Truck No</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control">
+                    <input type="text" class="form-control" name="truck_no">
                 </div>
             </div>
 
             <div class="mb-3 row">
+
                 <label class="col-sm-4 col-form-label">Truck Type</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control">
-                </div>
-            </div>
-
-            <div class="mb-3 row">
-                <label class="col-sm-4 col-form-label">Latch</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control">
+                    <input type="text" class="form-control" name="truck_type">
                 </div>
             </div>
             <div class="mb-3 row">
-                <label class="col-sm-4 col-form-label">Driver name</label>
-                <div class="col-sm-8">
-                <input type="text" class="form-control">
-            </div>
-            </div>
-                <div class="mb-3 row">
-                <label class="col-sm-4 col-form-label">Driver Phn number</label>
-                <div class="col-sm-8">
-                <input type="text" class="form-control">
-            </div>
-            </div>
-            <div class="mb-3 row">
-                <label class="col-sm-4 col-form-label">Scan Yard</label>
-                <div class="col-sm-8">
-                <input type="text" class="form-control">
-            </div>
-            </div>
 
-            <div class="mb-3 row">
-                <label class="col-sm-4 col-form-label">Dispatch date</label>
-                <div class="col-sm-8 d-flex">
-                    <input type="text" class="form-control">
-                 
+                <label class="col-sm-4 col-form-label">Driver Name</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="driver_name">
                 </div>
             </div>
             <div class="mb-3 row">
-                <label class="col-sm-4 col-form-label">Dispatch time</label>
-                <div class="col-sm-8 d-flex">
-                <input type="text" class="form-control">
-                
+
+                <label class="col-sm-4 col-form-label">Driver Phn No</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="driver_phn_no">
                 </div>
             </div>
+            <div class="mb-3 row">
 
+                <label class="col-sm-4 col-form-label">PO No</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="po_no">
+                </div>
+            </div>
+            <div class="mb-3 row">
 
+                <label class="col-sm-4 col-form-label">Truck Date</label>
+                <div class="col-sm-8">
+                    <input type="date" class="form-control" name="truck_date">
+                </div>
+            </div>
+            <div class="mb-3 row">
+
+                <label class="col-sm-4 col-form-label">Truck Time</label>
+                <div class="col-sm-8">
+                    <input type="time" class="form-control" name="truck_time">
+                </div>
+            </div>
+            <div class="mb-3 row">
+
+                <label class="col-sm-4 col-form-label">Seal No</label>
+                <div class="col-sm-8">
+                    <input type="text" class="form-control" name="seal_no">
+                </div>
+            </div>
+            <div class="mb-3 row">
+    <label class="col-sm-4 col-form-label">Yard Scan</label>
+    <div class="col-sm-8">
+        <select class="form-select"id="yardScanSelect" name="yard_scan">
+            <option value="" selected>Not Planned</option>
+            <option value="door1">Door 1</option>
+            <option value="door2">Door 2</option>
+            <option value="door3">Door 3</option>
+            <option value="parkinglot1">Parking Lot 1</option>
+            <option value="parkinglot2">Parking Lot 2</option>
+            <option value="parkinglot3">Parking Lot 3</option>
+            <option value="gate1">Gate 1</option>
+            <option value="gate2">Gate 2</option>
+            <option value="gate3">Gate 3</option>
+            <option value="checkout">Checkout</option>
+        </select>
+    </div>
+</div>
+
+<div class="mb-3 row">
+    <label class="col-sm-4 col-form-label">Truck Status</label>
+    <div class="col-sm-8">
+        <input type="text" class="form-control" id="truckStatusInput" name="truck_status" readonly>
+    </div>
+</div>
+            <button type="submit" class="btn btn-secondary">ENTER</button>
+            </form>
             <div class="d-flex justify-content-between mt-4">
                 <a class="btn btn-secondary" >F7 BACK</a>
                 <a href="{% url 'two' %}" class="btn btn-secondary" >F2 PQC</a>
                 <a class="btn btn-secondary">F3 TKST</a>
                 <a class="btn btn-secondary">F4 CKIN</a>
+                <button class="btn btn-secondary">F5 CKOUT</button>
             </div>
             <div class="d-flex justify-content-between mt-4">
-                <button class="btn btn-secondary">F5 CKOUT</button>
+                
                 <a href="{% url 'three' %}" class="btn btn-secondary" >F6 ADOD</a>
-                <button class="btn btn-secondary">ENTER</button>
+                
                 <a href="{% url 'four' %}" class="btn btn-secondary" >LOAD</a>
             </div>
         </div>
     </div>    
 </div>
+</div>
+<!-- JavaScript to auto-fill Truck Status -->
+<script>
+    document.getElementById("yardScanSelect").addEventListener("change", function () {
+        const value = this.value.toLowerCase();
+        let status = "";
+
+        if (value.startsWith("door")) {
+            status = "door";
+        } else if (value.startsWith("parkinglot")) {
+            status = "parkinglot";
+        } else if (value.startsWith("gate")) {
+            status = "gate";
+        } else if (value === "checkout") {
+            status = "checkout";
+        } else {
+            status = "";
+        }
+
+        document.getElementById("truckStatusInput").value = status;
+    });
+</script>
+
 
 {% endblock %}
