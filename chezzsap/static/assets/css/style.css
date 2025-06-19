@@ -16,6 +16,7 @@
         }
 body {
       background-color: #f3f5f4;
+      
     }
 .sap-header {
       background-color: #dce6c3;
@@ -34,3 +35,27 @@ table input {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
 }
+
+.box {
+      border: 1px solid green;
+      padding: 15px;
+      text-align: center;
+      margin: 10px;
+      border-radius: 5px;
+      min-width: 180px;
+    }
+.section-title {
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 1.2rem;
+    }
+/* .header-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+    }
+.underline {
+      text-decoration: underline;
+      color: darkred;
+    } */

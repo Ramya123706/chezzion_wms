@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-5">
+<!-- <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             <h1 class="display-4">RF Dispatch</h1>
             <p class="lead">Welcome to the RF Dispatch application!</p>
-            <div class="grid">
+            
                 <div class="box">
                     <a href="{% url 'one' %}" class="btn btn-custom">Yard Checkin</a>
                 </div>
@@ -24,11 +24,145 @@
                     <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Dispatch</a>
                 </div>
                 <div class="box">
-                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Intelligent HU Repack
-</a>
-                    </div>
+                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Intelligent HU Repack</a>
+                </div>
+            
+        </div>
+    </div>
+</div> -->
+<div class="card m-3 ">
+  <div class="card-header text-center">
+    <span class="underline">Chezzion</span> WMS-Magic Box
+  </div>
+  <div class="card m-3">
+       <div class="card-body">
+            <h6><strong>Core Warehouse:</strong></h6>
+            <div class="row mt-3">
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="{% url 'one' %}" class="btn btn-outline-primary w-100">Yard Check-In</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/stock-upload/" class="btn btn-outline-primary w-100">RF Stock Upload</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">RF Receiving by PO</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/kitting/" class="btn btn-outline-primary w-100">RF Kitting Based on Operations</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/dispatch/" class="btn btn-outline-primary w-100">RF Dispatch</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/hu-repack/" class="btn btn-outline-primary w-100">RF Intelligent HU Repack</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/bin-to-bin/" class="btn btn-outline-primary w-100">RF Bin to Bin</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
+        <div class="card m-3">
+        <div class="card-body">
+            <h6><strong>Integration:</strong></h6>
+            <div class="row mt-3">
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/weighing-scale-integration/" class="btn btn-outline-primary w-100">Weighing Scale Integration</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/stock-upload/" class="btn btn-outline-primary w-100">RF Kitting Based on Operations</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">AGV Integration</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/kitting/" class="btn btn-outline-primary w-100">Pallelizor Integration</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/dispatch/" class="btn btn-outline-primary w-100">RFID Integration</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/hu-repack/" class="btn btn-outline-primary w-100">Responsive Loayout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card m-3">
+        <div class="card-body">
+            <h6><strong>Dashboard:</strong></h6>
+            <div class="row mt-3">
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/weighing-scale-integration/" class="btn btn-outline-primary w-100">Stock In Bin</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/stock-upload/" class="btn btn-outline-primary w-100">Mission Task</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">Work Package</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/kitting/" class="btn btn-outline-primary w-100">Quality Usage</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/dispatch/" class="btn btn-outline-primary w-100">Pallet Floor Spannel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card m-3">
+        <div class="card-body">
+            <h6><strong>Bckground AI:</strong></h6>
+            <div class="row mt-3">
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/weighing-scale-integration/" class="btn btn-outline-primary w-100">Reorg HU Stock of Inventory</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/stock-upload/" class="btn btn-outline-primary w-100">Picking Task Creation for Costly SKU</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">Reorg Empty Pallets Using AGV</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card m-3">
+        <div class="card-body">
+            <h6><strong>Delivery Integration:</strong></h6>
+            <div class="row mt-3">
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/weighing-scale-integration/" class="btn btn-outline-primary w-100">Purchase Orders</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/stock-upload/" class="btn btn-outline-primary w-100">Sales Orders</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">STO Stock Transfer Order</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">Bill Of Lading</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">Production Order</a>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <a href="/receiving-po/" class="btn btn-outline-primary w-100">Pallet Labels</Label></a>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- <div class="container mt-5 start-left">
+  <div class="col-md-12 text-center">
+    <div class="col-md-3">
+      <div class="list-group">
+        <a href="{% url 'one' %}" class="list-group-item list-group-item-action">Yard Checkin</a>
+        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Stock Upload</a>
+        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Receiving By PO</a>
+        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Kitting Based on Operations</a>
+        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Dispatch</a>
+        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Intelligent HU Repack</a>
+      </div>
+    </div>
+  </div>
+</div> -->
+
 {% endblock %}

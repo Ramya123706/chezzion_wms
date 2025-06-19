@@ -110,7 +110,7 @@ def truck_inspection_view(request, truck_no):
             if not instance.seal_no:
                 instance.seal_no = seal_no  # fallback seal_no
             instance.save()
-            return redirect('yard_checkin')
+            return redirect('one')
         else:
             print(form.errors)  # debug: shows form errors
     else:
@@ -125,6 +125,13 @@ def truck_inspection_view(request, truck_no):
         'truck_no': truck_no,
         'seal_no': seal_no,
     })
+
+from django.shortcuts import render
+from .models import YardHdr
+
+def inspection_summary_view(request):
+    inspections = YardHdr.objects.all().order_by('-truck_date', '-truck_time')  # latest first
+    return render(request, 'truck_screen/summary.html', {'inspections': inspections})
 
 
 def three(request):

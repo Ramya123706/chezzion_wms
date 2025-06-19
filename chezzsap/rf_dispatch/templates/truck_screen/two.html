@@ -5,104 +5,123 @@
     <div class="col-md-6 col-sm-12 mx-auto">
         <div class="card">
             <div class="card-header">
-            <h5>Chezzion</h5>
+                <h5>Chezzion</h5>
             </div>
             <div class="card-body">
-                <h5><img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50"
-                            alt="SAP logo"></h5>
-            
-            <div class="mb-3 row mt-3">
-                <label class="col-sm-4 col-form-label">Truck No</label>
-                <div class="col-sm-8">
-                <input type="text" class="form-control" name="truck_no" value="{{ form.truck_no.value }}" readonly>
+                <div class="text-center mb-3">
+                    <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png"
+                         width="50" alt="SAP logo">
                 </div>
-            </div>
-            <form method="POST">
-                {% csrf_token %}
 
-            <div class="form-group d-flex justify-content-between mt-4 gap-2">
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">Is the lock secure?</label>
-                    <div class="col-sm-8">
-                        <select class="form-select" name="is_the_lock_secure">
-                        <option value="Yes"> Yes</option>
-                        <option value="No">No</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">Seal Number</label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control" name="seal_no" value="{{ form.seal_no.value }}" readonly>
-                    </div>
-                </div>
-            </div>
+                <form id="inspectionForm" method="POST">
+                    {% csrf_token %}
 
-            <div class="form-group d-flex justify-content-between mt-4 gap-2">
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">Is the truck clean?</label>
-                    <div class="col-sm-8">
-                        <select class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
-                        </select>
+                    <!-- Truck No (readonly) -->
+                    <div class="mb-3 row mt-3">
+                        <label class="col-sm-4 col-form-label">Truck No</label>
+                        <div class="col-sm-8">
+                            {{ form.truck_no }}
+                        </div>
                     </div>
-                </div>
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">Is the pallet stable?</label>
-                    <div class="col-sm-8">
-                        <select class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
-           <div class="form-group d-flex justify-content-between mt-4 gap-2">
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">Is the temperature ideal</label>
-                    <div class="col-sm-8">
-                        <select class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
-                        </select>
+                    <!-- Seal No (readonly) -->
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label">Seal Number</label>
+                        <div class="col-sm-8">
+                            {{ form.seal_no }}
+                        </div>
                     </div>
-                </div>
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">Is the AC working?</label>
-                    <div class="col-sm-8">
-                        <select class="form-select">
-                        <option>Yes</option>
-                        <option>No</option>
-                        </select>
+
+                    <!-- Dropdown Fields -->
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the lock secure?</label>
+                        <div class="col-sm-6">{{ form.is_the_lock_secure }}</div>
                     </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the truck clean?</label>
+                        <div class="col-sm-6">{{ form.is_the_truck_clean }}</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the driver safe?</label>
+                        <div class="col-sm-6">{{ form.is_the_driver_safe }}</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the pallet stable?</label>
+                        <div class="col-sm-6">{{ form.is_the_pallet_stable }}</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the temperature ideal?</label>
+                        <div class="col-sm-6">{{ form.is_the_temperature_ideal }}</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the AC working?</label>
+                        <div class="col-sm-6">{{ form.is_the_ac_working }}</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Does the truck have a good odor?</label>
+                        <div class="col-sm-6">{{ form.does_the_truck_have_a_good_odor }}</div>
+                    </div>
+                    <div class="mb-3 row">
+                        <label class="col-sm-6 col-form-label">Is the truck dock level OK?</label>
+                        <div class="col-sm-6">{{ form.is_the_truck_dock_level_ok }}</div>
+                    </div>
+
+                    <!-- Trigger Modal -->
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="showModal()">ENTER</button>
+                    </div>
+                </form>
+
+                <!-- Back Button -->
+                <div class="text-center mt-3">
+                    <a href="{% url 'one' %}" class="btn btn-secondary">F7 BACK</a>
                 </div>
             </div>
-            <div class="form-group d-flex justify-content-between mt-4 gap-2">
-                <label class="col-form-label">Does the truck have a good odor?</label>
-                <select class="form-select">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-            <div class="form-group d-flex justify-content-between mt-4 gap-2">
-                <label class="col-form-label">Is the truck's dock lever in good condition</label>
-                <select class="form-select">
-                    <option>Yes</option>
-                    <option>No</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-secondary">ENTER</button>  
-            </form>
-            <div class="d-flex justify-content-between mt-4">
-                <a href="{% url 'one' %}" class="btn btn-secondary" >F7 BACK</a>
-                <button class="btn btn-secondary">PQC</button>
-                <button class="btn btn-secondary">ENTER</button>  
-            </div>
-           
         </div>
-    </div>    
+    </div>
 </div>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Inspection Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modalContent">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit</button>
+        <button type="button" class="btn btn-primary" onclick="submitForm()">Confirm & Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS to collect and show form values -->
+<script>
+    function showModal() {
+        const form = document.getElementById('inspectionForm');
+        let html = '';
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(el => {
+            const label = form.querySelector("label[for='" + el.id + "']");
+            const name = label ? label.innerText : el.name;
+            const value = el.options ? el.options[el.selectedIndex].text : el.value;
+            html += `<p><strong>${name}:</strong> ${value} </p>`;
+        });
+        document.getElementById('modalContent').innerHTML = html;
+        const myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        myModal.show();
+    }
+
+    function submitForm() {
+        document.getElementById('inspectionForm').submit();
+    }
+</script>
 
 {% endblock %}

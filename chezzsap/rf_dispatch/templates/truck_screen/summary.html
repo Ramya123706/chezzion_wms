@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Truck Inspection Summary</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Warehouse No</th>
+                <th>Truck No</th>
+                <th>Truck Type</th>
+                <th>Driver Name</th>
+                <th>Phone</th>
+                <th>PO No</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Seal No</th>
+                <th>Yard Scan</th>
+                <th>Status</th>
+                <th>Lock Secure</th>
+                <th>Truck Clean</th>
+                <th>Driver Safe</th>
+                <th>Pallet Stable</th>
+                <th>Temperature Ideal</th>
+                <th>AC Working</th>
+                <th>Good Odor</th>
+                <th>Dock Level OK</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in inspections %}
+            <tr>
+                <td>{{ record.whs_no }}</td>
+                <td>{{ record.truck_no }}</td>
+                <td>{{ record.truck_type }}</td>
+                <td>{{ record.driver_name }}</td>
+                <td>{{ record.driver_phn_no }}</td>
+                <td>{{ record.po_no }}</td>
+                <td>{{ record.truck_date }}</td>
+                <td>{{ record.truck_time }}</td>
+                <td>{{ record.seal_no }}</td>
+                <td>{{ record.yard_scan }}</td>
+                <td>{{ record.truck_status }}</td>
+                <td>{{ record.is_the_lock_secure }}</td>
+                <td>{{ record.is_the_truck_clean }}</td>
+                <td>{{ record.is_the_driver_safe }}</td>
+                <td>{{ record.is_the_pallet_stable }}</td>
+                <td>{{ record.is_the_temperature_ideal }}</td>
+                <td>{{ record.is_the_ac_working }}</td>
+                <td>{{ record.does_the_truck_have_a_good_odor }}</td>
+                <td>{{ record.is_the_truck_dock_level_ok }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="18" class="text-center">No inspections recorded yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
