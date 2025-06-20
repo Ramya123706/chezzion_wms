@@ -67,13 +67,13 @@
                     </div>
 
                     <!-- Trigger Modal -->
-                    <div class="text-center mt-4">
+                    <div class="mt-4">
                         <button type="button" class="btn btn-secondary" onclick="showModal()">ENTER</button>
                     </div>
                 </form>
 
                 <!-- Back Button -->
-                <div class="text-center mt-3">
+                <div class="mt-3">
                     <a href="{% url 'one' %}" class="btn btn-secondary">F7 BACK</a>
                 </div>
             </div>
@@ -112,7 +112,7 @@
             const label = form.querySelector("label[for='" + el.id + "']");
             const name = label ? label.innerText : el.name;
             const value = el.options ? el.options[el.selectedIndex].text : el.value;
-            html += `<p><strong>${name}:</strong> ${value} </p>`;
+            html += `<p><strong>${name}:</strong> ${value}</p>`;
         });
         document.getElementById('modalContent').innerHTML = html;
         const myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
