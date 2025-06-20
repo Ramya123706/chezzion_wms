@@ -93,6 +93,9 @@
         <div id="modalContent">
           <!-- Populated by JavaScript -->
         </div>
+        <div id="warningMessage" class="alert alert-danger mt-3" style="display: none;">
+          Please make sure all responses are marked "Yes" before submission.
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit</button>
@@ -102,7 +105,7 @@
   </div>
 </div>
 
-<!-- JS to collect and show form values -->
+<!-- JavaScript -->
 <script>
     function showModal() {
         const form = document.getElementById('inspectionForm');
@@ -115,12 +118,28 @@
             html += `<p><strong>${name}:</strong> ${value}</p>`;
         });
         document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('warningMessage').style.display = 'none';
+
         const myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
         myModal.show();
     }
 
     function submitForm() {
-        document.getElementById('inspectionForm').submit();
+        const modalContent = document.getElementById('modalContent');
+        const paragraphs = modalContent.querySelectorAll('p');
+        let hasNo = false;
+
+        paragraphs.forEach(p => {
+            if (p.innerText.includes(": No")) {
+                hasNo = true;
+            }
+        });
+
+        if (hasNo) {
+            document.getElementById('warningMessage').style.display = 'block';
+        } else {
+            document.getElementById('inspectionForm').submit();
+        }
     }
 </script>
 
