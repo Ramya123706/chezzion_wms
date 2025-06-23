@@ -35,6 +35,7 @@ def new4(request):
 from django.shortcuts import render, redirect
 from .forms import YardHdrForm
 
+
 def yard_checkin_view(request):
     if request.method == 'POST':
         form = YardHdrForm(request.POST)
@@ -162,3 +163,7 @@ def outbound6(request):
     return render(request, 'outbound6.html')
 def outbound7(request):
     return render(request, 'outbound7.html')
+
+
+def truck_landing(request):
+    return render(request, 'truck_screen/truck_landing_page.html')

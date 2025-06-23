@@ -147,6 +147,21 @@
         document.getElementById("truckStatusInput").value = status;
     });
 </script>
+<script>
+    // Auto-fill current date and time on page load
+    window.addEventListener('DOMContentLoaded', function () {
+        const now = new Date();
 
+        // Format date as YYYY-MM-DD
+        const dateStr = now.toISOString().split('T')[0];
+
+        // Format time as HH:MM (24-hour format)
+        const timeStr = now.toTimeString().split(':').slice(0, 2).join(':');
+
+        // Set values to input fields
+        document.querySelector('input[name="truck_date"]').value = dateStr;
+        document.querySelector('input[name="truck_time"]').value = timeStr;
+    });
+</script>
 
 {% endblock %}
