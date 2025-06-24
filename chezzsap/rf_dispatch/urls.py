@@ -37,6 +37,8 @@ urlpatterns = [
     path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     path('inspection-summary/', views.inspection_summary_view, name='inspection_summary'),
+    path('truck_landing/', views.truck_landing, name='truck_landing'),
+    
 
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -8,7 +8,7 @@
                 <h5>Chezzion</h5>
             </div>
             <div class="card-body">
-                <div class="text-center mb-3">
+                <div >
                     <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png"
                          width="50" alt="SAP logo">
                 </div>
@@ -93,16 +93,21 @@
         <div id="modalContent">
           <!-- Populated by JavaScript -->
         </div>
+        <div id="warningMessage" class="alert alert-danger mt-3" style="display: none;">
+          Please ensure that all necessary precautions have been properly followed.
+
+           
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit</button>
         <button type="button" class="btn btn-primary" onclick="submitForm()">Confirm & Submit</button>
       </div>
     </div>
-  </div>
+  </div> 
 </div>
 
-<!-- JS to collect and show form values -->
+<!-- JavaScript -->
 <script>
     function showModal() {
         const form = document.getElementById('inspectionForm');
@@ -115,12 +120,28 @@
             html += `<p><strong>${name}:</strong> ${value}</p>`;
         });
         document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('warningMessage').style.display = 'none';
+
         const myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
         myModal.show();
     }
 
     function submitForm() {
-        document.getElementById('inspectionForm').submit();
+        const modalContent = document.getElementById('modalContent');
+        const paragraphs = modalContent.querySelectorAll('p');
+        let hasNo = false;
+
+        paragraphs.forEach(p => {
+            if (p.innerText.includes(": No")) {
+                hasNo = true;
+            }
+        });
+
+        if (hasNo) {
+            document.getElementById('warningMessage').style.display = 'block';
+        } else {
+            document.getElementById('inspectionForm').submit();
+        }
     }
 </script>
 
