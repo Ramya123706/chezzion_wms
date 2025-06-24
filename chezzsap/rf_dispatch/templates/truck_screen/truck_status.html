@@ -1,0 +1,46 @@
+ {% extends 'base.html'%}
+{% block content %}
+    <title>Truck Status</title>
+</head>
+<body>
+    <h2>Check Truck Status</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Search</button>
+    </form>
+
+    <hr>
+
+    {% if truck %}
+        <h3>Truck Details</h3>
+        <p><strong>Warehouse Number:</strong> {{ truck.whs_no }}</p>
+        <p><strong>Truck Number:</strong> {{ truck.truck_no }}</p>
+        <p><strong>Truck Type:</strong> {{ truck.truck_type }}</p>
+        <p><strong>Driver Name:</strong> {{ truck.driver_name }}</p>
+        <p><strong>Driver Phone:</strong> {{ truck.driver_phn_no }}</p>
+        <p><strong>PO Number:</strong> {{ truck.po_no }}</p>
+        <p><strong>Date:</strong> {{ truck.truck_date }}</p>
+        <p><strong>Time:</strong> {{ truck.truck_time }}</p>
+        <p><strong>Seal Number:</strong> {{ truck.seal_no }}</p>
+        <p><strong>Yard Scan:</strong> {{ truck.yard_scan }}</p>
+        <p><strong>Truck Status:</strong> {{ truck.truck_status }}</p>
+
+        <h4>Checklist</h4>
+        <ul>
+            <li>Lock Secure: {{ truck.is_the_lock_secure }}</li>
+            <li>Truck Clean: {{ truck.is_the_truck_clean }}</li>
+            <li>Driver Safe: {{ truck.is_the_driver_safe }}</li>
+            <li>Pallet Stable: {{ truck.is_the_pallet_stable }}</li>
+            <li>Temperature Ideal: {{ truck.is_the_temperature_ideal }}</li>
+            <li>AC Working: {{ truck.is_the_ac_working }}</li>
+            <li>Good Odor: {{ truck.does_the_truck_have_a_good_odor }}</li>
+            <li>Dock Level OK: {{ truck.is_the_truck_dock_level_ok }}</li>
+        </ul>
+    {% elif not_found %}
+        <p style="color:red;">No truck found with that number.</p>
+    {% endif %}
+
+{% endblock %}
+    

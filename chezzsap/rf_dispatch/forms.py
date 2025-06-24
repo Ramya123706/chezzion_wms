@@ -16,7 +16,7 @@ class YardHdrForm(forms.ModelForm):
             
         }
 
-from django import forms
+from django import forms 
 
 
 class TruckInspectionForm(forms.ModelForm):
@@ -40,3 +40,8 @@ class TruckInspectionForm(forms.ModelForm):
             'does_the_truck_have_a_good_odor': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
             'is_the_truck_dock_level_ok': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
         }
+
+
+from django import forms
+class Trucksearchform(forms.Form):
+      truck_no=forms.CharField(max_length=50)
