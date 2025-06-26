@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,8 +25,11 @@ SECRET_KEY = 'django-insecure-126g3a)3(-*k((e7pfz#0$-0fvp)@kx_jd5!vh5p+#wks*hou$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['demo.chezzion.com']
+CSRF_TRUSTED_ORIGINS = [
+    'https://demo.chezzion.com',
+    'http://localhost:3000',
+]
 
 # Application definition
 
@@ -79,17 +82,21 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-# 
+#
+
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chezzsap',           # same name you created in pgAdmin
-        'USER': 'postgres',              # your PostgreSQL username
-        'PASSWORD': 'chezzion@2025',     # the password you set during install
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.environ.get('POSTGRES_DB', 'magicbox_db'),
+        'USER': os.environ.get('POSTGRES_USER', 'magicbox_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'Chezzion@2025'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'magicboxpostgres'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -115,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -125,11 +132,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 STATIC_URL = '/static/'
-import os
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static")
+    os.path.join(BASE_DIR, 'static'),
 ]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

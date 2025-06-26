@@ -243,12 +243,30 @@ def truck_list(request):
     return render(request, 'truck_screen/truck_list.html', {'trucks': trucks, 'query': query})
 
 # View 3: Truck Detail (View single truck by whs_no)
+from .models import YardHdr, TruckLog
+from .utils import log_truck_status  # Assuming your log function is in utils.py
+
 def truck_detail(request, truck_no):
     try:
         truck = YardHdr.objects.get(truck_no=truck_no)
-        return render(request, 'truck_screen/truck_detail.html', {'truck': truck})
+
+        # Log status only on POST
+        if request.method == 'POST':
+            new_status = request.POST.get('status', 'Viewed')
+            comment = request.POST.get('comment', '')
+            log_truck_status(truck_instance=truck, status=new_status, comment=comment)
+
+        # Fetch logs related to this truck
+        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
+
+        return render(request, 'truck_screen/truck_detail.html', {
+            'truck': truck,
+            'logs': logs
+        })
+
     except YardHdr.DoesNotExist:
         return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
+
 
 
 # views.py

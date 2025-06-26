@@ -6,8 +6,8 @@ YES_NO_CHOICES = [
     ('No', 'No'),
 ]
 class YardHdr(models.Model):
-    whs_no = models.CharField(max_length=10, primary_key=True)
-    truck_no = models.CharField(max_length=5, unique=True)
+    truck_no = models.CharField(max_length=10, primary_key=True)
+    whs_no = models.CharField(max_length=5, unique=True)
     truck_type = models.CharField(max_length=20)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -31,7 +31,7 @@ class YardHdr(models.Model):
         return f"YardHdr(whs_no={self.whs_no}, truck_no={self.truck_no})"
 
 class TruckLog(models.Model):
-    truck_no = models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
+    truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
     comment = models.TextField(blank=True)
