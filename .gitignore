@@ -71,3 +71,5 @@ coverage.xml
 # Logs
 *.log
 logs/
+
+chezzsap/chezzsap/settings.py
