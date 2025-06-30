@@ -42,11 +42,13 @@ def yard_checkin_view(request):
         if form.is_valid():
             instance = form.save(commit=False)
 
-            scan = instance.yard_scan.lower()
+            scan = instance.yard_scan.lower()   
             if 'door' in scan:
                 instance.truck_status = 'door'
             elif 'parking' in scan:
                 instance.truck_status = 'parking'
+            elif 'Checkin' in scan:
+                instance.truck_status = 'Checkin'
             elif 'gate' in scan:
                 instance.truck_status = 'gate'
             elif 'checkout' in scan:
@@ -89,13 +91,11 @@ def yard_checkin_view(request):
 #     return render(request, 'truck_screen/two.html', {'form': form})
 from django.shortcuts import render, redirect
 from .forms import TruckInspectionForm
+from .models import YardHdr, TruckLog
+from .utils import log_truck_status  # create this helper
 
 def truck_inspection_view(request, truck_no):
-    from .models import YardHdr
-    from .forms import TruckInspectionForm
-
     try:
-        # Get the existing truck instance
         existing_truck = YardHdr.objects.get(truck_no=truck_no)
         seal_no = existing_truck.seal_no
     except YardHdr.DoesNotExist:
@@ -103,19 +103,26 @@ def truck_inspection_view(request, truck_no):
         seal_no = ''
 
     if request.method == 'POST':
-        # Bind the form to existing instance (if it exists)
         form = TruckInspectionForm(request.POST, instance=existing_truck)
         if form.is_valid():
             instance = form.save(commit=False)
-            instance.truck_no = truck_no  # ensure truck_no is set
+
+            # 🔍 Capture previous status before saving
+            old_status = existing_truck.truck_status if existing_truck else None
+
+            instance.truck_no = truck_no
             if not instance.seal_no:
-                instance.seal_no = seal_no  # fallback seal_no
+                instance.seal_no = seal_no
             instance.save()
+
+            # ✅ Log status if changed
+            if old_status != instance.truck_status:
+                log_truck_status(instance, instance.truck_status, user=request.user)
+
             return redirect('one')
         else:
-            print(form.errors)  # debug: shows form errors
+            print(form.errors)
     else:
-        # Load form with existing instance or initial data
         if existing_truck:
             form = TruckInspectionForm(instance=existing_truck)
         else:
@@ -126,6 +133,7 @@ def truck_inspection_view(request, truck_no):
         'truck_no': truck_no,
         'seal_no': seal_no,
     })
+
 
 from django.shortcuts import render
 from .models import YardHdr
@@ -167,3 +175,102 @@ def outbound7(request):
 
 def truck_landing(request):
     return render(request, 'truck_screen/truck_landing_page.html')
+
+
+
+def status_log_view(request, truck_no):
+    logs = TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time')
+    return render(request, 'truck_screen/status_log.html', {'logs': logs, 'truck_no': truck_no})
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import TruckLog, YardHdr
+
+def truck_log_view(request):
+    truck_no_query = request.GET.get('truck_no')
+    logs = []
+    truck_details = None
+    error_message = ""
+
+    if truck_no_query:
+        logs = TruckLog.objects.filter(truck_no__truck_no__icontains=truck_no_query).order_by('-truck_date', '-truck_time')
+        try:
+            truck_details = YardHdr.objects.get(truck_no=truck_no_query)
+        except YardHdr.DoesNotExist:
+            error_message = f"No truck found with number: {truck_no_query}"
+
+    return render(request, 'truck_screen/truck_log.html', {
+        'logs': logs,
+        'truck_no_query': truck_no_query,
+        'truck_details': truck_details,
+        'error_message': error_message,
+    })
+
+
+from .models import YardHdr
+from .forms import Trucksearchform
+
+# View 1: Truck Status (Search by exact truck number using POST)
+def truck_status_view(request, truck_no):
+    truck = None
+    not_found = False
+
+    if request.method == 'POST':
+        form = Trucksearchform(request.POST)
+        if form.is_valid():
+            truck_no = form.cleaned_data['truck_no']
+            try:
+                truck = YardHdr.objects.get(truck_no=truck_no)
+            except YardHdr.DoesNotExist:
+                not_found = True
+    else:
+        form = Trucksearchform()
+
+    return render(request, 'truck_screen/truck_status.html', {
+        'form': form,
+        'truck': truck,
+        'not_found': not_found,
+    })
+
+# View 2: Truck List (Search using GET, shows list)
+def truck_list(request):
+    query = request.GET.get('search')
+    if query:
+        trucks = YardHdr.objects.filter(truck_no__icontains=query)
+    else:
+        trucks = YardHdr.objects.all()
+
+    return render(request, 'truck_screen/truck_list.html', {'trucks': trucks, 'query': query})
+
+# View 3: Truck Detail (View single truck by whs_no)
+def truck_detail(request, truck_no):
+    try:
+        truck = YardHdr.objects.get(truck_no=truck_no)
+        return render(request, 'truck_screen/truck_detail.html', {'truck': truck})
+    except YardHdr.DoesNotExist:
+        return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
+
+
+# views.py
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import YardHdr
+from .utils import log_truck_status  # Ensure this utility function is defined
+
+def update_truck_status(request, truck_no):
+    if request.method == 'POST':
+        new_status = request.POST.get('new_status')
+        truck = get_object_or_404(YardHdr, truck_no=truck_no)
+        old_status = truck.truck_status
+
+        if new_status and new_status != old_status:
+            truck.truck_status = new_status
+            truck.save()
+
+        # If you want to log a comment, get it from POST or set to empty string
+        comment = request.POST.get('comment', '')
+
+        log_truck_status(truck_instance=truck, status=new_status,  comment=comment)
+
+        return redirect('truck_detail', truck_no=truck_no)  

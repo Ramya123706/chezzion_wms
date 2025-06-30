@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from . import views
 from django.urls import path
 from .views import yard_checkin_view, truck_inspection_view
+from .views import update_truck_status
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -26,7 +27,7 @@ urlpatterns = [
     path('new3/', views.new3, name='new3'),
     path('new4/', views.new4, name='new4'),
     path('one/', views.yard_checkin_view, name='one'),
-    path('two/', views.truck_inspection_view, name='two'),
+     
     path('three/', views.three, name='three'),
     path('four/', views.four, name='four'),
     path('five1/', views.five1, name='five1'),
@@ -38,7 +39,14 @@ urlpatterns = [
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     path('inspection-summary/', views.inspection_summary_view, name='inspection_summary'),
     path('truck_landing/', views.truck_landing, name='truck_landing'),
-    
+    path('status-log/<str:truck_no>/', views.status_log_view, name='status_log'),
+    path('truck-log/', views.truck_log_view, name='truck_log_view'),
+    path('truck-log/<str:truck_no>/', views.truck_log_view, name='track_log_view'),
+    path('trucks/', views.truck_list, name='truck_list'),
+    path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
+    path('truck-status/', views.truck_status_view, name='truck_status'),
+    path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
+    path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
 
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -31,13 +31,23 @@ class YardHdr(models.Model):
         return f"YardHdr(whs_no={self.whs_no}, truck_no={self.truck_no})"
 
 class TruckLog(models.Model):
-    truck_no= models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
-    truck_date = models.DateField()
-    truck_time = models.TimeField()
-    comment = models.TextField()
+    truck_no = models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
+    truck_date = models.DateField(auto_now_add=True)
+    truck_time = models.TimeField(auto_now_add=True)
+    comment = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='Not planned')
     status_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"TruckLog(truck_no={self.truck_no}, truck_date={self.truck_date}, truck_time={self.truck_time})"
+        return f"{self.truck_no.truck_no} - {self.status} @ {self.truck_date} {self.truck_time}"
 
+
+from .models import TruckLog
+
+def log_truck_status(truck_instance, status, user=None, comment=''):
+    TruckLog.objects.create(
+        truck_no=truck_instance,
+        status=status,
+        status_changed_by=user,
+        comment=comment
+    )

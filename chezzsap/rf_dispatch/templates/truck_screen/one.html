@@ -86,6 +86,7 @@
     <div class="col-sm-8">
         <select class="form-select"id="yardScanSelect" name="yard_scan">
             <option value="" selected>Not Planned</option>
+            <option value="Checkin">Check-In</option>
             <option value="door1">Door 1</option>
             <option value="door2">Door 2</option>
             <option value="door3">Door 3</option>
@@ -126,6 +127,8 @@
     </div>    
 </div>
 </div>
+
+
 <!-- JavaScript to auto-fill Truck Status -->
 <script>
     document.getElementById("yardScanSelect").addEventListener("change", function () {
@@ -136,6 +139,8 @@
             status = "door";
         } else if (value.startsWith("parkinglot")) {
             status = "parkinglot";
+        } else if (value.startsWith("Checkin")) {
+            status = "Checkinn";
         } else if (value.startsWith("gate")) {
             status = "gate";
         } else if (value === "checkout") {
