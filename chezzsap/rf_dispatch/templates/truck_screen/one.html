@@ -13,7 +13,11 @@
                 <h5 class="text-center mb-4 mt-3">Truck check-in and Check-out</h5>
                 <form id="inspectionForm" method="POST" >
                 {% csrf_token %}
-                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                {{ form.errors }}
+                </div>
+                {% endif %}	    
                 <div class="mb-3 row">
 
                     <label class="col-sm-4 col-form-label">WHS. No</label>
@@ -50,7 +54,7 @@
 
                 <label class="col-sm-4 col-form-label">Driver Phn No</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" name="driver_phn_no" required>
+                    <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}"  required>
                 </div>
             </div>
             <div class="mb-3 row">
