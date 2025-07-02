@@ -354,34 +354,87 @@ from .models import Warehouse
 from .forms import WarehouseForm
 
 # Create or update a warehouse
+# def warehouse_view(request):
+#     if request.method == 'POST':
+#         form = WarehouseForm(request.POST)
+#         if form.is_valid():
+#             warehouse = form.save()
+#             # ✅ Correct redirect to the detail view using the proper URL name
+#             return redirect('warehouse_detail', whs_no=warehouse.whs_no)
+#     else:
+#         form = WarehouseForm()
+#     return render(request, 'warehouse/warehouse.html', {'form': form})
+
+
+# # Display warehouse details
+# def warehouse_detail_view(request, whs_no):
+#     warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+#     return render(request, 'warehouse/warehouse_details.html', {'warehouse': warehouse})
+
+
+# def warehouse_list(request):
+#     query = request.GET.get('search')
+#     if query:
+#         warehouses = Warehouse.objects.filter(whs_no__icontains=query)
+#     else:
+#         warehouses = Warehouse.objects.all()
+#     return render(request, 'warehouse/warehouse.html', {'warehouses': warehouses})
+
+
+# def warehouse_search_view(request, whs_no):
+#     return render(request, 'warehouse/warehouse_search_details.html', {'whs_no': whs_no})
+
+
+
+from django.shortcuts import render, redirect
+from .models import Warehouse
+from .forms import WarehouseForm
+
 def warehouse_view(request):
+    # === FORM HANDLING (Left Side) ===
     if request.method == 'POST':
-        form = WarehouseForm(request.POST)
+        form = WarehouseForm(request.POST, request.FILES)
         if form.is_valid():
             warehouse = form.save()
-            # ✅ Correct redirect to the detail view using the proper URL name
-            return redirect('warehouse_detail', whs_no=warehouse.whs_no)
+            return redirect('warehouse_detail', whs_no=warehouse.whs_no)  # Replace with your URL name
     else:
         form = WarehouseForm()
-    return render(request, 'warehouse/warehouse.html', {'form': form})
 
-# Display warehouse details
-def warehouse_detail_view(request, whs_no):
-    warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
-    return render(request, 'warehouse/warehouse_details.html', {'warehouse': warehouse})
-
-
-def warehouse_list(request):
+    # === SEARCH + TABLE (Right Side) ===
     query = request.GET.get('search')
     if query:
         warehouses = Warehouse.objects.filter(whs_no__icontains=query)
     else:
-        warehouses = Warehouse.objects.all()
+        warehouses = Warehouse.objects.all()  # Show all if no search
 
-    return render(request, 'warehouse/warehouse.html', {'warehouses': warehouses, 'query': query})
+    return render(request, 'warehouse/warehouse.html', {
+        'form': form,
+        'warehouses': warehouses,
+        'query': query
+    })
+
+
+def warehouse_detail_view(request, whs_no):
+    warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+    return render(request, 'warehouse/warehouse_details.html', {'warehouse': warehouse})
 
 def warehouse_search_view(request, whs_no):
     warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
     return render(request, 'warehouse/warehouse_search_details.html', {'warehouse': warehouse})
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Warehouse
+from .forms import WarehouseForm
 
+def edit_warehouse(request, whs_no):
+    warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+
+    if request.method == 'POST':
+        form = WarehouseForm(request.POST, request.FILES, instance=warehouse)
+        if form.is_valid():
+            form.save()
+            return redirect('warehouse_view')  # or 'warehouse_search_details', whs_no=warehouse.whs_no
+    else:
+        form = WarehouseForm(instance=warehouse)
+
+    return render(request, 'warehouse/warehouse_edit.html', {'form': form, 'warehouse': warehouse})
