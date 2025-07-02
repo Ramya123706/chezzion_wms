@@ -243,12 +243,30 @@ def truck_list(request):
     return render(request, 'truck_screen/truck_list.html', {'trucks': trucks, 'query': query})
 
 # View 3: Truck Detail (View single truck by whs_no)
+from .models import YardHdr, TruckLog
+from .utils import log_truck_status  # Assuming your log function is in utils.py
+
 def truck_detail(request, truck_no):
     try:
         truck = YardHdr.objects.get(truck_no=truck_no)
-        return render(request, 'truck_screen/truck_detail.html', {'truck': truck})
+
+        # Log status only on POST
+        if request.method == 'POST':
+            new_status = request.POST.get('status', 'Viewed')
+            comment = request.POST.get('comment', '')
+            log_truck_status(truck_instance=truck, status=new_status, comment=comment)
+
+        # Fetch logs related to this truck
+        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
+
+        return render(request, 'truck_screen/truck_detail.html', {
+            'truck': truck,
+            'logs': logs
+        })
+
     except YardHdr.DoesNotExist:
         return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
+
 
 
 # views.py
@@ -274,3 +292,96 @@ def update_truck_status(request, truck_no):
         log_truck_status(truck_instance=truck, status=new_status,  comment=comment)
 
         return redirect('truck_detail', truck_no=truck_no)  
+
+def stock_upload_login(request):
+    return render(request, 'stock_upload/login_in_RFUI.html')
+
+def stock_menu(request):
+    return render(request, 'stock_upload/stock_menu.html')
+
+# views.py
+from django.shortcuts import render, redirect
+from .models import StockUpload
+
+# views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import StockUpload
+
+def batch_product_view(request):
+    if request.method == 'POST':
+        whs_no = request.POST.get('whs_no')
+        product = request.POST.get('product')
+        quantity = request.POST.get('quantity')
+        batch = request.POST.get('batch')
+        bin_ = request.POST.get('bin')
+        pallet = request.POST.get('pallet')
+        p_mat = request.POST.get('p_mat')
+        inspection = request.POST.get('inspection')
+        stock_type = request.POST.get('stock_type')
+        wps = request.POST.get('wps')
+        doc_no = request.POST.get('doc_no')
+        pallet_status = request.POST.get('pallet_status')
+
+        # Save and redirect to detail
+        try:
+            stock = StockUpload.objects.create(
+                whs_no=whs_no,
+                product=product,
+                quantity=int(quantity),
+                batch=batch,
+                bin=bin_,
+                pallet=pallet,
+                p_mat=p_mat,
+                inspection=inspection,
+                stock_type=stock_type,
+                wps=wps,
+                doc_no=doc_no,
+                pallet_status=pallet_status
+            )
+            return redirect('stock_detail', pallet=stock.pallet)
+        except Exception as e:
+            return render(request, 'stock_upload/batch_product.html', {'error': str(e)})
+
+    return render(request, 'stock_upload/batch_product.html')
+
+
+def stock_detail_view(request, pallet):
+    stock = get_object_or_404(StockUpload, pallet=pallet)
+    return render(request, 'stock_upload/stock_detail.html', {'stock': stock})
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Warehouse
+from .forms import WarehouseForm
+
+# Create or update a warehouse
+def warehouse_view(request):
+    if request.method == 'POST':
+        form = WarehouseForm(request.POST)
+        if form.is_valid():
+            warehouse = form.save()
+            # ✅ Correct redirect to the detail view using the proper URL name
+            return redirect('warehouse_detail', whs_no=warehouse.whs_no)
+    else:
+        form = WarehouseForm()
+    return render(request, 'warehouse/warehouse.html', {'form': form})
+
+# Display warehouse details
+def warehouse_detail_view(request, whs_no):
+    warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+    return render(request, 'warehouse/warehouse_details.html', {'warehouse': warehouse})
+
+
+def warehouse_list(request):
+    query = request.GET.get('search')
+    if query:
+        warehouses = Warehouse.objects.filter(whs_no__icontains=query)
+    else:
+        warehouses = Warehouse.objects.all()
+
+    return render(request, 'warehouse/warehouse.html', {'warehouses': warehouses, 'query': query})
+
+def warehouse_search_view(request, whs_no):
+    warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+    return render(request, 'warehouse/warehouse_search_details.html', {'warehouse': warehouse})
+
+

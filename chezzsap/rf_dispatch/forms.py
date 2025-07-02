@@ -1,6 +1,6 @@
 # rf_dispatch/forms.py
 from django import forms
-from .models import YardHdr, YES_NO_CHOICES  # Make sure YES_NO_CHOICES is imported
+from .models import YardHdr, YES_NO_CHOICES, StockUpload, Warehouse  
 
 class YardHdrForm(forms.ModelForm):
     class Meta:
@@ -45,3 +45,30 @@ class TruckInspectionForm(forms.ModelForm):
 from django import forms
 class Trucksearchform(forms.Form):
       truck_no=forms.CharField(max_length=50)
+
+class StockUploadForm(forms.ModelForm):
+    class Meta:
+        model = StockUpload
+        fields = [
+            'whs_no', 'product', 'quantity', 'batch', 'bin', 'pallet',
+            'p_mat', 'inspection', 'stock_type', 'wps', 'doc_no', 'pallet_status'
+        ] 
+        widgets = {
+            'whs_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'product': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'batch': forms.TextInput(attrs={'class': 'form-control'}),
+            'bin': forms.TextInput(attrs={'class': 'form-control'}),
+            'pallet': forms.TextInput(attrs={'class': 'form-control'}),
+            'p_mat': forms.TextInput(attrs={'class': 'form-control'}),
+            'inspection': forms.TextInput(attrs={'class': 'form-control'}),
+            'stock_type': forms.TextInput(attrs={'class': 'form-control'}),
+            'wps': forms.TextInput(attrs={'class': 'form-control'}),
+            'doc_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'pallet_status': forms.TextInput(attrs={'class': 'form-control'})
+        }
+
+class WarehouseForm(forms.ModelForm):
+    class Meta:
+        model = Warehouse
+        fields = '__all__'
