@@ -16,44 +16,32 @@ class YardHdrForm(forms.ModelForm):
             
         }
 
-from django import forms
+from django import forms 
 
 
 class TruckInspectionForm(forms.ModelForm):
     class Meta:
         model = YardHdr
         fields = [
-            'truck_no', 'seal_no',
-            'is_the_lock_secure', 'is_the_truck_clean', 'is_the_driver_safe', 'is_the_pallet_stable',
-            'is_the_temperature_ideal', 'is_the_ac_working', 'does_the_truck_have_a_good_odor',
-            'is_the_truck_dock_level_ok'
-        ]
+          'truck_no', 'seal_no',
+          'is_the_lock_secure', 'is_the_truck_clean', 'is_the_driver_safe', 'is_the_pallet_stable',
+          'is_the_temperature_ideal', 'is_the_ac_working', 'does_the_truck_have_a_good_odor',
+          'is_the_truck_dock_level_ok']
+
         widgets = {
             'truck_no': forms.TextInput(attrs={'class': 'form-control'}),
             'seal_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'is_the_lock_secure': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'is_the_truck_clean': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'is_the_driver_safe': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'is_the_pallet_stable': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'is_the_temperature_ideal': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'is_the_ac_working': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'does_the_truck_have_a_good_odor': forms.RadioSelect(choices=YES_NO_CHOICES),
-            'is_the_truck_dock_level_ok': forms.RadioSelect(choices=YES_NO_CHOICES),
+            'is_the_lock_secure': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'is_the_truck_clean': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'is_the_driver_safe': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'is_the_pallet_stable': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'is_the_temperature_ideal': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'is_the_ac_working': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'does_the_truck_have_a_good_odor': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
+            'is_the_truck_dock_level_ok': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-        # Force all radio fields to be required so Django won't add ---------
-        radio_fields = [
-            'is_the_lock_secure', 'is_the_truck_clean', 'is_the_driver_safe',
-            'is_the_pallet_stable', 'is_the_temperature_ideal',
-            'is_the_ac_working', 'does_the_truck_have_a_good_odor',
-            'is_the_truck_dock_level_ok'
-        ]
-        for field in radio_fields:
-            self.fields[field].required = True
-
-        
-      
-        
+from django import forms
+class Trucksearchform(forms.Form):
+      truck_no=forms.CharField(max_length=50)

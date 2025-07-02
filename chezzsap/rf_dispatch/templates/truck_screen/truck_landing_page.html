@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+<!-- Main Content (Sidebar + Detail View) -->
+    <!-- <div class="container-fluid flex-grow-1 d-flex h-100 vh-100"> -->
+
+        <!-- Left Sidebar -->
+        <!-- <div class="col-md-3 bg-blue p-3 border-end overflow-auto" id="sidebar">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-action" ><a href="{% url 'one' %}">Yard Check</a></li>
+                <li class="list-group-item list-group-item-action" >Check Status</li>
+                
+</ul>
+        </div>
+    </div> -->
+<div class="container mt-5">
+  <div class="row justify-content-center">
+
+    <!-- Box 1 -->
+    <div class="col-md-4">
+      <a class="text-decoration-none" href="{% url 'one' %}" >
+        <div class="card text-center p-4 shadow-sm">
+          <h4 class="text-primary">Yard Check-In</h4>
+        </div>
+      </a>
+    </div>
+
+    <!-- Box 2 -->
+    <div class="col-md-4">
+      <a class="text-decoration-none" href="#" >
+        <div class="card text-center p-4 shadow-sm">
+          <h4 class="text-success">Check Status</h4>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</div>
+
+    
+
+
+{% endblock %}
