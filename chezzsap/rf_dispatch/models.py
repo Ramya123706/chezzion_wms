@@ -53,8 +53,8 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
     )
 
 class StockUpload(models.Model):
-    whs_no = models.CharField(max_length=10, primary_key=True)
-    product = models.CharField(max_length=50)
+    whs_no = models.CharField(max_length=20, primary_key=True)
+    product = models.CharField(max_length=20)
     quantity = models.IntegerField()
     batch = models.CharField(max_length=20)
     bin = models.CharField(max_length=20)
@@ -76,4 +76,18 @@ class Truck(models.Model):
     
     def __str__(self):
         return f"Truck(truck_no={self.truck_no}, driver_name={self.driver_name})"
+    
+class Warehouse(models.Model):
+    whs_no = models.IntegerField(primary_key=True)
+    whs_name = models.CharField(max_length=100)
+    address = models.CharField(max_length=255)
+    phn_no = models.CharField(max_length=10)  
+    email = models.EmailField(max_length=100)
+    manager = models.CharField(max_length=50)
+    
+
+
+    def __str__(self):
+        return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
+
 

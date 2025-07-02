@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    
+    <div class="card-header text-dark text-center">
+        <h4>Stock Details</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 col-sm-12 mx-auto">
+                <table class="table text-start table-responsive table-striped p-2 ">
+                    <tbody>
+                        <tr><th colspan="2" class="text-center bg-warning">Pallet Stock Info</th></tr>
+                        <tr><th>Product</th><td>{{ stock.product }}</td></tr>
+                        <tr><th>Quantity</th><td>{{ stock.quantity }}</td></tr>
+                        <tr><th>Batch</th><td>{{ stock.batch }}</td></tr>
+                        <tr><th>BIN</th><td>{{ stock.bin }}</td></tr>
+                        <tr><th>Pallet</th><td>{{ stock.pallet }}</td></tr>
+                        <tr><th>P_mat</th><td>{{ stock.p_mat }}</td></tr>
+                        <tr><th>Inspection</th><td>{{ stock.inspection }}</td></tr>
+                        <tr><th>Stock Type</th><td>{{ stock.stock_type }}</td></tr>
+                        <tr><th>WPS</th><td>{{ stock.wps }}</td></tr>
+                        <tr><th>Doc No</th><td>{{ stock.doc_no }}</td></tr>
+                        <tr><th>Pallet Status</th><td>{{ stock.pallet_status }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
