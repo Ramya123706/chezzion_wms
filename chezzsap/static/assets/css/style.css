@@ -59,7 +59,9 @@ table input {
       text-decoration: underline;
       color: darkred;
     } */
-
-
-
- 
+.card {
+    margin-top: 60px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }

@@ -51,8 +51,15 @@ urlpatterns = [
     path('product/<str:product_id>/', views.product_detail, name='product_detail'),
     path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
+    path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
+    path('stock_upload/menu', views.stock_menu, name='stock_menu'),
+    path('stock_upload/batch_product', views.batch_product_view, name='batch_product'),
+    path('stock/<str:pallet>/', views.stock_detail_view, name='stock_detail'),
+    path('warehouse/', views.warehouse_view, name='warehouse_view'),
+    path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
+    path('warehouse_search/<int:whs_no>/', views.warehouse_search_view, name='warehouse_search_details'),
+    path('warehouse/edit/<int:whs_no>/', views.edit_warehouse, name='edit_warehouse'),
 
-    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

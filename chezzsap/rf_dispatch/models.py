@@ -8,6 +8,8 @@ YES_NO_CHOICES = [
 class YardHdr(models.Model):
     truck_no = models.CharField(max_length=10, primary_key=True)
     whs_no = models.CharField(max_length=5, unique=True)
+    truck_no = models.CharField(max_length=10, primary_key=True)
+    whs_no = models.CharField(max_length=5, unique=True)
     truck_type = models.CharField(max_length=20)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -32,6 +34,7 @@ class YardHdr(models.Model):
 
 class TruckLog(models.Model):
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
+    truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
     comment = models.TextField(blank=True)
@@ -51,6 +54,46 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         status_changed_by=user,
         comment=comment
     )
+
+class StockUpload(models.Model):
+    whs_no = models.CharField(max_length=20, primary_key=True)
+    product = models.CharField(max_length=20)
+    quantity = models.IntegerField()
+    batch = models.CharField(max_length=20)
+    bin = models.CharField(max_length=20)
+    pallet = models.CharField(max_length=20)
+    p_mat = models.CharField(max_length=20)
+    inspection = models.CharField(max_length=20)
+    stock_type = models.CharField(max_length=20)
+    wps = models.CharField(max_length=20)
+    doc_no = models.CharField(max_length=20)
+    pallet_status = models.CharField(max_length=20, default='Not planned')
+
+    def __str__(self):
+        return f"StockUpload(whs_no={self.whs_no}, product={self.product})"
+
+class Truck(models.Model):
+    truck_no = models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
+    driver_name = models.CharField(max_length=50)
+    driver_phn_no = models.CharField(max_length=10)
+    
+    def __str__(self):
+        return f"Truck(truck_no={self.truck_no}, driver_name={self.driver_name})"
+    
+class Warehouse(models.Model):
+    whs_no = models.IntegerField(primary_key=True)
+    whs_name = models.CharField(max_length=100)
+    address = models.CharField(max_length=255)
+    phn_no = models.CharField(max_length=10)  
+    email = models.EmailField(max_length=100)
+    manager = models.CharField(max_length=50)
+    
+
+
+    def __str__(self):
+        return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
+
+
 
 # ..............................
 # # product_details

@@ -1,1 +1,6 @@
-psycopg2-binary==2.9.10Django==5.2.1sqlparse==0.5.3tzdata==2025.2gunicorn
+psycopg2-binary==2.9.10
+Django==5.2.1
+sqlparse==0.5.3
+tzdata==2025.2
+gunicorn==21.0.0
+

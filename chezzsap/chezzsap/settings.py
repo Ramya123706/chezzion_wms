@@ -74,12 +74,39 @@ TEMPLATES = [
 WSGI_APPLICATION = 'chezzsap.wsgi.application'
 
 
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+#
+
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('POSTGRES_DB', 'magicbox_db'),
+#         'USER': os.environ.get('POSTGRES_USER', 'magicbox_user'),
+#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'Chezzion@2025'),
+#         'HOST': os.environ.get('POSTGRES_HOST', 'magicboxpostgres'),
+#         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+#     }
+# }
+
 DATABASES = {
-    'default': {
+    'default': {    
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chezzsap',
         'USER': 'postgres',
         'PASSWORD': 'prasanna',
+        'NAME':'chezzsap',
+        'USER': 'postgres',
+        'PASSWORD': 'chezzion@2025',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -126,6 +153,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -138,12 +166,19 @@ USE_TZ = True
 
 # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static'),
 ]
+
 
 
 # Default primary key field type
