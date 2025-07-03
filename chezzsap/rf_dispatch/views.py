@@ -286,9 +286,102 @@ def update_truck_status(request, truck_no):
             truck.truck_status = new_status
             truck.save()
 
-        # If you want to log a comment, get it from POST or set to empty string
         comment = request.POST.get('comment', '')
 
         log_truck_status(truck_instance=truck, status=new_status,  comment=comment)
 
         return redirect('truck_detail', truck_no=truck_no)  
+
+
+
+
+
+from .models import Product
+from .forms import ProductForm
+from django.utils import timezone
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import Product
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product
+from django.utils import timezone
+
+def add_product(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        product_id = request.POST.get('id')
+        quantity = request.POST.get('quantity')
+        pallet_no = request.POST.get('pallet_no')
+        sku = request.POST.get('sku')
+        description = request.POST.get('description')
+        unit_of_measure = request.POST.get('unit_of_measure')
+        category = request.POST.get('category')
+        re_order_level = request.POST.get('re_order_level')
+        images = request.FILES.get('images')
+
+        try:
+            product = Product.objects.create(
+                product_id=product_id,
+                name=name,
+                quantity=quantity,
+                pallet_no=pallet_no,
+                sku=sku,
+                description=description,
+                unit_of_measure=unit_of_measure,
+                category=category,
+                re_order_level=re_order_level,
+                images=images,
+                created_at=timezone.now(),
+                updated_at=timezone.now()
+            )
+            return redirect('product_detail', product_id=product.product_id)
+        except Exception as e:
+            return render(request, 'product/add_product.html', {'error': str(e)})
+
+    return render(request, 'product/add_product.html')
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Product
+from .forms import ProductForm
+from django.contrib import messages
+
+def product_detail(request, product_id):
+   product= get_object_or_404(Product, product_id=product_id)
+   return render(request, 'product/product_detail.html', {'product': product})
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Product
+from .forms import ProductForm
+
+def product_edit(request, product_id):
+    # Get the existing product or return 404
+    product = get_object_or_404(Product, product_id=product_id)
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Product updated successfully.")
+            return redirect('product_detail')
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'product/product_edit.html', {'form': form, 'product': product})
+    
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'product/product_list.html', {'products': products})
+
+    
+
+  

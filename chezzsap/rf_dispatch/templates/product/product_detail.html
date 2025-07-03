@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container py-5">
+    <div class="card mx-auto shadow-lg p-4" style="max-width: 600px;">
+    <div class="header text-center mb-4">
+        <h1 class="text">Product Details</h1>
+    {% if product.images %}
+        <img src="{{ product.images.url }}"  width="300">
+    {% endif %}
+
+<table class="table table-bordered">
+  <tbody>
+    <tr>
+      <th>Product ID</th>
+      <td>{{ product.product_id }}</td>
+    </tr>
+    <tr>
+      <th>Product Name</th>
+      <td>{{ product.product_name }}</td>
+    </tr>
+    <tr>
+      <th>Quantity</th>
+      <td>{{ product.product_quantity }}</td>
+    </tr>
+    <tr>
+      <th>Pallet no</th>
+      <td>{{ product.pallet_no }}</td>
+    </tr>
+    <tr>
+      <th>SKU</th>
+      <td>{{ product.sku }}</td>
+    </tr>
+    <tr>
+      <th>Description</th>
+      <td>{{ product.product_description }}</td>
+    </tr>
+    <tr>
+      <th>Category</th>
+      <td>{{ product.category }}</td>
+    </tr>
+    <tr>
+      <th>Unit of Measure</th>
+      <td>{{ product.unit_of_measure }}</td>
+    </tr>
+    <tr>
+      <th>Reorder Level</th>
+      <td>{{ product.reorder_level }}</td>
+    </tr>
+    <tr>
+      <th>Created At</th>
+      <td>{{ product.created_at }}</td>
+    </tr>
+    <tr>
+      <th>Updated At</th>
+      <td>{{ product.updated_at }}</td>
+    </tr>
+    <tr>
+      <th>Image</th>
+      <td>
+        {% if product.images %}
+          <img src="{{ product.images.url }}" alt="Product Image" width="100">
+        {% endif %}
+      </td>
+    </tr>
+  </tbody>
+</table>
+<div class="text-center mt-4">
+  <a class="btn btn-primary" href="{% url 'product_edit' product.product_id %}">Edit</a>
+</div>
+
+
+
+ {% endblock %}|
+      
+

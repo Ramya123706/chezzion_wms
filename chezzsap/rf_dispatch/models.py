@@ -51,3 +51,29 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         status_changed_by=user,
         comment=comment
     )
+
+# ..............................
+# # product_details
+# ...............................
+
+from django.db import models
+
+class Product(models.Model):
+    product_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
+    quantity = models.IntegerField()
+    pallet_no = models.CharField(max_length=50)
+    sku = models.CharField(max_length=100)
+    description = models.TextField()
+    unit_of_measure = models.CharField(max_length=50)
+    category = models.CharField(max_length=100)
+    re_order_level = models.IntegerField()
+    images = models.ImageField(upload_to='product_images/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Only this is the primary key
+    id = models.AutoField(primary_key=True)
+
+    def __str__(self):
+        return self.name

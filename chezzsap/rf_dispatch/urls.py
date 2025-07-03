@@ -47,9 +47,12 @@ urlpatterns = [
     path('truck-status/', views.truck_status_view, name='truck_status'),
     path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
+    path('product/', views.add_product, name='add_product'),
+    path('product/<str:product_id>/', views.product_detail, name='product_detail'),
+    path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
+    path('product-list', views.product_list, name='product_list'),
 
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
 
 
