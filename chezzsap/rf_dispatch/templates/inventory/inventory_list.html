@@ -1,0 +1,23 @@
+    {% extends 'base.html' %}
+
+    {% block content %}
+<div class="container mx-auto">
+    <h2>Inventory Summary</h2>
+    <table class="table table-responsive table-striped">
+        <thead>
+            <tr class="bg-warning" >
+                <th>Product</th>
+                <th>Total Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventory %}
+            <tr>
+                <td>{{ item.product }}</td>
+                <td>{{ item.total_quantity }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% endblock %}

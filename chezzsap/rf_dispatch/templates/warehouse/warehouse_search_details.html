@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card-header text-dark text-center">
+        
+        <div class="card-body">
+            <div class="row">
+                <div class="container col-md-6 col-sm-12">
+                    <table class="table text-start table-responsive table-striped p-2">
+                        <tbody>
+                            <tr><th colspan="2" class="text-center bg-warning">Warehouse Details</th></tr>
+                            <tr><th>Whs_no</th><td>{{ warehouse.whs_no }}</td></tr>
+                            <tr><th>whs_name</th><td>{{ warehouse.whs_name }}</td></tr>
+                            <tr><th>Address</th><td>{{ warehouse.address }}</td></tr>
+                            <tr><th>phn_no</th><td>{{ warehouse.phn_no }}</td></tr>
+                            <tr><th>email</th><td>{{ warehouse.email }}</td></tr>
+                            <tr><th>manager</th><td>{{ warehouse.manager }}</td></tr>
+                        </tbody>
+                    </table>
+                    
+                    <a href="{% url 'edit_warehouse' warehouse.whs_no %}"class="btn btn-success">Edit Warehouse</a>
+                    <a href="{% url 'warehouse_view' %}" class="btn btn-secondary">Cancel</a>
+                    
+                </div>
+            </div>
+        </div>
+</div>
+
+{% endblock %}

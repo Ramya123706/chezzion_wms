@@ -85,9 +85,8 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 #
 
 
-
 DATABASES = {
-    'default': {
+    'default': {    
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_DB', 'magicbox_db'),
         'USER': os.environ.get('POSTGRES_USER', 'magicbox_user'),
