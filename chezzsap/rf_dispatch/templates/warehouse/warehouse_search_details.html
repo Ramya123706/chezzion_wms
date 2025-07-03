@@ -1,19 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="container mt-3">
 <div class="card-header text-dark text-center">
-        
+        <h4>Warehouse</h4>
+    </div>
         <div class="card-body">
             <div class="row">
                 <div class="container col-md-6 col-sm-12">
                     <table class="table text-start table-responsive table-striped p-2">
                         <tbody>
-                            <tr><th colspan="2" class="text-center bg-warning">Warehouse Details</th></tr>
+                            <tr><th colspan="2" class="text-center bg-warning">Warehouse Info</th></tr>
                             <tr><th>Whs_no</th><td>{{ warehouse.whs_no }}</td></tr>
                             <tr><th>whs_name</th><td>{{ warehouse.whs_name }}</td></tr>
                             <tr><th>Address</th><td>{{ warehouse.address }}</td></tr>
                             <tr><th>phn_no</th><td>{{ warehouse.phn_no }}</td></tr>
                             <tr><th>email</th><td>{{ warehouse.email }}</td></tr>
                             <tr><th>manager</th><td>{{ warehouse.manager }}</td></tr>
+                            {% if warehouse.image %}
+                            <div class="text-center mb-3">
+                                <img src="{{ warehouse.image.url }}" class="img-fluid rounded" alt="Warehouse Image" style="max-width: 300px;">
+                            </div>
+                            {% else %}
+                            <div class="text-center mb-3 text-muted">
+                                No image uploaded for this warehouse.
+                            </div>
+                            {% endif %}  
                         </tbody>
                     </table>
                     
@@ -24,5 +35,5 @@
             </div>
         </div>
 </div>
-
+</div>
 {% endblock %}
