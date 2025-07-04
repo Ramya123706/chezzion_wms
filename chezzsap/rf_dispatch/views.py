@@ -115,18 +115,16 @@ def truck_inspection_view(request, truck_no):
                 instance.seal_no = seal_no
             instance.save()
 
-            # ✅ Log status if changed
             if old_status != instance.truck_status:
                 log_truck_status(instance, instance.truck_status, user=request.user)
 
             return redirect('one')
         else:
             print(form.errors)
+    elif existing_truck:
+        form = TruckInspectionForm(instance=existing_truck)
     else:
-        if existing_truck:
-            form = TruckInspectionForm(instance=existing_truck)
-        else:
-            form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
+        form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
 
     return render(request, 'truck_screen/two.html', {
         'form': form,
@@ -550,3 +548,9 @@ def product_list(request):
     
 
   
+# views.py
+from .models import Inventory
+
+def inventory_view(request):
+    inventory = Inventory.objects.all()
+    return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
