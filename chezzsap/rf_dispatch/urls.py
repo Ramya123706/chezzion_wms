@@ -55,6 +55,8 @@ urlpatterns = [
     path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
     path('warehouse_search/<int:whs_no>/', views.warehouse_search_view, name='warehouse_search_details'),
     path('warehouse/edit/<int:whs_no>/', views.edit_warehouse, name='edit_warehouse'),
+    path('select-warehouse/', views.whs_no_dropdown_view, name='select_warehouse'),
+    path('inventory/', views.inventory_view, name='inventory'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

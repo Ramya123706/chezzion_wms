@@ -438,3 +438,15 @@ def edit_warehouse(request, whs_no):
         form = WarehouseForm(instance=warehouse)
 
     return render(request, 'warehouse/warehouse_edit.html', {'form': form, 'warehouse': warehouse})
+
+from .models import Warehouse
+
+def whs_no_dropdown_view(request):
+    warehouses = Warehouse.objects.all()
+    return render(request, 'stock_upload/batch_product.html', {'warehouses': warehouses})
+
+from .models import Inventory
+
+def inventory_view(request):
+    inventory = Inventory.objects.all()
+    return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
