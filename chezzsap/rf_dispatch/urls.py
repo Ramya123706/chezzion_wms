@@ -57,6 +57,7 @@ urlpatterns = [
     path('warehouse/edit/<int:whs_no>/', views.edit_warehouse, name='edit_warehouse'),
     path('select-warehouse/', views.whs_no_dropdown_view, name='select_warehouse'),
     path('inventory/', views.inventory_view, name='inventory'),
+    path('creating-pallet/', views.creating_pallet, name='creating_pallet'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

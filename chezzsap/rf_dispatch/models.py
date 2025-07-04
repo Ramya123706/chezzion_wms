@@ -108,14 +108,6 @@ class Inventory(models.Model):
         return f"{self.product} - {self.total_quantity} units"
 
 
-class Pallet(models.Model):
-    pallet_no = models.CharField(max_length=100, unique=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    quantity = models.IntegerField(default=0)
-    weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    is_scanned = models.BooleanField(default=False)
-    scanned_at = models.DateTimeField(null=True, blank=True)
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
 
 

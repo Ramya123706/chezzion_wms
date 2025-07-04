@@ -450,3 +450,6 @@ from .models import Inventory
 def inventory_view(request):
     inventory = Inventory.objects.all()
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+
+def creating_pallet(request):
+    return render(request, 'pallet/creating_pallet.html')
