@@ -542,3 +542,10 @@ from .models import Inventory
 def inventory_view(request):
     inventory = Inventory.objects.all()
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+
+
+def product_delete(request, product_id):
+
+    product = get_object_or_404(Product, product_id=product_id)
+    product.delete()
+    return redirect('product_list')  
