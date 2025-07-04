@@ -115,18 +115,16 @@ def truck_inspection_view(request, truck_no):
                 instance.seal_no = seal_no
             instance.save()
 
-            # ✅ Log status if changed
             if old_status != instance.truck_status:
                 log_truck_status(instance, instance.truck_status, user=request.user)
 
             return redirect('one')
         else:
             print(form.errors)
+    elif existing_truck:
+        form = TruckInspectionForm(instance=existing_truck)
     else:
-        if existing_truck:
-            form = TruckInspectionForm(instance=existing_truck)
-        else:
-            form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
+        form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
 
     return render(request, 'truck_screen/two.html', {
         'form': form,
@@ -535,13 +533,12 @@ def product_list(request):
     products = Product.objects.all()
     return render(request, 'product/product_list.html', {'products': products})
 
+    
 
-from django.views.decorators.http import require_POST
-from django.shortcuts import get_object_or_404, redirect
-from .models import Product  
+  
+# views.py
+from .models import Inventory
 
-@require_POST
-def product_delete(request, product_id):
-    product = get_object_or_404(Product, product_id=product_id)
-    product.delete()
-    return redirect('product_list')
+def inventory_view(request):
+    inventory = Inventory.objects.all()
+    return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
