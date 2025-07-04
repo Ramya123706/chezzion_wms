@@ -69,6 +69,14 @@ class StockUpload(models.Model):
     def __str__(self):
         return f"StockUpload(whs_no={self.whs_no}, product={self.product})"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Update or create inventory record
+        inventory, created = Inventory.objects.get_or_create(product=self.product)
+        inventory.total_quantity += self.quantity
+        inventory.save()
+
+
 class Truck(models.Model):
     truck_no = models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
     driver_name = models.CharField(max_length=50)
@@ -91,3 +99,9 @@ class Warehouse(models.Model):
         return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
 
 
+class Inventory(models.Model):
+    product = models.CharField(max_length=50, unique=True)
+    total_quantity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.product} - {self.total_quantity} units"

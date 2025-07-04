@@ -54,6 +54,7 @@ urlpatterns = [
     path('warehouse/', views.warehouse_view, name='warehouse_view'),
     path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
     path('warehouse/search/<int:whs_no>/', views.warehouse_search_view, name='warehouse_search_view'),
+    path('inventory/', views.inventory_view, name='inventory'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
