@@ -87,6 +87,7 @@ class Warehouse(models.Model):
     phn_no = models.CharField(max_length=10)  
     email = models.EmailField(max_length=100)
     manager = models.CharField(max_length=50)
+
     
 
 
@@ -114,6 +115,10 @@ class Product(models.Model):
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    action= models.CharField(max_length=20, choices=[
+        ('Modify', 'Modify'),
+        ('Delete', 'Delete')
+    ], default='Modify')
 
     # Only this is the primary key
     id = models.AutoField(primary_key=True)

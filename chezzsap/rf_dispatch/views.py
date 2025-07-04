@@ -460,22 +460,13 @@ def edit_warehouse(request, whs_no):
 
 
 
-
-from .models import Product
-from .forms import ProductForm
-from django.utils import timezone
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import Product
-
+# ...................
+# product_detail
+# ..................
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
+from .forms import ProductForm
 
 def add_product(request):
     if request.method == 'POST':
@@ -511,42 +502,46 @@ def add_product(request):
 
     return render(request, 'product/add_product.html')
 
-
-
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product
-from .forms import ProductForm
-from django.contrib import messages
-
 def product_detail(request, product_id):
    product= get_object_or_404(Product, product_id=product_id)
    return render(request, 'product/product_detail.html', {'product': product})
 
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Product
-from .forms import ProductForm
-
 def product_edit(request, product_id):
-    # Get the existing product or return 404
     product = get_object_or_404(Product, product_id=product_id)
 
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Product updated successfully.")
-            return redirect('product_detail')
-    else:
-        form = ProductForm(instance=product)
+    if request.method == "POST":
+        product.name = request.POST.get('name')
+        product.quantity = request.POST.get('quantity')
+        product.pallet_no = request.POST.get('pallet_no')
+        product.sku = request.POST.get('sku')
+        product.description = request.POST.get('description')
+        product.unit_of_measure = request.POST.get('unit_of_measure')
+        product.category = request.POST.get('category')
+        product.re_order_level = request.POST.get('re_order_level')
+        if request.FILES.get('images'):
+            product.images = request.FILES['images']
 
-    return render(request, 'product/product_edit.html', {'form': form, 'product': product})
+        try:
+            product.save()
+            return redirect('product_list')  
+        except Exception as e:
+            print("Save failed:", e)  
+            return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
+
+    return render(request, 'product/product_edit.html', {'product': product})
+
     
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'product/product_list.html', {'products': products})
 
-    
 
-  
+from django.views.decorators.http import require_POST
+from django.shortcuts import get_object_or_404, redirect
+from .models import Product  
+
+@require_POST
+def product_delete(request, product_id):
+    product = get_object_or_404(Product, product_id=product_id)
+    product.delete()
+    return redirect('product_list')

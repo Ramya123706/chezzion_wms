@@ -59,10 +59,7 @@ class ProductForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['created_at', 'updated_at']
 
-class EditProduct(forms.ModelForm):
-    class Meta:
-        model =Product
-        fields = '__all__'
+
 
 class StockUploadForm(forms.ModelForm):
     class Meta:
