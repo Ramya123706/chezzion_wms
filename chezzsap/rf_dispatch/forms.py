@@ -1,6 +1,10 @@
 # rf_dispatch/forms.py
 from django import forms
-from .models import YardHdr, YES_NO_CHOICES, StockUpload, Warehouse  
+from .models import YardHdr, YES_NO_CHOICES  # Make sure YES_NO_CHOICES is imported
+from .models import Product
+from .models import Warehouse
+from .models import StockUpload
+
 
 class YardHdrForm(forms.ModelForm):
     class Meta:
@@ -45,6 +49,20 @@ class TruckInspectionForm(forms.ModelForm):
 from django import forms
 class Trucksearchform(forms.Form):
       truck_no=forms.CharField(max_length=50)
+      
+      
+
+      
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = '__all__'
+        exclude = ['created_at', 'updated_at']
+
+class EditProduct(forms.ModelForm):
+    class Meta:
+        model =Product
+        fields = '__all__'
 
 class StockUploadForm(forms.ModelForm):
     class Meta:
@@ -73,3 +91,20 @@ class WarehouseForm(forms.ModelForm):
         model = Warehouse
         fields = '__all__'
 
+from django.utils import timezone
+from django import forms
+from .models import Pallet
+
+class PalletForm(forms.ModelForm):
+    class Meta:
+        model = Pallet
+        exclude = ['created_by', 'updated_by']  
+        widgets = {
+            'pallet_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={'class': 'form-select'}),  
+            'capacity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_scanned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }

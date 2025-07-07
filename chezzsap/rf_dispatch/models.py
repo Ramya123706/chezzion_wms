@@ -8,6 +8,8 @@ YES_NO_CHOICES = [
 class YardHdr(models.Model):
     truck_no = models.CharField(max_length=10, primary_key=True)
     whs_no = models.CharField(max_length=5, unique=True)
+    truck_no = models.CharField(max_length=10, primary_key=True)
+    whs_no = models.CharField(max_length=5, unique=True)
     truck_type = models.CharField(max_length=20)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -31,6 +33,7 @@ class YardHdr(models.Model):
         return f"YardHdr(whs_no={self.whs_no}, truck_no={self.truck_no})"
 
 class TruckLog(models.Model):
+    truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
@@ -75,6 +78,7 @@ class StockUpload(models.Model):
         inventory.total_quantity += self.quantity
         inventory.save()
 
+
 class Truck(models.Model):
     truck_no = models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
     driver_name = models.CharField(max_length=50)
@@ -111,3 +115,52 @@ class Inventory(models.Model):
 
 
 
+from django.db import models
+
+class Product(models.Model):
+    product_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
+    quantity = models.IntegerField()
+    pallet_no = models.CharField(max_length=50)
+    sku = models.CharField(max_length=100)
+    description = models.TextField()
+    unit_of_measure = models.CharField(max_length=50)
+    category = models.CharField(max_length=100)
+    re_order_level = models.IntegerField()
+    images = models.ImageField(upload_to='product_images/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Only this is the primary key
+    id = models.AutoField(primary_key=True)
+
+    def __str__(self):
+        return self.name
+
+from django.utils import timezone
+
+class Pallet(models.Model):
+    pallet_no = models.CharField(max_length=100, unique=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    capacity = models.IntegerField(default=0)
+    quantity = models.IntegerField(default=0)
+    weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    is_scanned = models.BooleanField(default=False)
+    scanned_at = models.DateTimeField(default=timezone.now, blank=True)
+    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+    updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+
+    def __str__(self):
+        return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
+
+class vendor(models.Model):
+    name = models.CharField(max_length=255)
+    vendor_code = models.CharField(max_length=50, unique=True)
+    email = models.EmailField()  
+    phone_no = models.CharField(max_length=15)
+    address = models.TextField()
+    location = models.CharField(max_length=100)
+    profile_image = models.ImageField(upload_to='vendor_images/', default='vendor_images/default.jpg', null=True, blank=True)
+   
+    def __str__(self):
+        return self.name
