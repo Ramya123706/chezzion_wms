@@ -139,3 +139,32 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+# ....................
+# customer_details
+# ....................
+class vendor(models.Model):
+    name = models.CharField(max_length=255)
+    vendor_code = models.CharField(max_length=50, unique=True)
+    email = models.EmailField()  
+    phone_no = models.CharField(max_length=15)
+    address = models.TextField()
+    location = models.CharField(max_length=100)
+    profile_image = models.ImageField(upload_to='vendor_images/', default='vendor_images/default.jpg', null=True, blank=True)
+   
+    def __str__(self):
+        return self.name
+    
+class Customers(models.Model):
+    name = models.CharField(max_length=255)
+    id = models.AutoField(primary_key=True) 
+    customer_code = models.CharField(max_length=50)
+    email = models.EmailField()  
+    phone_no = models.CharField(max_length=10)
+    address = models.CharField()
+    location = models.CharField(max_length=100)
+
+
+    def __str__(self):
+        return self.name

@@ -60,6 +60,11 @@ urlpatterns = [
     path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
     path('warehouse/search/<int:whs_no>/', views.warehouse_search_view, name='warehouse_search_view'),
     path('inventory/', views.inventory_view, name='inventory'),
+    path('add_customers/', views.add_customers, name='add_customers'),
+    path('customers/<int:customer_id>/', views.customers_detail, name='customers_detail'),
+    path('customers/<int:customer_id>/edit/', views.customers_edit, name='customers_edit'),
+    path('customers/', views.customers_list, name='customers_list'),
+    path('customers/<int:customer_id>/delete/', views.customers_delete, name='customers_delete'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

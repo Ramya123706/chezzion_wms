@@ -4,7 +4,8 @@ from .models import YardHdr, YES_NO_CHOICES  # Make sure YES_NO_CHOICES is impor
 from .models import Product
 from .models import Warehouse
 from .models import StockUpload
-
+from .models import Customers
+from .models import vendor
 
 class YardHdrForm(forms.ModelForm):
     class Meta:
@@ -87,3 +88,14 @@ class WarehouseForm(forms.ModelForm):
     class Meta:
         model = Warehouse
         fields = '__all__'
+        
+        
+class CustomersForm(forms.ModelForm):
+    class Meta:
+        model=Customers
+        fields='__all__'
+    
+class vendorform(forms.ModelForm):
+    class Meta:
+        model=vendor
+        fields='__all__'        

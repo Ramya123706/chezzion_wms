@@ -549,3 +549,86 @@ def product_delete(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     product.delete()
     return redirect('product_list')  
+
+# .......................
+# customers.views.py
+# .......................
+from .forms import CustomersForm
+from .models import Customers
+from.models import vendor
+from django.utils import timezone
+
+def add_customers(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        id= request.POST.get('id')
+        customer_code = request.POST.get('customer_code')
+        email = request.POST.get('email')
+        phone_no = request.POST.get('phone_no')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+
+        try:
+            customer = Customers.objects.create(
+                name=name,
+                id=id,
+                customer_code=customer_code,
+                email=email,
+                phone_no=phone_no,
+                address=address,
+                location=location,
+                )
+            return redirect('customers_detail', customer_id=customer.id)
+        except Exception as e:
+            return render(request, 'customers/add_customers.html', {'error': str(e)})
+
+    return render(request, 'customers/add_customers.html')
+
+
+
+
+def customers_detail(request, customer_id):  
+    customer = get_object_or_404(Customers, id=customer_id)
+    return render(request, 'customers/customers_detail.html', {'customer': customer})
+
+
+from django.contrib import messages
+
+
+from django.db import IntegrityError
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Customers  # or whatever your model is named
+
+def customers_edit(request, customer_id):
+    customer = get_object_or_404(Customers, id=customer_id)
+
+    if request.method == 'POST':
+        customer.name = request.POST.get('name')
+        customer.customer_code = request.POST.get('customer_code')
+        customer.email = request.POST.get('email')
+        customer.phone_no = request.POST.get('phone_no')
+        customer.address = request.POST.get('address')
+        customer.location = request.POST.get('location')
+        
+        customer.save()
+        messages.success(request, "Customer updated successfully.")
+        return redirect('customers_list')
+
+    return render(request, 'customers/customers_edit.html', {'customer': customer})
+
+
+def customers_list(request):
+    
+    customers = Customers.objects.all()
+    
+    return render(request, 'customers/customers_list.html', {'customer': customers})
+
+
+def customers_delete(request, customer_id):
+    customers = get_object_or_404(Customers, id=customer_id)
+    customers.delete()
+    messages.success(request, "Customer deleted successfully.")
+    return redirect('customers_list')
+ 

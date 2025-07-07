@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container Customers-list mt-5">
+    {% for customers in customer %}
+        <div class="card my-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 col-sm-12">
+                        <table class="table table-bordered table-sm">
+    <tbody>
+        <tr>
+            <th scope="row">Name</th>
+            <td>{{ customers.name }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Customer ID</th>
+            <td>{{ customers.id }}</td>    
+        </tr>
+        <tr>
+            <th scope="row">Customer Code</th>
+            <td>{{ customers.customer_code }}</td>
+        </tr>
+        <tr>    
+            <th scope="row">Email</th>
+            <td>{{ customers.email }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Phone_no</th>
+            <td>{{ customers.phone_no}}</td>
+        </tr>
+        <tr>
+            <th scope="row">Address</th>
+            <td>{{ customers.address }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Location</th>
+            <td>{{ customers.location }}</td>
+        </tr>
+        
+                            </tbody>
+                        </table>
+                    </div>
+            </div>
+        </div>
+         <div class="text-center mt-3">
+    <a href="{% url 'customers_edit' customers.id %}" class="btn btn-primary btn-sm">Modify</a>
+    <a href="{% url 'customers_delete' customers.id %}" class="btn btn-danger btn-sm">Delete</a>
+</div>
+
+    {% endfor %}
+</div>
+
+</div>
+{% endblock %}
