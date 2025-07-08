@@ -60,7 +60,7 @@
                     </div>
                 </form>
 
-                {% if warehouses %}
+                {% if warehouses %} 
                     <!-- Desktop Table View -->
                     <div class="d-none d-md-block px-3 pb-3">
                         <table class="table table-bordered text-center align-middle">
@@ -68,11 +68,7 @@
                                 <tr>
                                     <th>Whs_no</th>
                                     <th>whs_name</th>
-                                    <th>Address</th>
-                                    <th>Phone Number</th>
-                                    <th>Email</th>
-                                    <th>Manager</th>
-                                    <th>Actions</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,18 +76,15 @@
                                 <tr>
                                     <td>{{ warehouse.whs_no }}</td>
                                     <td>{{ warehouse.whs_name }}</td>
-                                    <td>{{ warehouse.address }}</td>
-                                    <td>{{ warehouse.phn_no }}</td>
-                                    <td>{{ warehouse.email }}</td>
-                                    <td>{{ warehouse.manager }}</td>
                                     <td>
                                         <a href="{% url 'warehouse_search_details' warehouse.whs_no %}" class="btn btn-sm btn-info">View Details</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
+                        
                         </table>
-                    </div>
+                    </div> 
 
                     <!-- Mobile Card View -->
                     <div class="d-md-none px-3 pb-3">
@@ -100,11 +93,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">Warehouse #{{ warehouse.whs_no }}</h5>
                                 <p class="card-text mb-1"><strong>Name:</strong> {{ warehouse.whs_name }}</p>
-                                <p class="card-text mb-1"><strong>Address:</strong> {{ warehouse.address }}</p>
-                                <p class="card-text mb-2"><strong>Phone:</strong> {{ warehouse.phn_no }}</p>
-                                <p class="card-text mb-2"><strong>Email:</strong> {{ warehouse.email }}</p>
-                                <p class="card-text mb-2"><strong>Manager:</strong> {{ warehouse.manager }}</p>
-                                <a href="{% url 'warehouse_search_details' warehouse.whs_no %}" class="btn btn-sm btn-info">View Details</a>
+                                <a href="{% url 'warehouse_search_details' warehouse.whs_no %}" class="btn btn-sm btn-info">View Detail</a>
                             </div>
                         </div>
                         {% endfor %}
@@ -112,7 +101,7 @@
 
                 {% else %}
                     <!-- No Results -->
-                    <div class="alert alert-warning text-center mt-4 mx-3">
+                    <div class="alert alert-warning text-center mt-4">
                         No warehouses found matching your search.
                     </div>
                 {% endif %}
