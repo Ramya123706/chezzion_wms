@@ -4,7 +4,8 @@ from .models import YardHdr, YES_NO_CHOICES  # Make sure YES_NO_CHOICES is impor
 from .models import Product
 from .models import Warehouse
 from .models import StockUpload
-
+from .models import Customers
+from .models import vendor
 
 class YardHdrForm(forms.ModelForm):
     class Meta:
@@ -59,10 +60,7 @@ class ProductForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['created_at', 'updated_at']
 
-class EditProduct(forms.ModelForm):
-    class Meta:
-        model =Product
-        fields = '__all__'
+
 
 class StockUploadForm(forms.ModelForm):
     class Meta:
@@ -90,6 +88,17 @@ class WarehouseForm(forms.ModelForm):
     class Meta:
         model = Warehouse
         fields = '__all__'
+        
+        
+class Customersform(forms.ModelForm):
+    class Meta:
+        model=Customers
+        fields='__all__'
+    
+class vendorform(forms.ModelForm):
+    class Meta:
+        model=vendor
+        fields='__all__'        
 
 from django.utils import timezone
 from django import forms
@@ -108,3 +117,4 @@ class PalletForm(forms.ModelForm):
             'is_scanned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
+

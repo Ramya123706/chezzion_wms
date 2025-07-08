@@ -444,22 +444,13 @@ def edit_warehouse(request, whs_no):
 
 
 
-
-from .models import Product
-from .forms import ProductForm
-from django.utils import timezone
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import Product
-
+# ...................
+# product_detail
+# ..................
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
+from .forms import ProductForm
 
 def add_product(request):
     if request.method == 'POST':
@@ -495,37 +486,34 @@ def add_product(request):
 
     return render(request, 'product/add_product.html')
 
-
-
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product
-from .forms import ProductForm
-from django.contrib import messages
-
 def product_detail(request, product_id):
    product= get_object_or_404(Product, product_id=product_id)
    return render(request, 'product/product_detail.html', {'product': product})
 
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Product
-from .forms import ProductForm
-
 def product_edit(request, product_id):
-    # Get the existing product or return 404
     product = get_object_or_404(Product, product_id=product_id)
 
-    if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Product updated successfully.")
-            return redirect('product_detail')
-    else:
-        form = ProductForm(instance=product)
+    if request.method == "POST":
+        product.name = request.POST.get('name')
+        product.quantity = request.POST.get('quantity')
+        product.pallet_no = request.POST.get('pallet_no')
+        product.sku = request.POST.get('sku')
+        product.description = request.POST.get('description')
+        product.unit_of_measure = request.POST.get('unit_of_measure')
+        product.category = request.POST.get('category')
+        product.re_order_level = request.POST.get('re_order_level')
+        if request.FILES.get('images'):
+            product.images = request.FILES['images']
 
-    return render(request, 'product/product_edit.html', {'form': form, 'product': product})
+        try:
+            product.save()
+            return redirect('product_list')  
+        except Exception as e:
+            print("Save failed:", e)  
+            return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
+
+    return render(request, 'product/product_edit.html', {'product': product})
+
     
 def product_list(request):
     products = Product.objects.all()
@@ -628,7 +616,90 @@ from .models import Inventory
 def inventory_view(request):
     inventory = Inventory.objects.all()
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+  
 
+def product_delete(request, product_id):
+
+    product = get_object_or_404(Product, product_id=product_id)
+    product.delete()
+    return redirect('product_list')  
+
+# .......................
+# customers.views.py
+# .......................
+from .forms import Customersform
+from .models import Customers
+from.models import vendor
+from django.utils import timezone
+from django.contrib import messages
+def add_customers(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        id= request.POST.get('id')
+        customer_code = request.POST.get('customer_code')
+        email = request.POST.get('email')
+        phone_no = request.POST.get('phone_no')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+
+        try:
+            customer = Customers.objects.create(
+                name=name,
+                id=id,
+                customer_code=customer_code,
+                email=email,
+                phone_no=phone_no,
+                address=address,
+                location=location,
+                )
+            return redirect('customers_detail', customer_id=customer.id)
+        except Exception as e:
+            return render(request, 'customers/add_customers.html', {'error': str(e)})
+
+    return render(request, 'customers/add_customers.html')
+
+def customers_detail(request, customer_id):  
+    customer = get_object_or_404(Customers, id=customer_id)
+    return render(request, 'customers/customers_detail.html', {'customer': customer})
+
+def customers_edit(request, customer_id):
+    customer = get_object_or_404(Customers, id=customer_id)
+
+    if request.method == 'POST':
+        customer.name = request.POST.get('name')
+        customer.customer_code = request.POST.get('customer_code')
+        customer.email = request.POST.get('email')
+        customer.phone_no = request.POST.get('phone_no')
+        customer.address = request.POST.get('address')
+        customer.location = request.POST.get('location')
+        
+        customer.save()
+        messages.success(request, "Customer updated successfully.")
+        return redirect('customers_list')
+
+    return render(request, 'customers/customers_edit.html', {'customer': customer})
+
+
+def customers_list(request):
+    customers = Customers.objects.all()
+    return render(request, 'customers/customers_list.html', {'customer': customers})
+
+
+
+# from django.views.decorators.http import require_POST
+
+# @require_POST
+# def customers_delete(request, customer_id):
+#     customer = get_object_or_404(Customers, id=customer_id)
+#     customer.delete()
+#     return redirect('customers_edit')
+
+def customers_delete(request, pk):
+    customer = get_object_or_404(Customers, pk=pk)
+    if request.method == 'POST':
+        customer.delete()
+        return redirect('customers_list') 
+=======
 from .models import Warehouse
 
 def whs_no_dropdown_view(request):
@@ -693,5 +764,6 @@ def edit_pallet(request, pallet_no):
         form = PalletForm(instance=pallet)
 
     return render(request, 'pallet/pallet_edit.html', {'form': form, 'pallet': pallet})
+
 
 

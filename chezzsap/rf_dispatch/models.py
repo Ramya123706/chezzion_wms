@@ -130,12 +130,21 @@ class Product(models.Model):
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    action= models.CharField(max_length=20, choices=[
+        ('Modify', 'Modify'),
+        ('Delete', 'Delete')
+    ], default='Modify')
 
     # Only this is the primary key
     id = models.AutoField(primary_key=True)
 
     def __str__(self):
         return self.name
+    
+    
+# ....................
+# customer_details
+# ....................
 
 from django.utils import timezone
 
@@ -162,5 +171,19 @@ class vendor(models.Model):
     location = models.CharField(max_length=100)
     profile_image = models.ImageField(upload_to='vendor_images/', default='vendor_images/default.jpg', null=True, blank=True)
    
+    def __str__(self):
+        return self.name
+   
+class Customers(models.Model):
+    name = models.CharField(max_length=255)
+    id = models.AutoField(primary_key=True) 
+    customer_code = models.CharField(max_length=50)
+    email = models.EmailField()  
+    phone_no = models.CharField(max_length=10)
+    address = models.CharField()
+    location = models.CharField(max_length=255, blank=True, null=True)
+
+
+
     def __str__(self):
         return self.name
