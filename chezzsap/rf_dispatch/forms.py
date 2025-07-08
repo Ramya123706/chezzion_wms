@@ -99,3 +99,22 @@ class vendorform(forms.ModelForm):
     class Meta:
         model=vendor
         fields='__all__'        
+
+from django.utils import timezone
+from django import forms
+from .models import Pallet
+
+class PalletForm(forms.ModelForm):
+    class Meta:
+        model = Pallet
+        exclude = ['created_by', 'updated_by']  
+        widgets = {
+            'pallet_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={'class': 'form-select'}),  
+            'capacity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_scanned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+        }
+
