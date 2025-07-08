@@ -90,7 +90,7 @@ class WarehouseForm(forms.ModelForm):
         fields = '__all__'
         
         
-class CustomersForm(forms.ModelForm):
+class Customersform(forms.ModelForm):
     class Meta:
         model=Customers
         fields='__all__'

@@ -553,11 +553,11 @@ def product_delete(request, product_id):
 # .......................
 # customers.views.py
 # .......................
-from .forms import CustomersForm
+from .forms import Customersform
 from .models import Customers
 from.models import vendor
 from django.utils import timezone
-
+from django.contrib import messages
 def add_customers(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -584,22 +584,9 @@ def add_customers(request):
 
     return render(request, 'customers/add_customers.html')
 
-
-
-
 def customers_detail(request, customer_id):  
     customer = get_object_or_404(Customers, id=customer_id)
     return render(request, 'customers/customers_detail.html', {'customer': customer})
-
-
-from django.contrib import messages
-
-
-from django.db import IntegrityError
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Customers  # or whatever your model is named
 
 def customers_edit(request, customer_id):
     customer = get_object_or_404(Customers, id=customer_id)
@@ -620,15 +607,22 @@ def customers_edit(request, customer_id):
 
 
 def customers_list(request):
-    
     customers = Customers.objects.all()
-    
     return render(request, 'customers/customers_list.html', {'customer': customers})
 
 
-def customers_delete(request, customer_id):
-    customers = get_object_or_404(Customers, id=customer_id)
-    customers.delete()
-    messages.success(request, "Customer deleted successfully.")
-    return redirect('customers_list')
- 
+
+# from django.views.decorators.http import require_POST
+
+# @require_POST
+# def customers_delete(request, customer_id):
+#     customer = get_object_or_404(Customers, id=customer_id)
+#     customer.delete()
+#     return redirect('customers_edit')
+
+def customers_delete(request, pk):
+    customer = get_object_or_404(Customers, pk=pk)
+    if request.method == 'POST':
+        customer.delete()
+        return redirect('customers_list') 
+

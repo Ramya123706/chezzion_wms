@@ -163,7 +163,8 @@ class Customers(models.Model):
     email = models.EmailField()  
     phone_no = models.CharField(max_length=10)
     address = models.CharField()
-    location = models.CharField(max_length=100)
+    location = models.CharField(max_length=255, blank=True, null=True)
+
 
 
     def __str__(self):

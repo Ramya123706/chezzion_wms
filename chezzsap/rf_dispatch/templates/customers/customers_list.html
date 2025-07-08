@@ -1,55 +1,41 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container Customers-list mt-5">
-    {% for customers in customer %}
-        <div class="card my-3">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 col-sm-12">
-                        <table class="table table-bordered table-sm">
-    <tbody>
-        <tr>
-            <th scope="row">Name</th>
-            <td>{{ customers.name }}</td>
-        </tr>
-        <tr>
-            <th scope="row">Customer ID</th>
-            <td>{{ customers.id }}</td>    
-        </tr>
-        <tr>
-            <th scope="row">Customer Code</th>
-            <td>{{ customers.customer_code }}</td>
-        </tr>
-        <tr>    
-            <th scope="row">Email</th>
-            <td>{{ customers.email }}</td>
-        </tr>
-        <tr>
-            <th scope="row">Phone_no</th>
-            <td>{{ customers.phone_no}}</td>
-        </tr>
-        <tr>
-            <th scope="row">Address</th>
-            <td>{{ customers.address }}</td>
-        </tr>
-        <tr>
-            <th scope="row">Location</th>
-            <td>{{ customers.location }}</td>
-        </tr>
-        
-                            </tbody>
-                        </table>
-                    </div>
-            </div>
-        </div>
-         <div class="text-center mt-3">
-    <a href="{% url 'customers_edit' customers.id %}" class="btn btn-primary btn-sm">Modify</a>
-    <a href="{% url 'customers_delete' customers.id %}" class="btn btn-danger btn-sm">Delete</a>
+<div class="container mt-5">
+    <h4 class="mb-4 bg-primary text-center text-white">Customer List</h4>
+    <table class="table table-bordered table-hover table-sm text-center">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>Name</th>
+                <th>Customer ID</th>
+                <th>Phone No</th>
+                <th>Action</th>
+              
+            </tr>
+        </thead>
+        <tbody>
+            {% for customers in customer %}
+            <tr>
+                <td>{{ customers.name }}</td>
+                <td>{{ customers.id }}</td>
+                <td>{{ customers.phone_no }}</td>
+                <td action class="text-nowrap text-center">
+                    <a href="{% url 'customers_detail' customers.id %}" class="btn btn-sm btn-primary">View details</a>
+                    <a href="{% url 'customers_edit' customers.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <form action="{% url 'customers_delete' customers.id %}" method="post" style="display:inline;" onsubmit="return confirmDelete()">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
-    {% endfor %}
-</div>
-
-</div>
+<script>
+function confirmDelete() {
+    return confirm("Are you sure you want to delete this customer?");
+}
+</script>
 {% endblock %}

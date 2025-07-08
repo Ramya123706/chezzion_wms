@@ -64,7 +64,8 @@ urlpatterns = [
     path('customers/<int:customer_id>/', views.customers_detail, name='customers_detail'),
     path('customers/<int:customer_id>/edit/', views.customers_edit, name='customers_edit'),
     path('customers/', views.customers_list, name='customers_list'),
-    path('customers/<int:customer_id>/delete/', views.customers_delete, name='customers_delete'),
+    # path('customers/<int:customer_id>/', views.customers_delete, name='customers_delete'),
+    path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
