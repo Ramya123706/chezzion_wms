@@ -18,7 +18,6 @@ urlpatterns = [
     path('outbound7/', views.outbound7, name='outbound7'),
     path('six/', views.sixth, name='sixth'),
     path('start/', views.first, name='first'),
-   
     path('hu1/', views.hu1, name='hu1'),
     path('hu12/', views.hu12, name='hu12'),
     path('hu123/', views.hu123, name='hu123'),
@@ -27,7 +26,6 @@ urlpatterns = [
     path('new3/', views.new3, name='new3'),
     path('new4/', views.new4, name='new4'),
     path('one/', views.yard_checkin_view, name='one'),
-     
     path('three/', views.three, name='three'),
     path('four/', views.four, name='four'),
     path('five1/', views.five1, name='five1'),
@@ -63,7 +61,6 @@ urlpatterns = [
     path('creating_pallet/', views.creating_pallet, name='creating_pallet'),
     path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
     path('pallet/edit/<int:pallet_no>/', views.edit_pallet, name='edit_pallet'),
-
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
