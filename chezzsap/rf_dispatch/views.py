@@ -699,7 +699,7 @@ def customers_delete(request, pk):
     if request.method == 'POST':
         customer.delete()
         return redirect('customers_list') 
-=======
+    
 from .models import Warehouse
 
 def whs_no_dropdown_view(request):
@@ -766,4 +766,32 @@ def edit_pallet(request, pallet_no):
     return render(request, 'pallet/pallet_edit.html', {'form': form, 'pallet': pallet})
 
 
+
+from django.shortcuts import render, redirect
+
+
+def add_vendor(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        vendor_code = request.POST.get('vendor_code') 
+        email = request.POST.get('email')
+        phone_no = request.POST.get('phone_no')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+        profile_image = request.FILES.get('profile_image')  
+ 
+        vendor = vendor(
+            name=name,
+            vendor_code=vendor_code,
+            email=email,
+            phone_no=phone_no,
+            address=address,
+            location=location,
+            profile_image=profile_image
+        )
+        vendor.save()
+
+        return redirect('vendor/vendor_detail')  
+
+    return render(request, 'vendor/add_vendor.html')  
 
