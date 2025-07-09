@@ -48,7 +48,7 @@ urlpatterns = [
     path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
     path('product/', views.add_product, name='add_product'),
-    path('product/<str:product_id>/', views.product_detail, name='product_detail'),
+    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
     path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
@@ -66,6 +66,10 @@ urlpatterns = [
     path('customers/', views.customers_list, name='customers_list'),
     # path('customers/<int:customer_id>/', views.customers_delete, name='customers_delete'),
     path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
+    path('add_vendor/',views.add_vendor, name='add_vendor'),
+    path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
+    path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
+    path('vendors/', views.vendor_list, name='vendor_list'), 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
