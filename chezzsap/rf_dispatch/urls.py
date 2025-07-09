@@ -18,7 +18,6 @@ urlpatterns = [
     path('outbound7/', views.outbound7, name='outbound7'),
     path('six/', views.sixth, name='sixth'),
     path('start/', views.first, name='first'),
-   
     path('hu1/', views.hu1, name='hu1'),
     path('hu12/', views.hu12, name='hu12'),
     path('hu123/', views.hu123, name='hu123'),
@@ -27,7 +26,6 @@ urlpatterns = [
     path('new3/', views.new3, name='new3'),
     path('new4/', views.new4, name='new4'),
     path('one/', views.yard_checkin_view, name='one'),
-     
     path('three/', views.three, name='three'),
     path('four/', views.four, name='four'),
     path('five1/', views.five1, name='five1'),
@@ -47,6 +45,11 @@ urlpatterns = [
     path('truck-status/', views.truck_status_view, name='truck_status'),
     path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
+    path('product/', views.add_product, name='add_product'),
+    path('product/<str:product_id>/', views.product_detail, name='product_detail'),
+    path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
+    path('product-list', views.product_list, name='product_list'),
+    path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
     path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
     path('stock_upload/menu', views.stock_menu, name='stock_menu'),
     path('stock_upload/batch_product', views.batch_product_view, name='batch_product'),
@@ -56,8 +59,16 @@ urlpatterns = [
     path('warehouse_search/<int:whs_no>/', views.warehouse_search_view, name='warehouse_search_details'),
     path('warehouse/edit/<int:whs_no>/', views.edit_warehouse, name='edit_warehouse'),
     path('inventory/', views.inventory_view, name='inventory'),
+    path('add_customers/', views.add_customers, name='add_customers'),
+    path('customers/<int:customer_id>/', views.customers_detail, name='customers_detail'),
+    path('customers/<int:customer_id>/edit/', views.customers_edit, name='customers_edit'),
+    path('customers/', views.customers_list, name='customers_list'),
+    path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
+    path('creating_pallet/', views.creating_pallet, name='creating_pallet'),
+    path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
+    path('pallet/edit/<int:pallet_no>/', views.edit_pallet, name='edit_pallet'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

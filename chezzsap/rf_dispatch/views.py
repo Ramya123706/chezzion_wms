@@ -91,7 +91,7 @@ def yard_checkin_view(request):
 #     return render(request, 'truck_screen/two.html', {'form': form})
 from django.shortcuts import render, redirect
 from .forms import TruckInspectionForm
-from .models import YardHdr, TruckLog
+from .models import Pallet, YardHdr, TruckLog
 from .utils import log_truck_status  # create this helper
 
 def truck_inspection_view(request, truck_no):
@@ -115,18 +115,16 @@ def truck_inspection_view(request, truck_no):
                 instance.seal_no = seal_no
             instance.save()
 
-            # ✅ Log status if changed
             if old_status != instance.truck_status:
                 log_truck_status(instance, instance.truck_status, user=request.user)
 
             return redirect('one')
         else:
             print(form.errors)
+    elif existing_truck:
+        form = TruckInspectionForm(instance=existing_truck)
     else:
-        if existing_truck:
-            form = TruckInspectionForm(instance=existing_truck)
-        else:
-            form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
+        form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
 
     return render(request, 'truck_screen/two.html', {
         'form': form,
@@ -246,6 +244,9 @@ def truck_list(request):
 from .models import YardHdr, TruckLog
 from .utils import log_truck_status  # Assuming your log function is in utils.py
 
+from .models import YardHdr, TruckLog
+from .utils import log_truck_status  # Assuming your log function is in utils.py
+
 def truck_detail(request, truck_no):
     try:
         truck = YardHdr.objects.get(truck_no=truck_no)
@@ -264,8 +265,10 @@ def truck_detail(request, truck_no):
             'logs': logs
         })
 
+
     except YardHdr.DoesNotExist:
         return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
+
 
 
 
@@ -286,7 +289,6 @@ def update_truck_status(request, truck_no):
             truck.truck_status = new_status
             truck.save()
 
-        # If you want to log a comment, get it from POST or set to empty string
         comment = request.POST.get('comment', '')
 
         log_truck_status(truck_instance=truck, status=new_status,  comment=comment)
@@ -440,8 +442,323 @@ def edit_warehouse(request, whs_no):
     return render(request, 'warehouse/warehouse_edit.html', {'form': form, 'warehouse': warehouse})
 
 
+# ...................
+# product_detail
+# ..................
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product
+from django.utils import timezone
+from .forms import ProductForm
+
+def add_product(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        product_id = request.POST.get('id')
+        quantity = request.POST.get('quantity')
+        pallet_no = request.POST.get('pallet_no')
+        sku = request.POST.get('sku')
+        description = request.POST.get('description')
+        unit_of_measure = request.POST.get('unit_of_measure')
+        category = request.POST.get('category')
+        re_order_level = request.POST.get('re_order_level')
+        images = request.FILES.get('images')
+
+        try:
+            product = Product.objects.create(
+                product_id=product_id,
+                name=name,
+                quantity=quantity,
+                pallet_no=pallet_no,
+                sku=sku,
+                description=description,
+                unit_of_measure=unit_of_measure,
+                category=category,
+                re_order_level=re_order_level,
+                images=images,
+                created_at=timezone.now(),
+                updated_at=timezone.now()
+            )
+            return redirect('product_detail', product_id=product.product_id)
+        except Exception as e:
+            return render(request, 'product/add_product.html', {'error': str(e)})
+
+    return render(request, 'product/add_product.html')
+
+def product_detail(request, product_id):
+   product= get_object_or_404(Product, product_id=product_id)
+   return render(request, 'product/product_detail.html', {'product': product})
+
+def product_edit(request, product_id):
+    product = get_object_or_404(Product, product_id=product_id)
+
+    if request.method == "POST":
+        product.name = request.POST.get('name')
+        product.quantity = request.POST.get('quantity')
+        product.pallet_no = request.POST.get('pallet_no')
+        product.sku = request.POST.get('sku')
+        product.description = request.POST.get('description')
+        product.unit_of_measure = request.POST.get('unit_of_measure')
+        product.category = request.POST.get('category')
+        product.re_order_level = request.POST.get('re_order_level')
+        if request.FILES.get('images'):
+            product.images = request.FILES['images']
+
+        try:
+            product.save()
+            return redirect('product_list')  
+        except Exception as e:
+            print("Save failed:", e)  
+            return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
+
+    return render(request, 'product/product_edit.html', {'product': product})
+
+
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'product/product_list.html', {'products': products})
+
+
+
+from .models import Product
+from .forms import ProductForm
+from django.utils import timezone
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import Product
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product
+from django.utils import timezone
+
+def add_product(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        product_id = request.POST.get('id')
+        quantity = request.POST.get('quantity')
+        pallet_no = request.POST.get('pallet_no')
+        sku = request.POST.get('sku')
+        description = request.POST.get('description')
+        unit_of_measure = request.POST.get('unit_of_measure')
+        category = request.POST.get('category')
+        re_order_level = request.POST.get('re_order_level')
+        images = request.FILES.get('images')
+
+        try:
+            product = Product.objects.create(
+                product_id=product_id,
+                name=name,
+                quantity=quantity,
+                pallet_no=pallet_no,
+                sku=sku,
+                description=description,
+                unit_of_measure=unit_of_measure,
+                category=category,
+                re_order_level=re_order_level,
+                images=images,
+                created_at=timezone.now(),
+                updated_at=timezone.now()
+            )
+            return redirect('product_detail', product_id=product.product_id)
+        except Exception as e:
+            return render(request, 'product/add_product.html', {'error': str(e)})
+
+    return render(request, 'product/add_product.html')
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Product
+from .forms import ProductForm
+from django.contrib import messages
+
+def product_detail(request, product_id):
+   product= get_object_or_404(Product, product_id=product_id)
+   return render(request, 'product/product_detail.html', {'product': product})
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Product
+from .forms import ProductForm
+
+def product_edit(request, product_id):
+    # Get the existing product or return 404
+    product = get_object_or_404(Product, product_id=product_id)
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Product updated successfully.")
+            return redirect('product_detail')
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'product/product_edit.html', {'form': form, 'product': product})
+    
+def product_list(request):
+    products = Product.objects.all()
+    return render(request, 'product/product_list.html', {'products': products})
+
+    
+
+  
+# views.py
 from .models import Inventory
 
 def inventory_view(request):
     inventory = Inventory.objects.all()
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+
+def product_delete(request, product_id):
+
+    product = get_object_or_404(Product, product_id=product_id)
+    product.delete()
+    return redirect('product_list')  
+
+# .......................
+# customers.views.py
+# .......................
+from .forms import Customersform
+from .models import Customers
+from.models import vendor
+from django.utils import timezone
+from django.contrib import messages
+def add_customers(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        id= request.POST.get('id')
+        customer_code = request.POST.get('customer_code')
+        email = request.POST.get('email')
+        phone_no = request.POST.get('phone_no')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+
+        try:
+            customer = Customers.objects.create(
+                name=name,
+                id=id,
+                customer_code=customer_code,
+                email=email,
+                phone_no=phone_no,
+                address=address,
+                location=location,
+                )
+            return redirect('customers_detail', customer_id=customer.id)
+        except Exception as e:
+            return render(request, 'customers/add_customers.html', {'error': str(e)})
+
+    return render(request, 'customers/add_customers.html')
+
+def customers_detail(request, customer_id):  
+    customer = get_object_or_404(Customers, id=customer_id)
+    return render(request, 'customers/customers_detail.html', {'customer': customer})
+
+def customers_edit(request, customer_id):
+    customer = get_object_or_404(Customers, id=customer_id)
+
+    if request.method == 'POST':
+        customer.name = request.POST.get('name')
+        customer.customer_code = request.POST.get('customer_code')
+        customer.email = request.POST.get('email')
+        customer.phone_no = request.POST.get('phone_no')
+        customer.address = request.POST.get('address')
+        customer.location = request.POST.get('location')
+        
+        customer.save()
+        messages.success(request, "Customer updated successfully.")
+        return redirect('customers_list')
+
+    return render(request, 'customers/customers_edit.html', {'customer': customer})
+
+
+def customers_list(request):
+    customers = Customers.objects.all()
+    return render(request, 'customers/customers_list.html', {'customer': customers})
+
+
+
+# from django.views.decorators.http import require_POST
+
+# @require_POST
+# def customers_delete(request, customer_id):
+#     customer = get_object_or_404(Customers, id=customer_id)
+#     customer.delete()
+#     return redirect('customers_edit')
+
+def customers_delete(request, pk):
+    customer = get_object_or_404(Customers, pk=pk)
+    if request.method == 'POST':
+        customer.delete()
+        return redirect('customers_list') 
+
+from .models import Warehouse
+
+def whs_no_dropdown_view(request):
+    warehouses = Warehouse.objects.all()
+    return render(request, 'stock_upload/batch_product.html', {'warehouses': warehouses})
+
+
+from .forms import PalletForm
+
+from django.shortcuts import render, redirect
+from .forms import PalletForm
+from .models import Pallet
+from django.contrib.auth.models import User
+
+
+def creating_pallet(request):
+    # Handle form submission
+    if request.method == 'POST':
+        form = PalletForm(request.POST)
+        if form.is_valid():
+            pallet = form.save(commit=False)
+            pallet.created_by = request.user
+            pallet.updated_by = request.user
+            pallet.save()
+            return redirect('creating_pallet')  # Refresh page after submission
+    else:
+        form = PalletForm()
+
+    # Handle pallet search
+    query = request.GET.get('search')
+    if query:
+        pallets = Pallet.objects.filter(pallet_no__icontains=query)
+    else:
+        pallets = Pallet.objects.all()  
+
+    
+    return render(request, 'pallet/creating_pallet.html', {
+        'form': form, 
+        'pallets': pallets, 
+        'query': query
+        })
+
+
+def pallet_search(request, pallet_no):
+    pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
+    return render(request, 'pallet/pallet_search_details.html', {'pallet': pallet})
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Pallet
+from .forms import PalletForm
+
+def edit_pallet(request, pallet_no):
+    pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
+
+    if request.method == 'POST':
+        form = PalletForm(request.POST, request.FILES, instance=pallet)
+        if form.is_valid():
+            form.save()
+            return redirect('pallet_search_details', pallet_no=pallet.pallet_no)
+    else:
+        form = PalletForm(instance=pallet)
+
+    return render(request, 'pallet/pallet_edit.html', {'form': form, 'pallet': pallet})
+

@@ -13,11 +13,17 @@
                 </div>
 
                 <form action="{% url 'batch_product' %}" method="post">
+                    
                     {% csrf_token %}
-
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                    {{ form.errors }}
+                    </div>
+                    {% endif %}	 
                     <div class="form-group">
                         <label for="whs_no">Whs No</label>
                         <input type="text" class="form-control" id="whs_no" name="whs_no" required>
+                    
                     </div>
 
                     <div class="form-group">
