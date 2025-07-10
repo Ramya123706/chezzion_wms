@@ -1,77 +1,115 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-        <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card">
-            <div class="card-header text-center text-white bg-primary">
-                <h5>Add Vendor</h5>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{% url 'add_vendor' %}" enctype="multipart/form-data">
-                    {% csrf_token %}
+<div class="container mt-4">
+    <div class="row align-items-start">
 
-                    {% if error %}
-                        <div class="alert alert-danger">
-                            <strong>Error:</strong> {{ error }}
+        <!-- Left Column: Add / Update Vendor -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5>Add / Update Vendor</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'add_vendor' %}" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group mb-2">
+                            <label for="name"><b>Name</b></label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="id"><b>ID</b></label>
+                            <input type="text" id="id" name="id" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="vendor_code"><b>Vendor Code</b></label>
+                            <input type="text" id="vendor_code" name="vendor_code" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="email"><b>Email</b></label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="phone_no"><b>Phone Number</b></label>
+                            <input type="text" name="phone_no" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="address"><b>Address</b></label>
+                            <input type="text" id="address" name="address" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="profile_image"><b>Profile Image</b></label> 
+                            <input type="file" id="profile_image" name="profile_image" class="form-control" required>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success">Save Vendor</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Search Vendor -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5>Search Vendor</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="mb-4 text-center">
+                        <div class="input-group mx-auto px-3">
+                            <input type="text" name="search" class="form-control" placeholder="Enter Vendor ID">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+
+                    {% if vendors %} 
+                        <!-- Desktop Table View -->
+                        <div class="d-none d-md-block px-3 pb-3">
+                            <table class="table table-bordered text-center align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>ID</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vendor in vendors %}
+                                    <tr>
+                                        <td>{{ vendor.name }}</td>
+                                        <td>{{ vendor.id }}</td>
+                                        <td>
+                                            <a href="{% url 'vendor_search_details' vendor.id %}" class="btn btn-sm btn-info">View Details</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Card View -->
+                        <div class="d-md-none px-3 pb-3">
+                            {% for vendor in vendors %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Vendor #{{ vendor.id }}</h5>
+                                    <p class="card-text mb-1"><strong>Name:</strong> {{ vendor.name }}</p>
+                                    <a href="{% url 'vendor_search_details' vendor.id %}" class="btn btn-sm btn-info">View Details</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center mt-4">
+                            No vendors found matching your search.
                         </div>
                     {% endif %}
-                    <div class="form-group">
-                        <label for="name"><b>Name</b></label>
-                        <input type="text" id="name" name="name" class="form-control" required>
-                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="form-group">
-                        <label for="customer_id"><b>Customer ID</b></label>
-                        <input type="text" id="customer_id" name="customer_id" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="customer_code"><b>Customer_code</b></label>
-                        <input type="text" id="customer_code" name="customer_code" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email"><b>Email</b></label>
-                        <input type="email" id="email" name="email" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone_no"><b>Phone Number</b></label>
-                         <input type="text" name="phone_no" class="form-control"  required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="address"><b>Address</b></label>
-                        <input type="text" id="address" name="address" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="location"><b>Location</b></label>
-                        <input type="text" id="location" name="location" class="form-control">
-
-                    </div>
-
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-primary text-center">Save</button>
-                    </div>
-
-                    </div>
-           
+    </div>
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 {% endblock %}

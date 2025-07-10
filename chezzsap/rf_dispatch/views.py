@@ -447,15 +447,27 @@ def edit_warehouse(request, whs_no):
 # ...................
 # product_detail
 # ..................
+
+from .models import Product
+from .forms import ProductForm
+from django.utils import timezone
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import Product
+
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
-from .forms import ProductForm
 
 def add_product(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        product_id = request.POST.get('id')
+        product_id = request.POST.get('product_id')
         quantity = request.POST.get('quantity')
         pallet_no = request.POST.get('pallet_no')
         sku = request.POST.get('sku')
@@ -480,92 +492,8 @@ def add_product(request):
                 created_at=timezone.now(),
                 updated_at=timezone.now()
             )
-            return redirect('product_detail', product_id=product.product_id)
-        except Exception as e:
-            return render(request, 'product/add_product.html', {'error': str(e)})
+            return redirect('product/product_detail', product_id=product.product_id)
 
-    return render(request, 'product/add_product.html')
-
-def product_detail(request, product_id):
-   product= get_object_or_404(Product, product_id=product_id)
-   return render(request, 'product/product_detail.html', {'product': product})
-
-def product_edit(request, product_id):
-    product = get_object_or_404(Product, product_id=product_id)
-
-    if request.method == "POST":
-        product.name = request.POST.get('name')
-        product.quantity = request.POST.get('quantity')
-        product.pallet_no = request.POST.get('pallet_no')
-        product.sku = request.POST.get('sku')
-        product.description = request.POST.get('description')
-        product.unit_of_measure = request.POST.get('unit_of_measure')
-        product.category = request.POST.get('category')
-        product.re_order_level = request.POST.get('re_order_level')
-        if request.FILES.get('images'):
-            product.images = request.FILES['images']
-
-        try:
-            product.save()
-            return redirect('product_list')  
-        except Exception as e:
-            print("Save failed:", e)  
-            return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
-
-    return render(request, 'product/product_edit.html', {'product': product})
-
-    
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, 'product/product_list.html', {'products': products})
-
-     
-
-from .models import Product
-from .forms import ProductForm
-from django.utils import timezone
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import Product
-
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product
-from django.utils import timezone
-
-def add_product(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        product_id = request.POST.get('id')
-        quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
-        sku = request.POST.get('sku')
-        description = request.POST.get('description')
-        unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        re_order_level = request.POST.get('re_order_level')
-        images = request.FILES.get('images')
-
-        try:
-            product = Product.objects.create(
-                product_id=product_id,
-                name=name,
-                quantity=quantity,
-                pallet_no=pallet_no,
-                sku=sku,
-                description=description,
-                unit_of_measure=unit_of_measure,
-                category=category,
-                re_order_level=re_order_level,
-                images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now()
-            )
-            return redirect('product_detail', product_id=product.product_id)
         except Exception as e:
             return render(request, 'product/add_product.html', {'error': str(e)})
 
@@ -573,31 +501,22 @@ def add_product(request):
 
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product
-from .forms import ProductForm
-from django.contrib import messages
 
-def product_detail(request, product_id):
-   product= get_object_or_404(Product, product_id=product_id)
-   return render(request, 'product/product_detail.html', {'product': product})
+def product_detail(request, product_id): 
+    product = get_object_or_404(Product, id=product_id)  
+    return render(request, 'product/product_detail.html', {'product': product})
 
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Product
-from .forms import ProductForm
 
 def product_edit(request, product_id):
-    # Get the existing product or return 404
     product = get_object_or_404(Product, product_id=product_id)
+
 
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
             messages.success(request, "Product updated successfully.")
-            return redirect('product_detail')
+            return redirect('product_list')
     else:
         form = ProductForm(instance=product)
 
@@ -607,7 +526,12 @@ def product_list(request):
     products = Product.objects.all()
     return render(request, 'product/product_list.html', {'products': products})
 
-    
+def product_delete(request, product_id):
+
+    product = get_object_or_404(Product, product_id=product_id)
+    product.delete()
+    return redirect('product_edit')  
+ 
 
   
 # views.py
@@ -618,18 +542,12 @@ def inventory_view(request):
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
   
 
-def product_delete(request, product_id):
-
-    product = get_object_or_404(Product, product_id=product_id)
-    product.delete()
-    return redirect('product_list')  
 
 # .......................
 # customers.views.py
 # .......................
-from .forms import Customersform
+from .forms import CustomersForm
 from .models import Customers
-from.models import vendor
 from django.utils import timezone
 from django.contrib import messages
 def add_customers(request):
@@ -766,32 +684,103 @@ def edit_pallet(request, pallet_no):
     return render(request, 'pallet/pallet_edit.html', {'form': form, 'pallet': pallet})
 
 
-
 from django.shortcuts import render, redirect
+from .models import Vendor
 
 
-def add_vendor(request):
+
+
+
+
+# def add_vendor(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         vendor_code = request.POST.get('vendor_code')
+#         email = request.POST.get('email')
+#         phone_no = request.POST.get('phone_no')
+#         address = request.POST.get('address')
+#         location = request.POST.get('location')
+#         profile_image = request.FILES.get('profile_image')
+
+#         if name and vendor_code:
+#             new_vendor = Vendor( 
+#                 name=name,
+#                 vendor_code=vendor_code,
+#                 email=email,
+#                 phone_no=phone_no,
+#                 address=address,
+#                 location=location,
+#                 profile_image=profile_image
+#             )
+#             new_vendor.save()
+#             return redirect('vendor_search_details', vendor_id=Vendor.vendor_id)
+#         else:
+#             error = "Name and Vendor Code are required."
+#             return render(request, 'vendor/add_vendor.html', {'error': error})
+
+#     return render(request, 'vendor/add_vendor.html')
+
+from .forms import VendorForm
+
+def vendor_view(request):
+    # === FORM HANDLING (Left Side) ===
     if request.method == 'POST':
-        name = request.POST.get('name')
-        vendor_code = request.POST.get('vendor_code') 
-        email = request.POST.get('email')
-        phone_no = request.POST.get('phone_no')
-        address = request.POST.get('address')
-        location = request.POST.get('location')
-        profile_image = request.FILES.get('profile_image')  
- 
-        vendor = vendor(
-            name=name,
-            vendor_code=vendor_code,
-            email=email,
-            phone_no=phone_no,
-            address=address,
-            location=location,
-            profile_image=profile_image
-        )
-        vendor.save()
+        form = VendorForm(request.POST, request.FILES)
+        if form.is_valid():
+            vendor = form.save()
+            return redirect('vendor_detail', id=vendor.id)  # Replace with your URL name
+    else:
+        form = VendorForm()
 
-        return redirect('vendor/vendor_detail')  
+    # === SEARCH + TABLE (Right Side) ===
+    query = request.GET.get('search')
+    if query:
+        vendors = Vendor.objects.filter(id__icontains=query)
+    else:
+        vendors = Vendor.objects.all()  # Show all if no search
 
-    return render(request, 'vendor/add_vendor.html')  
+    return render(request, 'vendor/add_vendor.html', {
+        'form': form,
+        'vendors': vendors,
+        'query': query
+    })
 
+def vendor_detail(request, id):
+    vendor = get_object_or_404(Vendor, id=id)
+    return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
+
+def vendor_edit(request, id):
+    vendor_obj = get_object_or_404(Vendor, id=id)
+
+    if request.method == 'POST':
+        vendor_obj.name = request.POST.get('name')
+        vendor_obj.id=request.POST.get('id')
+        vendor_obj.vendor_code = request.POST.get('vendor_code')
+        vendor_obj.email = request.POST.get('email')
+        vendor_obj.phone_no = request.POST.get('phone_no')
+        vendor_obj.address = request.POST.get('address')
+        vendor_obj.location = request.POST.get('location')
+
+        if 'profile_image' in request.FILES:
+            vendor_obj.profile_image = request.FILES['profile_image']
+
+        vendor_obj.save()
+        messages.success(request, "Vendor updated successfully.")
+        return redirect('vendor_list')  
+    return render(request, 'vendor/vendor_edit.html', {'vendor': vendor_obj})
+
+
+def vendor_list(request):
+    vendors = Vendor.objects.all()
+    return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
+
+def vendor_delete(request,
+                  vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    if request.method == 'POST':
+        vendor.delete()
+        return redirect('vendor_list')  # Make sure this name exists in your urls
+    return redirect('vendor_detail', vendor_id=vendor_id)
+def vendor_search_view(request, id):
+    vendor_obj = get_object_or_404(Vendor, id=id)
+    return render(request, 'vendor/vendor_search_details.html', {'vendor': vendor_obj})

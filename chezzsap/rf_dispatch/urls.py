@@ -46,10 +46,10 @@ urlpatterns = [
     path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
     path('product/', views.add_product, name='add_product'),
-    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
-    path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
-    path('product-list', views.product_list, name='product_list'),
+    path('product/<str:product_id>/', views.product_detail, name='product_detail'), 
+    path('product/edit/<str:product_id>/', views.product_edit, name='product_edit'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
+    path('product-list/', views.product_list, name='product_list'),
     path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
     path('stock_upload/menu', views.stock_menu, name='stock_menu'),
     path('stock_upload/batch_product', views.batch_product_view, name='batch_product'),
@@ -68,10 +68,15 @@ urlpatterns = [
     path('creating_pallet/', views.creating_pallet, name='creating_pallet'),
     path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
     path('pallet/edit/<int:pallet_no>/', views.edit_pallet, name='edit_pallet'),
-    path('add_vendor/',views.add_vendor, name='add_vendor'),
-    path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
-    path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
-    path('vendors/', views.vendor_list, name='vendor_list'), 
+    path('add_vendor/',views.vendor_view, name='add_vendor'),
+    path('vendor/<int:id>/', views.vendor_detail, name='vendor_detail'), 
+    path('vendor/<int:id>/edit/', views.vendor_edit, name='vendor_edit'),
+    path('vendor/', views.vendor_list, name='vendor_list'), 
+    path('vendor/<int:vendor_id>/delete/', views.vendor_delete, name='vendor_delete'),
+    path('vendor/<str:id>/', views.vendor_detail, name='vendor_search_details'),
+    # path('vendor/', views.vendor_detail, name='vendor_view'),
+
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -118,7 +118,7 @@ class Inventory(models.Model):
 from django.db import models
 
 class Product(models.Model):
-    product_id = models.CharField(max_length=50)
+    product_id = models.CharField(max_length=50, unique=True)  
     name = models.CharField(max_length=255)
     quantity = models.IntegerField()
     pallet_no = models.CharField(max_length=50)
@@ -162,13 +162,14 @@ class Pallet(models.Model):
     def __str__(self):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
 
-class vendor(models.Model):
+class Vendor(models.Model):
     name = models.CharField(max_length=255)
+    id=models.IntegerField(primary_key=True)
     vendor_code = models.CharField(max_length=50, unique=True)
     email = models.EmailField()  
-    phone_no = models.CharField(max_length=15)
-    address = models.TextField()
-    location = models.CharField(max_length=100)
+    phone_no = models.CharField(max_length=10)
+    address = models.TextField(null=True,blank=True )
+    location = models.CharField(max_length=100, null=True, blank=True)
     profile_image = models.ImageField(upload_to='vendor_images/', default='vendor_images/default.jpg', null=True, blank=True)
    
     def __str__(self):
@@ -176,7 +177,7 @@ class vendor(models.Model):
    
 class Customers(models.Model):
     name = models.CharField(max_length=255)
-    id = models.AutoField(primary_key=True) 
+    vendor_id = models.CharField(max_length=100, unique=True)
     customer_code = models.CharField(max_length=50)
     email = models.EmailField()  
     phone_no = models.CharField(max_length=10)
