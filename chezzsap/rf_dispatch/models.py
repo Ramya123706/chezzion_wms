@@ -55,28 +55,28 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         comment=comment
     )
 
-class StockUpload(models.Model):
-    whs_no = models.CharField(max_length=20, primary_key=True)
-    product = models.CharField(max_length=20)
-    quantity = models.IntegerField()
-    batch = models.CharField(max_length=20)
-    bin = models.CharField(max_length=20)
-    pallet = models.CharField(max_length=20)
-    p_mat = models.CharField(max_length=20) 
-    inspection = models.CharField(max_length=20)
-    stock_type = models.CharField(max_length=20)
-    wps = models.CharField(max_length=20)
-    doc_no = models.CharField(max_length=20)
-    pallet_status = models.CharField(max_length=20, default='Not planned')
+# class StockUpload(models.Model):
+#     whs_no = models.CharField(max_length=20, primary_key=True)
+#     product = models.CharField(max_length=20)
+#     quantity = models.IntegerField()
+#     batch = models.CharField(max_length=20)
+#     bin = models.CharField(max_length=20)
+#     pallet = models.CharField(max_length=20)
+#     p_mat = models.CharField(max_length=20) 
+#     inspection = models.CharField(max_length=20)
+#     stock_type = models.CharField(max_length=20)
+#     wps = models.CharField(max_length=20)
+#     doc_no = models.CharField(max_length=20)
+#     pallet_status = models.CharField(max_length=20, default='Not planned')
 
-    def __str__(self):
-        return f"StockUpload(whs_no={self.whs_no}, product={self.product})"
+#     def __str__(self):
+#         return f"StockUpload(whs_no={self.whs_no}, product={self.product})"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        inventory, created = Inventory.objects.get_or_create(product=self.product)
-        inventory.total_quantity += self.quantity
-        inventory.save()
+#     def save(self, *args, **kwargs):
+#         super().save(*args, **kwargs)
+#         inventory, created = Inventory.objects.get_or_create(product=self.product)
+#         inventory.total_quantity += self.quantity
+#         inventory.save()
 
 
 class Truck(models.Model):
@@ -104,12 +104,12 @@ class Warehouse(models.Model):
 
 
 
-class Inventory(models.Model):
-    product = models.CharField(max_length=50, unique=True)
-    total_quantity = models.IntegerField(default=0)
+# class Inventory(models.Model):
+#     product = models.CharField(max_length=50, unique=True)
+#     total_quantity = models.IntegerField(default=0)
 
-    def __str__(self):
-        return f"{self.product} - {self.total_quantity} units"
+#     def __str__(self):
+#         return f"{self.product} - {self.total_quantity} units"
 
 
 
@@ -117,8 +117,29 @@ class Inventory(models.Model):
 
 from django.db import models
 
+# class Product(models.Model):
+#     product_id = models.CharField(max_length=50)
+#     name = models.CharField(max_length=255)
+#     quantity = models.IntegerField()
+#     pallet_no = models.CharField(max_length=50)
+#     sku = models.CharField(max_length=100)
+#     description = models.TextField()
+#     unit_of_measure = models.CharField(max_length=50)
+#     category = models.CharField(max_length=100)
+#     re_order_level = models.IntegerField()
+#     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+
+#     # Only this is the primary key
+#     id = models.AutoField(primary_key=True)
+
+#     def __str__(self):
+#         return self.name
 class Product(models.Model):
-    product_id = models.CharField(max_length=50)
+    id = models.AutoField(primary_key=True)  # Django adds this by default, but you made it explicit
+    product_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField()
     pallet_no = models.CharField(max_length=50)
@@ -130,21 +151,11 @@ class Product(models.Model):
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    action= models.CharField(max_length=20, choices=[
-        ('Modify', 'Modify'),
-        ('Delete', 'Delete')
-    ], default='Modify')
-
-    # Only this is the primary key
-    id = models.AutoField(primary_key=True)
 
     def __str__(self):
         return self.name
-    
-    
-# ....................
-# customer_details
-# ....................
+
+
 
 from django.utils import timezone
 
@@ -187,3 +198,49 @@ class Customers(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+from django.db import models
+from django.db.models import F
+
+
+
+class Inventory(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    total_quantity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.total_quantity} units"
+
+
+class StockUpload(models.Model):
+    whs_no = models.CharField(max_length=20, primary_key=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    batch = models.CharField(max_length=20)
+    bin = models.CharField(max_length=20)
+    pallet = models.CharField(max_length=20)
+    p_mat = models.CharField(max_length=20)
+    inspection = models.CharField(max_length=20)
+    stock_type = models.CharField(max_length=20)
+    wps = models.CharField(max_length=20)
+    doc_no = models.CharField(max_length=20)
+    pallet_status = models.CharField(max_length=20, default='Not planned')
+
+    def __str__(self):
+        return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
+
+    def save(self, *args, **kwargs):
+        # Track quantity delta (change)
+        if self.pk:
+            previous = StockUpload.objects.get(pk=self.pk)
+            delta = self.quantity - previous.quantity
+        else:
+            delta = self.quantity
+
+        super().save(*args, **kwargs)
+
+        # Update Inventory
+        inventory, created = Inventory.objects.get_or_create(product=self.product)
+        inventory.total_quantity += delta
+        inventory.save()

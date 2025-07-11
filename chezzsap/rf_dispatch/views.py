@@ -309,10 +309,13 @@ from .models import StockUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import StockUpload
 
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product, StockUpload
+
 def batch_product_view(request):
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
-        product = request.POST.get('product')
+        product_id = request.POST.get('product')  # Product ID
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
         bin_ = request.POST.get('bin')
@@ -324,11 +327,12 @@ def batch_product_view(request):
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
 
-        # Save and redirect to detail
         try:
-            stock = StockUpload.objects.create(
+            product_instance = get_object_or_404(Product, id=product_id)
+
+            StockUpload.objects.create(
                 whs_no=whs_no,
-                product=product,
+                product=product_instance,
                 quantity=int(quantity),
                 batch=batch,
                 bin=bin_,
@@ -340,11 +344,27 @@ def batch_product_view(request):
                 doc_no=doc_no,
                 pallet_status=pallet_status
             )
-            return redirect('stock_detail', pallet=stock.pallet)
-        except Exception as e:
-            return render(request, 'stock_upload/batch_product.html', {'error': str(e)})
 
-    return render(request, 'stock_upload/batch_product.html')
+            # Render with success flag
+            products = Product.objects.all()
+            return render(request, 'stock_upload/batch_product.html', {
+                'products': products,
+                'success': True
+            })
+
+        except Exception as e:
+            print("❌ Error during StockUpload creation:", e)
+            products = Product.objects.all()
+            return render(request, 'stock_upload/batch_product.html', {
+                'products': products,
+                'error': str(e)
+            })
+
+    # GET request
+    products = Product.objects.all()
+    return render(request, 'stock_upload/batch_product.html', {'products': products})
+
+
 
 
 def stock_detail_view(request, pallet):
@@ -452,135 +472,151 @@ from .models import Product
 from django.utils import timezone
 from .forms import ProductForm
 
-def add_product(request):
+# def add_product(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         product_id = request.POST.get('id')
+#         quantity = request.POST.get('quantity')
+#         pallet_no = request.POST.get('pallet_no')
+#         sku = request.POST.get('sku')
+#         description = request.POST.get('description')
+#         unit_of_measure = request.POST.get('unit_of_measure')
+#         category = request.POST.get('category')
+#         re_order_level = request.POST.get('re_order_level')
+#         images = request.FILES.get('images')
+
+#         try:
+#             product = Product.objects.create(
+#                 product_id=product_id,
+#                 name=name,
+#                 quantity=quantity,
+#                 pallet_no=pallet_no,
+#                 sku=sku,
+#                 description=description,
+#                 unit_of_measure=unit_of_measure,
+#                 category=category,
+#                 re_order_level=re_order_level,
+#                 images=images,
+#                 created_at=timezone.now(),
+#                 updated_at=timezone.now()
+#             )
+#             return redirect('product_detail', product_id=product.product_id)
+#         except Exception as e:
+#             return render(request, 'product/add_product.html', {'error': str(e)})
+
+#     return render(request, 'product/add_product.html')
+
+# from django.shortcuts import get_object_or_404, render, redirect
+# from .models import Product
+
+# def product_edit(request, product_id):
+#     product = get_object_or_404(Product, product_id=product_id)
+
+#     if request.method == "POST":
+#         product.name = request.POST.get('name')
+#         product.quantity = request.POST.get('quantity')
+#         product.pallet_no = request.POST.get('pallet_no')
+#         product.sku = request.POST.get('sku')
+#         product.description = request.POST.get('description')
+#         product.unit_of_measure = request.POST.get('unit_of_measure')
+#         product.category = request.POST.get('category')
+#         product.re_order_level = request.POST.get('re_order_level')
+#         if request.FILES.get('images'):
+#             product.images = request.FILES['images']
+
+#         try:
+#             product.save()
+#             return redirect('product_list')  
+#         except Exception as e:
+#             print("Save failed:", e)  
+#             return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
+
+#     return render(request, 'product/product_edit.html', {'product': product})
+
+
+
+
+# def product_list(request):
+#     products = Product.objects.all()
+#     return render(request, 'product/product_list.html', {'products': products})
+
+
+def product_view(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        product_id = request.POST.get('id')
-        quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
-        sku = request.POST.get('sku')
-        description = request.POST.get('description')
-        unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        re_order_level = request.POST.get('re_order_level')
-        images = request.FILES.get('images')
-
-        try:
-            product = Product.objects.create(
-                product_id=product_id,
-                name=name,
-                quantity=quantity,
-                pallet_no=pallet_no,
-                sku=sku,
-                description=description,
-                unit_of_measure=unit_of_measure,
-                category=category,
-                re_order_level=re_order_level,
-                images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now()
-            )
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
             return redirect('product_detail', product_id=product.product_id)
-        except Exception as e:
-            return render(request, 'product/add_product.html', {'error': str(e)})
+        else:
+            print("❌ Form errors:", form.errors)  # Debug print (optional)
+    else:
+        form = ProductForm()
 
-    return render(request, 'product/add_product.html')
+    query = request.GET.get('search')
+    if query:
+        products = Product.objects.filter(name__icontains=query)
+    else:
+        products = Product.objects.all()
 
-def product_detail(request, product_id):
-   product= get_object_or_404(Product, product_id=product_id)
-   return render(request, 'product/product_detail.html', {'product': product})
+    return render(request, 'product/add_product.html', {
+        'form': form,
+        'products': products,
+        'query': query
+    })
 
-def product_edit(request, product_id):
+
+def product_detail_view(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
+    return render(request, 'product/product_detail.html', {'product': product})
 
-    if request.method == "POST":
-        product.name = request.POST.get('name')
-        product.quantity = request.POST.get('quantity')
-        product.pallet_no = request.POST.get('pallet_no')
-        product.sku = request.POST.get('sku')
-        product.description = request.POST.get('description')
-        product.unit_of_measure = request.POST.get('unit_of_measure')
-        product.category = request.POST.get('category')
-        product.re_order_level = request.POST.get('re_order_level')
-        if request.FILES.get('images'):
-            product.images = request.FILES['images']
+# from django.shortcuts import render, redirect, get_object_or_404
+# from .models import Product
+# from django.utils import timezone
 
-        try:
-            product.save()
-            return redirect('product_list')  
-        except Exception as e:
-            print("Save failed:", e)  
-            return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
+# def add_product(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         product_id = request.POST.get('id')
+#         quantity = request.POST.get('quantity')
+#         pallet_no = request.POST.get('pallet_no')
+#         sku = request.POST.get('sku')
+#         description = request.POST.get('description')
+#         unit_of_measure = request.POST.get('unit_of_measure')
+#         category = request.POST.get('category')
+#         re_order_level = request.POST.get('re_order_level')
+#         images = request.FILES.get('images')
 
-    return render(request, 'product/product_edit.html', {'product': product})
+#         try:
+#             product = Product.objects.create(
+#                 product_id=product_id,
+#                 name=name,
+#                 quantity=quantity,
+#                 pallet_no=pallet_no,
+#                 sku=sku,
+#                 description=description,
+#                 unit_of_measure=unit_of_measure,
+#                 category=category,
+#                 re_order_level=re_order_level,
+#                 images=images,
+#                 created_at=timezone.now(),
+#                 updated_at=timezone.now()
+#             )
+#             return redirect('product_detail', product_id=product.product_id)
+#         except Exception as e:
+#             return render(request, 'product/add_product.html', {'error': str(e)})
 
-    
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, 'product/product_list.html', {'products': products})
-
-     
-
-from .models import Product
-from .forms import ProductForm
-from django.utils import timezone
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-
-
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import Product
-
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product
-from django.utils import timezone
-
-def add_product(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        product_id = request.POST.get('id')
-        quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
-        sku = request.POST.get('sku')
-        description = request.POST.get('description')
-        unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        re_order_level = request.POST.get('re_order_level')
-        images = request.FILES.get('images')
-
-        try:
-            product = Product.objects.create(
-                product_id=product_id,
-                name=name,
-                quantity=quantity,
-                pallet_no=pallet_no,
-                sku=sku,
-                description=description,
-                unit_of_measure=unit_of_measure,
-                category=category,
-                re_order_level=re_order_level,
-                images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now()
-            )
-            return redirect('product_detail', product_id=product.product_id)
-        except Exception as e:
-            return render(request, 'product/add_product.html', {'error': str(e)})
-
-    return render(request, 'product/add_product.html')
+#     return render(request, 'product/add_product.html')
 
 
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product
-from .forms import ProductForm
-from django.contrib import messages
+# from django.shortcuts import render, get_object_or_404, redirect
+# from .models import Product
+# from .forms import ProductForm
+# from django.contrib import messages
 
-def product_detail(request, product_id):
-   product= get_object_or_404(Product, product_id=product_id)
-   return render(request, 'product/product_detail.html', {'product': product})
+# def product_detail(request, product_id):
+#    product= get_object_or_404(Product, product_id=product_id)
+#    return render(request, 'product/product_detail.html', {'product': product})
 
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -597,7 +633,7 @@ def product_edit(request, product_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Product updated successfully.")
-            return redirect('product_detail')
+            return redirect('product_list')
     else:
         form = ProductForm(instance=product)
 
@@ -614,8 +650,9 @@ def product_list(request):
 from .models import Inventory
 
 def inventory_view(request):
-    inventory = Inventory.objects.all()
+    inventory = Inventory.objects.select_related('product').all()
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+
   
 
 def product_delete(request, product_id):
@@ -767,31 +804,31 @@ def edit_pallet(request, pallet_no):
 
 
 
-from django.shortcuts import render, redirect
+# from django.shortcuts import render, redirect
 
 
-def add_vendor(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        vendor_code = request.POST.get('vendor_code') 
-        email = request.POST.get('email')
-        phone_no = request.POST.get('phone_no')
-        address = request.POST.get('address')
-        location = request.POST.get('location')
-        profile_image = request.FILES.get('profile_image')  
+# def add_vendor(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         vendor_code = request.POST.get('vendor_code') 
+#         email = request.POST.get('email')
+#         phone_no = request.POST.get('phone_no')
+#         address = request.POST.get('address')
+#         location = request.POST.get('location')
+#         profile_image = request.FILES.get('profile_image')  
  
-        vendor = vendor(
-            name=name,
-            vendor_code=vendor_code,
-            email=email,
-            phone_no=phone_no,
-            address=address,
-            location=location,
-            profile_image=profile_image
-        )
-        vendor.save()
+#         vendor = vendor(
+#             name=name,
+#             vendor_code=vendor_code,
+#             email=email,
+#             phone_no=phone_no,
+#             address=address,
+#             location=location,
+#             profile_image=profile_image
+#         )
+#         vendor.save()
 
-        return redirect('vendor/vendor_detail')  
+#         return redirect('vendor/vendor_detail')  
 
-    return render(request, 'vendor/add_vendor.html')  
+#     return render(request, 'vendor/add_vendor.html')  
 

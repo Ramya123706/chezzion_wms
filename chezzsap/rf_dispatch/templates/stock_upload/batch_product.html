@@ -8,22 +8,34 @@
                 <h5>Chezzion WMS-Magic Box</h5>
             </div>
             <div class="card-body">
-                <div class="mb-3">
+                <div class="mb-3 text-center">
                     <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50" alt="SAP logo">
                 </div>
 
+                {% if success %}
+                    <div class="alert alert-success">✅ Stock uploaded successfully!</div>
+                {% endif %}
+
+                {% if error %}
+                    <div class="alert alert-danger">❌ {{ error }}</div>
+                {% endif %}
+
                 <form action="{% url 'batch_product' %}" method="post">
-                    
                     {% csrf_token %}
+
                     <div class="form-group">
                         <label for="whs_no">Whs No</label>
-                        <input type="text" class="form-control" id="whs_no" name="whs_no" required>
-                    
+                        <input type="text" class="form-control" id="whs_no" name="whs_no" required autofocus>
                     </div>
 
                     <div class="form-group">
                         <label for="product">Product</label>
-                        <input type="text" class="form-control" id="product" name="product" required>
+                        <select class="form-control" id="product" name="product" required>
+                            <option value="">-- Select Product --</option>
+                            {% for p in products %}
+                                <option value="{{ p.id }}">{{ p.name }} ({{ p.sku }})</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -33,12 +45,12 @@
 
                     <div class="form-group">
                         <label for="batch">Batch</label>
-                        <input type="number" class="form-control" id="batch" name="batch" required>
+                        <input type="text" class="form-control" id="batch" name="batch" required>
                     </div>
 
                     <div class="form-group">
                         <label for="bin">BIN</label>
-                        <input type="number" class="form-control" id="bin" name="bin" required>
+                        <input type="text" class="form-control" id="bin" name="bin" required>
                     </div>
 
                     <div class="form-group">
@@ -58,7 +70,13 @@
 
                     <div class="form-group">
                         <label for="stock_type">Stock Type</label>
-                        <input type="text" class="form-control" id="stock_type" name="stock_type" required>
+                        <select class="form-control" id="stock_type" name="stock_type" required>
+                            <option value="">-- Select Stock Type --</option>
+                            <option value="Quality">Quality</option>
+                            <option value="Blocked">Blocked</option>
+                            <option value="Scrapped">Scrapped</option>
+                            <option value="Unrestricted">Unrestricted</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -73,7 +91,13 @@
 
                     <div class="form-group">
                         <label for="pallet_status">Pallet Status</label>
-                        <input type="text" class="form-control" id="pallet_status" name="pallet_status" required>
+                        <select class="form-control" id="pallet_status" name="pallet_status" required>
+                            <option value="">-- Select Pallet Status --</option>
+                            <option value="Received">Received</option>
+                            <option value="Planned">Planned</option>
+                            <option value="Damaged">Damaged</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
