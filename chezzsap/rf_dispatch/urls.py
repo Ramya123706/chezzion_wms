@@ -45,7 +45,6 @@ urlpatterns = [
     path('truck-status/', views.truck_status_view, name='truck_status'),
     path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
-    # path('product/', views.add_product, name='add_product'),
     path('product/<int:product_id>/', views.product_detail_view, name='product_detail'),
     path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
@@ -64,7 +63,7 @@ urlpatterns = [
     path('customers/<int:customer_id>/', views.customers_detail, name='customers_detail'),
     path('customers/<int:customer_id>/edit/', views.customers_edit, name='customers_edit'),
     path('customers/', views.customers_list, name='customers_list'),
-    # path('customers/<int:customer_id>/', views.customers_delete, name='customers_delete'),
+    path('customers/<int:customer_id>/', views.customers_delete, name='customers_delete'),
     path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
     path('creating_pallet/', views.creating_pallet, name='creating_pallet'),
     path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
@@ -73,7 +72,10 @@ urlpatterns = [
     # path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
     # path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
     # path('vendors/', views.vendor_list, name='vendor_list'), 
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('purchase_order/add_purchase/', views.add_purchase, name='add_purchase'),
+    path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
+    path('rf_ptl/', views.rf_ptl, name="rf_plt")
+     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

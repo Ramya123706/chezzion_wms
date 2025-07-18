@@ -118,3 +118,17 @@ class PalletForm(forms.ModelForm):
             'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
 
+from django import forms
+
+from django import forms
+from .models import PurchaseOrder
+
+class PurchaseOrderForm(forms.ModelForm):
+    class Meta:
+        model = PurchaseOrder
+        fields = '__all__'  # You can also manually list the fields if needed
+
+    def __init__(self, *args, **kwargs):
+        super(PurchaseOrderForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})

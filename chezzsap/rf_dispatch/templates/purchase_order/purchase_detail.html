@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="card mx-auto shadow-lg p-4" style="max-width: 800px;">
+
+        <div class="card-header text-center bg-primary text-white">
+            <h5>Purchase Order Details</h5>
+        </div>
+
+        <table class="table table-bordered">
+            <tbody>
+                <tr><th>Company name</th><td>{{ po.company_name }}</td></tr>
+                <tr><th>Company address</th><td>{{ po.company_address }}</td></tr>
+
+                <tr><th>Company phone</th><td>{{ po.company_phone }}</td></tr>
+                <tr><th>Company email</th><td>{{ po.company_email }}</td></tr>
+                <tr><th>Company website</th><td>{{ po.company_website }}</td></tr>
+                <tr><th>Company date</th><td>{{ po.po_date }}</td></tr>
+                <tr><th>Company po number</th><td>{{ po.po_number }}</td></tr>
+
+                <tr><th>Customer Number</th><td>{{ po.customer_number}}</td></tr>
+
+                <tr><th>Vendor Company</th><td>{{ po.vendor_company_name }}</td></tr>
+                <tr><th>Vendor Contact</th><td>{{ po.vendor_contact_name }}</td></tr>
+                <tr><th>Vendor Phone</th><td>{{ po.vendor_phone }}</td></tr>
+                <tr><th>Vendor Address</th><td>{{ po.vendor_address }}</td></tr>
+                <tr><th>Vendor Email</th><td>{{ po.vendor_email }}</td></tr>
+                <tr><th>Vendor Website</th><td>{{ po.vendor_website }}</td></tr>
+
+                <tr><th>Ship To Name</th><td>{{ po.ship_to_name }}</td></tr>
+                <tr><th>Ship To Company</th><td>{{ po.ship_to_company_name }}</td></tr>
+                <tr><th>Ship To Address</th><td>{{ po.ship_to_address }}</td></tr>
+                <tr><th>Ship To Phone</th><td>{{ po.ship_to_phone }}</td></tr>
+                <tr><th>Ship To Email</th><td>{{ po.ship_to_email }}</td></tr>
+                <tr><th>Ship To Website</th><td>{{ po.ship_to_website }}</td></tr>
+
+                <tr><th>Item Number</th><td>{{ po.item_number }}</td></tr>
+                <tr><th>Product Name</th><td>{{ po.product_name }}</td></tr>
+                <tr><th>Quantity</th><td>{{ po.product_quantity }}</td></tr>
+                <tr><th>Unit Price</th><td>{{ po.unit_price }}</td></tr>
+                <tr><th>Total Price</th><td>{{ po.total_price }}</td></tr>
+            </tbody>
+        </table>
+
+        <div class="text-center mt-4">
+            <a class="btn btn-primary">Edit</a>
+            <a class="btn btn-secondary">Back</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

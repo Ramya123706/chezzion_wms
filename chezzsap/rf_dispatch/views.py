@@ -807,28 +807,136 @@ def edit_pallet(request, pallet_no):
 # from django.shortcuts import render, redirect
 
 
-# def add_vendor(request):
-#     if request.method == 'POST':
-#         name = request.POST.get('name')
-#         vendor_code = request.POST.get('vendor_code') 
-#         email = request.POST.get('email')
-#         phone_no = request.POST.get('phone_no')
-#         address = request.POST.get('address')
-#         location = request.POST.get('location')
-#         profile_image = request.FILES.get('profile_image')  
+def add_vendor(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        vendor_code = request.POST.get('vendor_code') 
+        email = request.POST.get('email')
+        phone_no = request.POST.get('phone_no')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+        profile_image = request.FILES.get('profile_image')  
  
-#         vendor = vendor(
-#             name=name,
-#             vendor_code=vendor_code,
-#             email=email,
-#             phone_no=phone_no,
-#             address=address,
-#             location=location,
-#             profile_image=profile_image
-#         )
-#         vendor.save()
+        vendor = vendor(
+            name=name,
+            vendor_code=vendor_code,
+            email=email,
+            phone_no=phone_no,
+            address=address,
+            location=location,
+            profile_image=profile_image
+        )
+        vendor.save()
 
-#         return redirect('vendor/vendor_detail')  
+        return redirect('vendor/vendor_detail')  
 
-#     return render(request, 'vendor/add_vendor.html')  
+    return render(request, 'vendor/add_vendor.html')  
 
+from django.shortcuts import render, redirect, get_object_or_404
+from .forms import PurchaseOrderForm
+from .models import PurchaseOrder
+from decimal import Decimal
+
+from django.shortcuts import render, redirect, get_object_or_404
+from decimal import Decimal
+from .models import PurchaseOrder
+from django.urls import reverse
+
+def add_purchase(request):
+    if request.method == 'POST':
+        try:
+            # Extract form data
+            company_name = request.POST.get('company_name')
+            company_address = request.POST.get('company_address')
+            phone_number = request.POST.get('phone_number')
+            email_address = request.POST.get('email_address')
+            website = request.POST.get('website')
+
+            date = request.POST.get('date')  # not used due to auto_now_add
+            po_number = request.POST.get('po_number')
+            customer_number = request.POST.get('customer_number')
+
+            vendor_contact_name = request.POST.get('vendor_contact_name')
+            vendor_company_name = request.POST.get('vendor_company_name')
+            vendor_address = request.POST.get('vendor_address')
+            vendor_phn_number = request.POST.get('vendor_phn_number')
+            vendor_website = request.POST.get('vendor_website')
+            vendor_email = request.POST.get('vendor_email')
+
+            ship_to_name = request.POST.get('ship_to_name')
+            ship_cmpny_name = request.POST.get('ship_cmpny_name')
+            ship_address = request.POST.get('ship_address')
+            ship_phn_no = request.POST.get('ship_phn_no')
+            ship_email = request.POST.get('ship_email')
+            ship_website = request.POST.get('ship_website')
+
+            item_number = request.POST.get('item_number')
+            product_name = request.POST.get('product_name')
+            quantity = int(request.POST.get('quantity'))
+            unit_price = Decimal(request.POST.get('unit_price'))
+            total_price = quantity * unit_price
+
+            # Save to DB
+            po = PurchaseOrder.objects.create(
+                company_name=company_name,
+                company_address=company_address,
+                company_phone=phone_number,
+                company_email=email_address,
+                company_website=website,
+                po_number=po_number,
+                customer_number=customer_number,
+                vendor_contact_name=vendor_contact_name,
+                vendor_company_name=vendor_company_name,
+                vendor_address=vendor_address,
+                vendor_phone=vendor_phn_number,
+                vendor_website=vendor_website,
+                vendor_email=vendor_email,
+                ship_to_name=ship_to_name,
+                ship_to_company_name=ship_cmpny_name,
+                ship_to_address=ship_address,
+                ship_to_phone=ship_phn_no,
+                ship_to_email=ship_email,
+                ship_to_website=ship_website,
+                item_number=item_number,
+                product_name=product_name,
+                product_quantity=quantity,
+                unit_price=unit_price,
+                total_price=total_price
+            )
+
+            # Redirect to detail view that shows data in PDF-style format
+            return redirect('purchase_detail', pk=po.pk)
+
+        except Exception as e:
+            return render(request, 'purchase_order/add_purchase.html', {'error': str(e)})
+
+    return render(request, 'purchase_order/add_purchase.html')
+
+
+# from django.shortcuts import render, redirect
+# from .forms import PurchaseOrderForm
+# from models import PurchaseOrder
+
+
+# def add_purchase(request):
+#     if request.method == 'POST':
+#         form = PurchaseOrderForm(request.POST)
+#         if form.is_valid():
+#             purchase_order = form.save()
+#             return redirect('add_purchase', pk=purchase_order.pk)  # Redirect to PDF view
+#     else:
+#         form = PurchaseOrderForm()
+#     return render(request, 'purchase_order/add_purchase.html', {'form': form})
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import PurchaseOrder
+
+
+
+def purchase_detail(request, pk):
+    po = get_object_or_404(PurchaseOrder, pk=pk)
+    return render(request, 'purchase_order/purchase_detail.html', {'po': po})
+
+def rf_ptl(request):
+    return render(request, 'rf_pick_to_light/dashboard.html')

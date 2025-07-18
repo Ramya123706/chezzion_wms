@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4 mb-3">
+    {% if success %}
+        <div class="alert alert-success">✅ Purchase uploaded successfully!</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger">❌ {{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'add_purchase' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+       
+
+        <!-- Purchase Order Title -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Purchase Order</h4>
+            </div>
+        </div>
+
+        <!-- Company & Order Details -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <strong>Company & Purchase Order Details</strong>
+            </div>
+            <div class="card-body row">
+                <div class="col-md-6">
+                    <label>Company Name:</label>
+                    <input type="text" name="company_name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label>Date:</label>
+                    <input type="text" name="date" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Company Address:</label>
+                    <input type="text" name="company_address" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>PO No.:</label>
+                    <input type="text" name="po_number" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Phone Number:</label>
+                    <input type="text" name="phone_number" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Customer No.:</label>
+                    <input type="text" name="customer_number" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Website:</label>
+                    <input type="text" name="website" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Email Address:</label>
+                    <input type="text" name="email_address" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vendor Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <strong>Vendor Information</strong>
+            </div>
+            <div class="card-body row">
+                <div class="col-md-6">
+                    <label>Contact Name:</label>
+                    <input type="text" name="vendor_contact_name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label>Company Name:</label>
+                    <input type="text" name="vendor_company_name" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Address:</label>
+                    <input type="text" name="vendor_address" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Phone Number:</label>
+                    <input type="text" name="vendor_phn_number" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Website:</label>
+                    <input type="text" name="vendor_website" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Email Address:</label>
+                    <input type="text" name="vendor_email" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ship To -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <strong>Ship To</strong>
+            </div>
+            <div class="card-body row">
+                <div class="col-md-6">
+                    <label>Name:</label>
+                    <input type="text" name="ship_to_name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label>Company Name:</label>
+                    <input type="text" name="ship_cmpny_name" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Address:</label>
+                    <input type="text" name="ship_address" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Phone Number:</label>
+                    <input type="text" name="ship_phn_no" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Website:</label>
+                    <input type="text" name="ship_website" class="form-control" required>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <label>Email Address:</label>
+                    <input type="text" name="ship_email" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <strong>Product Details</strong>
+            </div>
+            <div class="card-body row">
+                <div class="col-md-3">
+                    <label>Item Number:</label>
+                    <input type="text" name="item_number" class="form-control" required>
+                </div>
+                <div class="col-md-5">
+                    <label>Product Name / Description:</label>
+                    <input type="text" name="product_name" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <label>Quantity:</label>
+                    <input type="number" name="quantity" class="form-control" required>
+                </div>
+                <div class="col-md-2">
+                    <label>Unit Price:</label>
+                    <input type="text" name="unit_price" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success px-4 py-2">Submit Purchase Order</button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

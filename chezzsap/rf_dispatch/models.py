@@ -138,10 +138,10 @@ from django.db import models
 #     def __str__(self):
 #         return self.name
 class Product(models.Model):
-    id = models.AutoField(primary_key=True)  # Django adds this by default, but you made it explicit
+    id = models.AutoField(primary_key=True)
     product_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=255)
-    quantity = models.IntegerField()
+    quantity = models.IntegerField(default=0)
     pallet_no = models.CharField(max_length=50)
     sku = models.CharField(max_length=100)
     description = models.TextField()
@@ -152,8 +152,18 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Sync with inventory
+        from .models import Inventory
+        inventory, created = Inventory.objects.get_or_create(product=self)
+        inventory.total_quantity = self.quantity
+        inventory.save()
+
     def __str__(self):
         return self.name
+
 
 
 
@@ -202,19 +212,17 @@ class Customers(models.Model):
 
 from django.db import models
 from django.db.models import F
+from .models import Product
 
 
 
-class Inventory(models.Model):
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
-    total_quantity = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.product.name} - {self.total_quantity} units"
-
+from django.db import models
+from django.db.models import Sum
+from .models import Product  
 
 class StockUpload(models.Model):
-    whs_no = models.CharField(max_length=20, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    whs_no = models.CharField(max_length=20)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     batch = models.CharField(max_length=20)
@@ -231,16 +239,90 @@ class StockUpload(models.Model):
         return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
 
     def save(self, *args, **kwargs):
-        # Track quantity delta (change)
-        if self.pk:
-            previous = StockUpload.objects.get(pk=self.pk)
-            delta = self.quantity - previous.quantity
-        else:
-            delta = self.quantity
-
         super().save(*args, **kwargs)
 
-        # Update Inventory
-        inventory, created = Inventory.objects.get_or_create(product=self.product)
-        inventory.total_quantity += delta
+        # Update Inventory after save
+        total_quantity = StockUpload.objects.filter(product=self.product).aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+
+        inventory, _ = Inventory.objects.get_or_create(product=self.product)
+        inventory.total_quantity = total_quantity
         inventory.save()
+
+        # Sync Product quanti ty
+        self.product.quantity = total_quantity
+        self.product.save()
+
+    def delete(self, *args, **kwargs):
+        product = self.product  # save reference before deletion
+        super().delete(*args, **kwargs)
+
+        # Update Inventory after deletion
+        total_quantity = StockUpload.objects.filter(product=product).aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+
+        inventory, _ = Inventory.objects.get_or_create(product=product)
+        inventory.total_quantity = total_quantity
+        inventory.save()
+
+        # Sync Product quantity
+        product.quantity = total_quantity
+        product.save()
+
+
+
+class Inventory(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    total_quantity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.product.name} - {self.total_quantity} units"
+    
+class PurchaseOrder(models.Model):
+    company_name = models.CharField(max_length=255)
+    company_address = models.TextField()
+    company_phone = models.CharField(max_length=15)
+    company_email = models.EmailField()
+    company_website = models.URLField(blank=True, null=True)
+    po_date = models.DateField(auto_now_add=True)
+    po_number = models.CharField(max_length=50, unique=True)
+    customer_number = models.CharField(max_length=50)
+    vendor_company_name = models.CharField(max_length=255)
+    vendor_contact_name = models.CharField(max_length=255)
+    vendor_phone = models.CharField(max_length=15)
+    vendor_address = models.TextField()
+    vendor_website = models.URLField(blank=True, null=True)
+    vendor_email = models.EmailField()
+    ship_to_name = models.CharField(max_length=255)
+    ship_to_company_name = models.CharField(max_length=255)
+    ship_to_address = models.TextField()
+    ship_to_phone = models.CharField(max_length=15)
+    ship_to_email = models.EmailField()
+    ship_to_website = models.URLField(blank=True, null=True)
+    item_number = models.CharField(max_length=50)
+    product_name = models.CharField(max_length=255)
+    product_quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+class Bin(models.Model):
+    whs_no = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name="bins"  # use plural for clarity
+    )
+    bin_id = models.CharField(max_length=50, unique=True)  # Add max_length and make it unique if applicable
+    capacity = models.IntegerField()
+    category = models.CharField(max_length=100)  # Add max_length
+    products = models.CharField(max_length=255)  # Add max_length; ideally should be a ForeignKey or ManyToMany
+    existing_quantity = models.IntegerField()
+    
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
+
+    
