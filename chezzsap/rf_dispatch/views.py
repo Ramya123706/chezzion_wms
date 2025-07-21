@@ -940,3 +940,117 @@ def purchase_detail(request, pk):
 
 def rf_ptl(request):
     return render(request, 'rf_pick_to_light/dashboard.html')
+
+from django.shortcuts import render, redirect
+from .models import Bin
+
+from django.shortcuts import render, redirect
+from .models import Bin, Warehouse
+
+# def create_bin(request):
+#     if request.method == 'POST':
+#         try:
+#             whs_no_input = request.POST.get('whs_no')
+#             bin_id = request.POST.get('bin_id')
+#             capacity = request.POST.get('capacity')
+#             category = request.POST.get('category')
+#             product = request.POST.get('product')
+#             existing_quantity = request.POST.get('existing_quantity')
+#             updated_by = request.POST.get('updated_by')
+#             created_by = request.POST.get('created_by')
+
+#             # Validate and get Warehouse object
+#             try:
+#                 warehouse = Warehouse.objects.get(whs_no=whs_no_input)
+#             except Warehouse.DoesNotExist:
+#                 return render(request, 'bin/create_bin.html', {'error': f"Warehouse {whs_no_input} does not exist."})
+
+#             # Save Bin
+#             Bin.objects.create(
+#                 whs_no=warehouse,
+#                 bin_id=bin_id,
+#                 capacity=int(capacity),
+#                 category=category,
+#                 products=product,
+#                 existing_quantity=int(existing_quantity),
+#                 updated_by=updated_by,
+#                 created_by=created_by
+#             )
+
+#             return redirect('create_bin')  # Replace with your actual success URL name
+
+#         except Exception as e:
+#             return render(request, 'bin/create_bin.html', {'error': str(e)})
+
+#     return render(request, 'bin/create_bin.html')
+
+# from .models import Warehouse
+
+
+
+from django.shortcuts import render, redirect
+from .models import Bin, Warehouse, Category
+
+def create_bin(request):
+    if request.method == 'POST':
+        try:
+            whs_key = request.POST.get('whs_no')
+            warehouse = Warehouse.objects.get(whs_no=whs_key)
+
+            category = Category.objects.get(id=request.POST.get('category'))
+
+            Bin.objects.create(
+                whs_no=warehouse,
+                bin_id=request.POST.get('bin_id'),
+                capacity=int(request.POST.get('capacity')),
+                category=category,
+                
+                shelves=request.POST.get('shelves'),
+                updated_by=request.POST.get('updated_by'),
+                created_by=request.POST.get('created_by')
+            )
+
+            return redirect('create_bin')
+
+        except Exception as e:
+            return render(request, 'bin/create_bin.html', {
+                'error': str(e),
+                'warehouse': Warehouse.objects.all(),
+                'bins': Bin.objects.all(),
+                'categories': Category.objects.all(),  # ✅ add this line
+            })
+
+    # For GET request
+    return render(request, 'bin/create_bin.html', {
+        'warehouse': Warehouse.objects.all(),
+        'bins': Bin.objects.all(),
+        'categories': Category.objects.all(),  # ✅ add this line
+    })
+
+
+def task(request):
+    return render(request, 'rf_pick_to_light/task_solving.html')
+
+
+from django.http import JsonResponse
+from .models import Category
+import json
+
+from django.shortcuts import render, redirect
+from .forms import CategoryForm
+from .models import Category
+
+def add_category(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('create_bin')  # Redirect to the main form page
+    else:
+        form = CategoryForm()
+    categories = Category.objects.all()
+    return render(request, 'bin/create_bin.html', {
+        'categories': categories,
+        'category_form': form,
+    })
+

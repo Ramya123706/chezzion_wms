@@ -74,7 +74,10 @@ urlpatterns = [
     # path('vendors/', views.vendor_list, name='vendor_list'), 
     path('purchase_order/add_purchase/', views.add_purchase, name='add_purchase'),
     path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
-    path('rf_ptl/', views.rf_ptl, name="rf_plt")
+    path('rf_ptl/', views.rf_ptl, name="rf_plt"),
+    path('create_bin/', views.create_bin, name='create_bin'),
+    path('task/', views.task, name='task'),
+    path('add-category/', views.add_category, name='add_category'),
      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

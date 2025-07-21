@@ -96,8 +96,6 @@ class Warehouse(models.Model):
     manager = models.CharField(max_length=50)
     image = models.ImageField(upload_to='warehouse_images/', blank=True, null=True)
     
-
-
     def __str__(self):
         return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
 
@@ -316,13 +314,22 @@ class Bin(models.Model):
     bin_id = models.CharField(max_length=50, unique=True)  # Add max_length and make it unique if applicable
     capacity = models.IntegerField()
     category = models.CharField(max_length=100)  # Add max_length
-    products = models.CharField(max_length=255)  # Add max_length; ideally should be a ForeignKey or ManyToMany
-    existing_quantity = models.IntegerField()
-    
+    shelves = models.CharField(null=True, blank=True, max_length=100)  # Add max_length
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
+    existing_quantity = models.IntegerField(default=0)  # Add default value
 
     def __str__(self):
         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
 
+class Category(models.Model):
+    category = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True) 
+
+    def __str__(self):
+        return self.category   
     

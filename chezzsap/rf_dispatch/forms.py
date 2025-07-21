@@ -132,3 +132,23 @@ class PurchaseOrderForm(forms.ModelForm):
         super(PurchaseOrderForm, self).__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+from django import forms
+from .models import Bin
+
+class BinForm(forms.ModelForm):
+    class Meta:
+        model = Bin
+        fields = '__all__'
+        exclude = ['created_by', 'updated_by', 'existing_quantity']  # Exclude fields that are not needed in the form
+
+from .models import Category
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = '__all__'
+        widgets = {
+            'category': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        exclude = ['created_by', 'created_at', 'updated_by', 'updated_at']  # Exclude fields that are not needed in the form
