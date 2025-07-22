@@ -5,7 +5,7 @@ from .models import Product
 from .models import Warehouse
 from .models import StockUpload
 from .models import Customers
-from .models import vendor
+from .models import Vendor
 
 class YardHdrForm(forms.ModelForm):
     class Meta:
@@ -95,10 +95,10 @@ class Customersform(forms.ModelForm):
         model=Customers
         fields='__all__'
     
-class vendorform(forms.ModelForm):
+class Vendorform(forms.ModelForm):
     class Meta:
-        model=vendor
-        fields='__all__'        
+        model=Vendor
+        fields='__all__'
 
 from django.utils import timezone
 from django import forms

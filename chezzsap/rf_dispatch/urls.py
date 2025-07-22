@@ -68,10 +68,11 @@ urlpatterns = [
     path('creating_pallet/', views.creating_pallet, name='creating_pallet'),
     path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
     path('pallet/edit/<int:pallet_no>/', views.edit_pallet, name='edit_pallet'),
-    # path('add_vendor/',views.add_vendor, name='add_vendor'),
-    # path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
-    # path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
-    # path('vendors/', views.vendor_list, name='vendor_list'), 
+    path('add_vendor/',views.add_vendor, name='add_vendor'),
+    path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
+    path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
+    path('vendors/', views.vendor_list, name='vendor_list'), 
+    path('vendors/<int:vendor_id>/delete/', views.vendor_delete, name='vendor_delete'),
     path('purchase_order/add_purchase/', views.add_purchase, name='add_purchase'),
     path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
     path('purchase/edit/<int:po_id>/', views.purchase_edit, name='purchase_edit'),
@@ -79,6 +80,7 @@ urlpatterns = [
     path('create_bin/', views.create_bin, name='create_bin'),
     path('task/', views.task, name='task'),
     path('add-category/', views.add_category, name='add_category'),
+        path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

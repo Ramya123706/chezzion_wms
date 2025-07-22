@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 YES_NO_CHOICES = [
     ('Yes', 'Yes'),
     ('No', 'No'),
@@ -181,7 +182,7 @@ class Pallet(models.Model):
     def __str__(self):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
 
-class vendor(models.Model):
+class Vendor(models.Model):
     name = models.CharField(max_length=255)
     vendor_code = models.CharField(max_length=50, unique=True)
     email = models.EmailField()  
@@ -222,7 +223,7 @@ class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
     whs_no = models.CharField(max_length=20)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
     batch = models.CharField(max_length=20)
     bin = models.CharField(max_length=20)

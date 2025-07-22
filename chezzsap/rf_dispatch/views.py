@@ -316,6 +316,7 @@ def batch_product_view(request):
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
         product_id = request.POST.get('product')  # Product ID
+        description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
         bin_ = request.POST.get('bin')
@@ -329,10 +330,13 @@ def batch_product_view(request):
 
         try:
             product_instance = get_object_or_404(Product, id=product_id)
+            whs_key = request.POST.get('whs_no')
+            warehouse = Warehouse.objects.get(whs_no=whs_key)
 
             StockUpload.objects.create(
-                whs_no=whs_no,
+                whs_no=warehouse,
                 product=product_instance,
+                description=description,
                 quantity=int(quantity),
                 batch=batch,
                 bin=bin_,
@@ -347,25 +351,39 @@ def batch_product_view(request):
 
             # Render with success flag
             products = Product.objects.all()
+            
             return render(request, 'stock_upload/batch_product.html', {
                 'products': products,
+                'warehouse': Warehouse.objects.all(),
                 'success': True
             })
 
         except Exception as e:
             print("❌ Error during StockUpload creation:", e)
             products = Product.objects.all()
+            
             return render(request, 'stock_upload/batch_product.html', {
                 'products': products,
+                'warehouse': Warehouse.objects.all(),
                 'error': str(e)
             })
 
     # GET request
     products = Product.objects.all()
-    return render(request, 'stock_upload/batch_product.html', {'products': products})
+    warehouse = Warehouse.objects.all()
+    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse})
 
 
+from django.http import JsonResponse
+from .models import Product
 
+def get_product_description(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+        return JsonResponse({'description': product.description})
+    except Product.DoesNotExist:
+        return JsonResponse({'description': ''}, status=404)
+ 
 
 def stock_detail_view(request, pallet):
     stock = get_object_or_404(StockUpload, pallet=pallet)
@@ -434,6 +452,7 @@ def warehouse_view(request):
         'warehouses': warehouses,
         'query': query
     })
+
 
 
 def warehouse_detail_view(request, whs_no):
@@ -666,7 +685,7 @@ def product_delete(request, product_id):
 # .......................
 from .forms import Customersform
 from .models import Customers
-from.models import vendor
+from.models import Vendor
 from django.utils import timezone
 from django.contrib import messages
 def add_customers(request):
@@ -807,30 +826,35 @@ def edit_pallet(request, pallet_no):
 # from django.shortcuts import render, redirect
 
 
-def add_vendor(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        vendor_code = request.POST.get('vendor_code') 
-        email = request.POST.get('email')
-        phone_no = request.POST.get('phone_no')
-        address = request.POST.get('address')
-        location = request.POST.get('location')
-        profile_image = request.FILES.get('profile_image')  
- 
-        vendor = vendor(
-            name=name,
-            vendor_code=vendor_code,
-            email=email,
-            phone_no=phone_no,
-            address=address,
-            location=location,
-            profile_image=profile_image
-        )
-        vendor.save()
+from django.shortcuts import render, redirect
+from .models import Vendor  # make sure you import the model
 
-        return redirect('vendor/vendor_detail')  
 
-    return render(request, 'vendor/add_vendor.html')  
+# def add_vendor(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         vendor_code = request.POST.get('vendor_code') 
+#         email = request.POST.get('email')
+#         phone_no = request.POST.get('phone_no')
+#         address = request.POST.get('address')
+#         location = request.POST.get('location')
+#         profile_image = request.FILES.get('profile_image')  
+
+#         new_vendor = Vendor(
+#             name=name,
+#             vendor_code=vendor_code,
+#             email=email,
+#             phone_no=phone_no,
+#             address=address,
+#             location=location,
+#             profile_image=profile_image
+#         )
+#         new_vendor.save()
+
+#         return redirect('vendor_detail', vendor_id=new_vendor.id)
+
+#     return render(request, 'vendor/add_vendor.html')
+  
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PurchaseOrderForm
@@ -1002,9 +1026,9 @@ def purchase_edit(request, po_id):
 
         po.save()
         messages.success(request, "Purchase order updated successfully.")
-        return redirect('purchase_detail', po_id=po.id)
+        return redirect('purchase_detail', pk=po.id)
 
-    return render(request, 'purchase/purchase_order_edit.html', {'po': po})
+    return render(request, 'purchase_order/purchase_edit.html', {'po': po})
 
 
 def rf_ptl(request):
@@ -1123,3 +1147,89 @@ def add_category(request):
         'category_form': form,
     })
 
+
+# def vendor_detail(request, vendor_id):  
+#     vendor = get_object_or_404(Vendor, id=vendor_id)
+#     return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
+
+# def vendor_edit(request, vendor_id):
+#     Vendor = get_object_or_404(Vendor, id=vendor_id)
+
+# def vendor_list(request):
+#     vendors = Vendor.objects.all()
+#     return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
+
+
+from django.shortcuts import render, redirect
+from .models import Vendor
+
+def add_vendor(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        vendor_code = request.POST.get('vendor_code')
+        email = request.POST.get('email')
+        phone_no = request.POST.get('phone_no')
+        address = request.POST.get('address')
+        location = request.POST.get('location')
+        profile_image = request.FILES.get('profile_image')
+
+        vendor = Vendor(
+            name=name,
+            vendor_code=vendor_code,
+            email=email,
+            phone_no=phone_no,
+            address=address,
+            location=location,
+            profile_image=profile_image
+        )
+        vendor.save()
+
+        return redirect('vendor_detail', vendor_id=vendor.id)  # or any success page
+    return render(request, 'vendor/add_vendor.html')
+
+from django.shortcuts import render, get_object_or_404
+from .models import Vendor
+
+def vendor_detail(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Vendor
+from .forms import Vendorform  # Assuming you have a form named VendorForm
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Vendor
+
+def vendor_edit(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+
+    if request.method == 'POST':
+        vendor.name = request.POST.get('name')
+        vendor.vendor_code = request.POST.get('vendor_code')
+        vendor.email = request.POST.get('email')
+        vendor.phone_no = request.POST.get('phone_no')
+        vendor.address = request.POST.get('address')
+        vendor.location = request.POST.get('location')
+        vendor.save()
+        return redirect('vendor_detail', vendor_id=vendor.id)
+
+    return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
+
+
+
+from django.shortcuts import render
+from .models import Vendor
+
+def vendor_list(request):
+    vendors = Vendor.objects.all()
+    return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
+
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import Vendor
+
+def vendor_delete(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    vendor.delete()
+    return redirect('vendor_list')
