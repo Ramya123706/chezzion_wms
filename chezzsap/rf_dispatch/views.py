@@ -938,6 +938,75 @@ def purchase_detail(request, pk):
     po = get_object_or_404(PurchaseOrder, pk=pk)
     return render(request, 'purchase_order/purchase_detail.html', {'po': po})
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import PurchaseOrder
+from .forms import PurchaseOrderForm
+
+# def purchase_edit(request, po_id):
+#     # Get the existing PurchaseOrder or return 404
+#     po = get_object_or_404(PurchaseOrder, id=po_id)
+
+#     if request.method == 'POST':
+#         form = PurchaseOrderForm(request.POST, request.FILES, instance=po)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, "Purchase order updated successfully.")
+#             return redirect('purchase_detail')  # Change this if needed
+#     else:
+#         form = PurchaseOrderForm(instance=po)
+
+#     return render(request, 'purchase_order/purchase_edit.html', {
+#         'form': form,
+#         'po': po,
+#     })
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import PurchaseOrder
+
+def purchase_edit(request, po_id):
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+
+    if request.method == 'POST':
+        # Update all fields manually
+        po.company_name = request.POST.get('company_name')
+        po.company_address = request.POST.get('company_address')
+        po.company_phone = request.POST.get('company_phone')
+        po.company_email = request.POST.get('company_email')
+        po.company_website = request.POST.get('company_website')
+
+        po.po_date = request.POST.get('po_date')
+        po.po_number = request.POST.get('po_number')
+        po.customer_number = request.POST.get('customer_number')
+
+        po.vendor_company_name = request.POST.get('vendor_company_name')
+        po.vendor_contact_name = request.POST.get('vendor_contact_name')
+        po.vendor_phone = request.POST.get('vendor_phone')
+        po.vendor_address = request.POST.get('vendor_address')
+        po.vendor_email = request.POST.get('vendor_email')
+        po.vendor_website = request.POST.get('vendor_website')
+
+        po.ship_to_name = request.POST.get('ship_to_name')
+        po.ship_to_company_name = request.POST.get('ship_to_company_name')
+        po.ship_to_address = request.POST.get('ship_to_address')
+        po.ship_to_phone = request.POST.get('ship_to_phone')
+        po.ship_to_email = request.POST.get('ship_to_email')
+        po.ship_to_website = request.POST.get('ship_to_website')
+
+        po.item_number = request.POST.get('item_number')
+        po.product_name = request.POST.get('product_name')
+        po.product_quantity = request.POST.get('product_quantity')
+        po.unit_price = request.POST.get('unit_price')
+        po.total_price = request.POST.get('total_price')
+
+        po.save()
+        messages.success(request, "Purchase order updated successfully.")
+        return redirect('purchase_detail', po_id=po.id)
+
+    return render(request, 'purchase/purchase_order_edit.html', {'po': po})
+
+
 def rf_ptl(request):
     return render(request, 'rf_pick_to_light/dashboard.html')
 

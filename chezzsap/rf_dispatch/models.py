@@ -222,6 +222,7 @@ class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
     whs_no = models.CharField(max_length=20)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    description = models.TextField(blank=True, null=True)
     quantity = models.IntegerField()
     batch = models.CharField(max_length=20)
     bin = models.CharField(max_length=20)

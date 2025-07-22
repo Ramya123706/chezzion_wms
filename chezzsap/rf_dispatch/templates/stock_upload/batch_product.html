@@ -33,7 +33,7 @@
                     <select class="form-control" id="product" name="product" required>
                         <option value="">-- Select Product --</option>
                         {% for p in products %}
-                            <option value="{{ p.id }}">{{ p.name }} ({{ p.sku }})</option>
+                            <option value="{{ p.id }}">{{ p.product_id }} - {{ p.name }}</option>
                         {% endfor %}
                     </select>
                     <small class="form-text text-muted">

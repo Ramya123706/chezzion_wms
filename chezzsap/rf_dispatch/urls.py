@@ -74,6 +74,7 @@ urlpatterns = [
     # path('vendors/', views.vendor_list, name='vendor_list'), 
     path('purchase_order/add_purchase/', views.add_purchase, name='add_purchase'),
     path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
+    path('purchase/edit/<int:po_id>/', views.purchase_edit, name='purchase_edit'),
     path('rf_ptl/', views.rf_ptl, name="rf_plt"),
     path('create_bin/', views.create_bin, name='create_bin'),
     path('task/', views.task, name='task'),
