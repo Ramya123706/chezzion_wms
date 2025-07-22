@@ -1,71 +1,88 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container py-5">
+<div class="container py-5">
     <div class="card mx-auto shadow-lg p-4" style="max-width: 600px;">
-    <div class="card-header text-center bg-primary text-white">
-                <h5>Product details</h5>
-            </div>
-    
-<table class="table table-bordered">
-  <tbody>
-    <tr>
-      <th>Product ID</th>
-      <td>{{ product.product_id }}</td>
-    </tr>
-    <tr>
-      <th>Product Name</th>
-      <td>{{ product.name }}</td>
-    </tr>
-    <tr>
-      <th>Quantity</th>
-      <td>{{ product.quantity }}</td>
-    </tr>
-    <tr>
-      <th>Pallet no</th>
-      <td>{{ product.pallet_no }}</td>
-    </tr>
-    <tr>
-      <th>SKU</th>
-      <td>{{ product.sku }}</td>
-    </tr>
-    <tr>
-      <th>Description</th>
-      <td>{{ product.description }}</td>
-    </tr>
-    <tr>
-      <th>Category</th>
-      <td>{{ product.category }}</td>
-    </tr>
-    <tr>
-      <th>Unit of Measure</th>
-      <td>{{ product.unit_of_measure }}</td>
-    </tr>
-    <tr>
-      <th>Reorder Level</th>
-      <td>{{ product.re_order_level }}</td>
-    </tr>
-    <tr>
-      <th>Created At</th>
-      <td>{{ product.created_at }}</td>
-    </tr>
-    <tr>
-      <th>Updated At</th>
-      <td>{{ product.updated_at }}</td>
-    </tr>
-    <tr>
-      <th>Image</th>
-      <td>
+ 
         {% if product.images %}
-          <img src="{{ product.images.url }}" alt="Product Image" width="100">
+        <div class="text-center mb-3">
+            <img src="{{ product.images.url }}" class="img-fluid rounded" alt="Product Image" style="max-width: 300px;">
+        </div>
+        {% else %}
+        <div class="text-center mb-3 text-muted">
+            No image uploaded for this product.
+        </div>
         {% endif %}
-      </td>
-      </tr>
-  </tbody>
-</table>
-<div class="text-center mt-4">
-  <a href="{% url 'product_edit' product.product_id %}" class="btn btn-primary" >Edit</a>
+ 
+        <div class="card-header text-center bg-primary text-white">
+            <h5>Product details</h5>
+        </div>
+ 
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th>Product ID</th>
+                    <td>{{ product.product_id }}</td>
+                </tr>
+                <tr>
+                    <th>Product Name</th>
+                    <td>{{ product.name }}</td>
+                </tr>
+                <tr>
+                    <th>Quantity</th>
+                    <td>{{ product.quantity }}</td>
+                </tr>
+                <tr>
+                    <th>Pallet no</th>
+                    <td>{{ product.pallet_no }}</td>
+                </tr>
+                <tr>
+                    <th>SKU</th>
+                    <td>{{ product.sku }}</td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td>{{ product.description }}</td>
+                </tr>
+                <tr>
+                    <th>Category</th>
+                    <td>{{ product.category }}</td>
+                </tr>
+                <tr>
+                    <th>Unit of Measure</th>
+                    <td>{{ product.unit_of_measure }}</td>
+                </tr>
+                <tr>
+                    <th>Reorder Level</th>
+                    <td>{{ product.re_order_level }}</td>
+                </tr>
+                <tr>
+                    <th>Created At</th>
+                    <td>{{ product.created_at }}</td>
+                </tr>
+                <tr>
+                    <th>Updated At</th>
+                    <td>{{ product.updated_at }}</td>
+                </tr>
+                <!--
+                <tr>
+                    <th>Image</th>
+                    <td>
+                        {% if product.images %}
+                            <img src="{{ product.images.url }}" alt="Product Image" width="100">
+                        {% endif %}
+                    </td>
+                </tr>
+                -->
+            </tbody>
+        </table>
+ 
+        <div class="text-center mt-4">
+            <a href="{% url 'product_edit' product.product_id %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'add_product' %}" class="btn btn-secondary">F7 BACK</a>
+        </div>
+ 
+    </div>
 </div>
-
- {% endblock %}|
-      
-
+{% endblock %}
+ 
+ 

@@ -464,49 +464,75 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
 
-def add_product(request):
+# def add_product(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         product_id = request.POST.get('product_id')
+#         quantity = request.POST.get('quantity')
+#         pallet_no = request.POST.get('pallet_no')
+#         sku = request.POST.get('sku')
+#         description = request.POST.get('description')
+#         unit_of_measure = request.POST.get('unit_of_measure')
+#         category = request.POST.get('category')
+#         re_order_level = request.POST.get('re_order_level')
+#         images = request.FILES.get('images')
+
+#         try:
+#             product = Product.objects.create(
+#                 product_id=product_id,
+#                 name=name,
+#                 quantity=quantity,
+#                 pallet_no=pallet_no,
+#                 sku=sku,
+#                 description=description,
+#                 unit_of_measure=unit_of_measure,
+#                 category=category,
+#                 re_order_level=re_order_level,
+#                 images=images,
+#                 created_at=timezone.now(),
+#                 updated_at=timezone.now()
+#             )
+#             return redirect('product_detail', product_id=product.id)
+
+#         except Exception as e:
+#             return render(request, 'product/add_product.html', {'error': str(e)})
+
+#     return render(request, 'product/add_product.html')
+
+
+
+
+# def product_detail(request, product_id): 
+#     product = get_object_or_404(Product, id=product_id)  
+#     return render(request, 'product/product_detail.html', {'product': product})
+
+def product_view(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        product_id = request.POST.get('product_id')
-        quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
-        sku = request.POST.get('sku')
-        description = request.POST.get('description')
-        unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        re_order_level = request.POST.get('re_order_level')
-        images = request.FILES.get('images')
-
-        try:
-            product = Product.objects.create(
-                product_id=product_id,
-                name=name,
-                quantity=quantity,
-                pallet_no=pallet_no,
-                sku=sku,
-                description=description,
-                unit_of_measure=unit_of_measure,
-                category=category,
-                re_order_level=re_order_level,
-                images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now()
-            )
-            return redirect('product/product_detail', product_id=product.product_id)
-
-        except Exception as e:
-            return render(request, 'product/add_product.html', {'error': str(e)})
-
-    return render(request, 'product/add_product.html')
-
-
-
-
-def product_detail(request, product_id): 
-    product = get_object_or_404(Product, id=product_id)  
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
+            return redirect('product_detail', product_id=product.product_id)
+        else:
+            print("❌ Form errors:", form.errors)  # Debug print (optional)
+    else:
+        form = ProductForm()
+ 
+    query = request.GET.get('search')
+    if query:
+        products = Product.objects.filter(name__icontains=query)
+    else:
+        products = Product.objects.all()
+ 
+    return render(request, 'product/add_product.html', {
+        'form': form,
+        'products': products,
+        'query': query
+    })
+ 
+ 
+def product_detail_view(request, product_id):
+    product = get_object_or_404(Product, product_id=product_id)
     return render(request, 'product/product_detail.html', {'product': product})
-
-
 def product_edit(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
 
