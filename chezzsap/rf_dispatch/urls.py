@@ -45,7 +45,6 @@ urlpatterns = [
     path('truck-status/', views.truck_status_view, name='truck_status'),
     path('truck/<str:truck_no>/update-status/', update_truck_status, name='update_truck_status'),
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
-   
     path('product/<int:product_id>/', views.product_detail_view, name='product_detail'),
     path('product/edit/<int:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
@@ -64,21 +63,23 @@ urlpatterns = [
     path('customers/<int:customer_id>/', views.customers_detail, name='customers_detail'),
     path('customers/<int:customer_id>/edit/', views.customers_edit, name='customers_edit'),
     path('customers/', views.customers_list, name='customers_list'),
-    # path('customers/<int:customer_id>/', views.customers_delete, name='customers_delete'),
+    path('customers/<int:customer_id>/', views.customers_delete, name='customers_delete'),
     path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
     path('creating_pallet/', views.creating_pallet, name='creating_pallet'),
     path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
     path('pallet/edit/<int:pallet_no>/', views.edit_pallet, name='edit_pallet'),
-    path('add_vendor/',views.vendor_view, name='add_vendor'),
-    path('vendor/<int:id>/', views.vendor_detail, name='vendor_detail'), 
-    path('vendor/<int:id>/edit/', views.vendor_edit, name='vendor_edit'),
-    path('vendor/', views.vendor_list, name='vendor_list'), 
-    path('vendor/<int:vendor_id>/delete/', views.vendor_delete, name='vendor_delete'),
-    path('vendor/<str:id>/', views.vendor_detail, name='vendor_search_details'),
-    # path('vendor/', views.vendor_detail, name='vendor_view'),
-
-
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # path('add_vendor/',views.add_vendor, name='add_vendor'),
+    # path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
+    # path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
+    # path('vendors/', views.vendor_list, name='vendor_list'), 
+    path('purchase_order/add_purchase/', views.add_purchase, name='add_purchase'),
+    path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
+    path('purchase/edit/<int:po_id>/', views.purchase_edit, name='purchase_edit'),
+    path('rf_ptl/', views.rf_ptl, name="rf_plt"),
+    path('create_bin/', views.create_bin, name='create_bin'),
+    path('task/', views.task, name='task'),
+    path('add-category/', views.add_category, name='add_category'),
+     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

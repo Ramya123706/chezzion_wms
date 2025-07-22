@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container py-5">
     <div class="card mx-auto shadow-lg p-4" style="max-width: 600px;">
- 
+
         {% if product.images %}
         <div class="text-center mb-3">
             <img src="{{ product.images.url }}" class="img-fluid rounded" alt="Product Image" style="max-width: 300px;">
@@ -12,11 +12,11 @@
             No image uploaded for this product.
         </div>
         {% endif %}
- 
+
         <div class="card-header text-center bg-primary text-white">
             <h5>Product details</h5>
         </div>
- 
+
         <table class="table table-bordered">
             <tbody>
                 <tr>
@@ -75,14 +75,12 @@
                 -->
             </tbody>
         </table>
- 
+
         <div class="text-center mt-4">
             <a href="{% url 'product_edit' product.product_id %}" class="btn btn-primary">Edit</a>
             <a href="{% url 'add_product' %}" class="btn btn-secondary">F7 BACK</a>
         </div>
- 
+
     </div>
 </div>
 {% endblock %}
- 
- 

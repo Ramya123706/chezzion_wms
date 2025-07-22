@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
- 
+
         <!-- LEFT SIDE: Add Product -->
         <div class="col-md-6">
             <div class="card">
@@ -65,12 +65,12 @@
                     <div class="text-center mb-2 ">
                         <button type="submit" class="btn btn-primary ">Submit</button>
                         <!-- <a href="{% url 'product_list' %}" class="btn btn-primary">Product List</a> -->
- 
+
                     </div>
                 </form>
             </div>
         </div>
-   
+    
         <!-- RIGHT SIDE: Search and Display -->
         <div class="col-md-6">
             <div class="card">
@@ -85,7 +85,7 @@
                         <button type="submit" class="btn btn-primary">Search</button>
                     </div>
                 </form>
- 
+
                 {% if products %}
                     <!-- Desktop Table View -->
                     <div class="d-none d-md-block px-3 pb-3">
@@ -108,8 +108,8 @@
                             </tbody>
                         </table>
                     </div>
- 
-                   
+
+                    
                     <!-- Mobile Card View -->
                     <div class="d-md-none px-3 pb-3">
                         {% for product in products %}
@@ -122,7 +122,7 @@
                         </div>
                         {% endfor %}
                     </div>
- 
+
                 {% else %}
                     <!-- No Results -->
                     <div class="alert alert-warning text-center mt-4">
@@ -134,6 +134,5 @@
     </div>
 </div>
 {% endblock %}
- 
- 
- 
+
+
