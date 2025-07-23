@@ -808,6 +808,11 @@ def edit_pallet(request, pallet_no):
 
 # from django.shortcuts import render, redirect
 
+from django.shortcuts import render, redirect
+from .models import Vendor
+
+from django.shortcuts import render, redirect
+from .models import Vendor
 
 def add_vendor(request):
     if request.method == 'POST':
@@ -818,8 +823,8 @@ def add_vendor(request):
         address = request.POST.get('address')
         location = request.POST.get('location')
         profile_image = request.FILES.get('profile_image')  
- 
-        vendor = vendor(
+
+        vendor = Vendor(
             name=name,
             vendor_code=vendor_code,
             email=email,
@@ -829,10 +834,46 @@ def add_vendor(request):
             profile_image=profile_image
         )
         vendor.save()
+        return redirect('vendor_detail', vendor_id=vendor.id)
 
-        return redirect('vendor/vendor_detail')  
+    return render(request, 'vendor/add_vendor.html')
 
-    return render(request, 'vendor/add_vendor.html')  
+from .models import Vendor  
+
+def vendor_detail(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    return redirect('vendor_detail', vendor_id=vendor.id)
+
+
+def vendor_edit(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    
+    if request.method == 'POST':
+        vendor.name = request.POST.get('name')
+        vendor.vendor_code = request.POST.get('vendor_code')
+        vendor.email = request.POST.get('email')
+        vendor.phone_no = request.POST.get('phone_no')
+        vendor.address = request.POST.get('address')
+        vendor.location = request.POST.get('location')
+        vendor.save()
+        return redirect('vendor_detail', vendor_id=vendor.id)
+    
+    return render(request, 'vendor_edit.html', {'vendor': vendor})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Vendor
+
+def vendor_list(request):
+    vendors = Vendor.objects.all()
+    return render(request, 'vendor_list.html', {'vendors': vendors})
+
+def vendor_delete(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    if request.method == 'POST':
+        vendor.delete()
+        return redirect('vendor_list')
+    return render(request, 'vendor_detail.html', {'vendor': vendor})
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PurchaseOrderForm

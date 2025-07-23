@@ -180,19 +180,18 @@ class Pallet(models.Model):
 
     def __str__(self):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
-
 class Vendor(models.Model):
-    name = models.CharField(max_length=255)
-    id=models.IntegerField(primary_key=True)
-    vendor_code = models.CharField(max_length=50, unique=True)
-    email = models.EmailField()  
-    phone_no = models.CharField(max_length=10)
-    address = models.TextField(null=True,blank=True )
-    location = models.CharField(max_length=100, null=True, blank=True)
-    profile_image = models.ImageField(upload_to='vendor_images/', default='vendor_images/default.jpg', null=True, blank=True)
-   
+    name = models.CharField(max_length=100)
+    vendor_code = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone_no = models.CharField(max_length=15)
+    address = models.TextField()
+    location = models.CharField(max_length=100)
+    profile_image = models.ImageField(upload_to='vendor_images/', blank=True, null=True)
+
     def __str__(self):
         return self.name
+
    
 class Customers(models.Model):
     name = models.CharField(max_length=255)
