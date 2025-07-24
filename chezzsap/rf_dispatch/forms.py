@@ -152,3 +152,13 @@ class CategoryForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
         exclude = ['created_by', 'created_at', 'updated_by', 'updated_at']  # Exclude fields that are not needed in the form
+        
+        
+   
+from .models import Putaway
+
+class PutawayForm(forms.ModelForm):
+    class Meta:
+        model = Putaway
+        exclude = ['created_at', 'confirmed_at']
+        

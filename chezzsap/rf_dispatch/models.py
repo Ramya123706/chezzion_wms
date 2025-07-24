@@ -134,9 +134,9 @@ from django.db import models
 #     id = models.AutoField(primary_key=True)
 
 #     def __str__(self):
-#         return self.name
+#         return self.name 
 class Product(models.Model):
-    id = models.AutoField(primary_key=True)
+#     id= models.AutoField(primary_key=True)
     product_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)
@@ -334,3 +334,23 @@ class Category(models.Model):
     def __str__(self):
         return self.category   
     
+
+
+class Putaway(models.Model):
+    id = models.CharField(max_length=20, primary_key=True)
+    pallet = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=100) 
+    location = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
+
+    STATUS_CHOICES = [
+        ('In Progress', 'In Progress'),
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+
+    def __str__(self):
+        return f"{self.pallet} - {self.status}"

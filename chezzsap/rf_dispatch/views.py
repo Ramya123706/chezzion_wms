@@ -1166,3 +1166,46 @@ def add_category(request):
         'category_form': form,
     })
 
+
+from .forms import PutawayForm
+from .models import Putaway
+# from .models import PutawayTask
+def putaway_task(request):
+    if request.method == 'POST':
+        form = PutawayForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('putaway_pending')  
+    else:
+        form = PutawayForm()
+    return render(request, 'putaway/putaway_task.html', {'form': form})
+
+def putaway_pending(request):
+    pending_tasks = Putaway.objects.filter
+    return render(request, 'putaway/pending_task.html', {'tasks': pending_tasks})
+
+
+def edit_putaway(request, pk):
+    putaway = get_object_or_404(Putaway, pk=pk)
+    if request.method == 'POST':
+        form = PutawayForm(request.POST, instance=putaway)
+        if form.is_valid():
+            form.save()
+            return redirect('putaway_pending')
+    else:
+        form = PutawayForm(instance=putaway)
+    return render(request, 'putaway/putaway_task.html', {'form': form})
+
+
+def confirm_putaway(request, pk):
+    putaway = get_object_or_404(Putaway, pk=pk)
+    putaway.status = "Completed"
+    putaway.is_confirmed = True
+    putaway.save()
+    return redirect('putaway_pending')
+
+def delete_putaway(request, pk):
+    task = get_object_or_404(Putaway, pk=pk)
+    task.delete()
+    messages.success(request, "Task deleted successfully.")
+    return redirect('putaway_pending')

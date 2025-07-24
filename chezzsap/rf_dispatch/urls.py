@@ -80,7 +80,14 @@ urlpatterns = [
     path('create_bin/', views.create_bin, name='create_bin'),
     path('task/', views.task, name='task'),
     path('add-category/', views.add_category, name='add_category'),
-     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    
+    path('putaway_task/', views.putaway_task, name='putaway_task'),
+    path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
+    path('putaway/edit/<int:pk>/', views.edit_putaway, name='edit_putaway'),
+    path('putaway/confirm/<int:pk>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<int:pk>/', views.delete_putaway, name='delete_putaway'),
+
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
