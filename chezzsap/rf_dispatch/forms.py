@@ -92,8 +92,8 @@ class WarehouseForm(forms.ModelForm):
         
 class CustomersForm(forms.ModelForm):
     class Meta:
-        model=Customers
-        fields='__all__'
+        model = Customers
+        exclude = ['customer_id'] 
     
 class VendorForm(forms.ModelForm):
     class Meta:
@@ -161,4 +161,21 @@ class PutawayForm(forms.ModelForm):
     class Meta:
         model = Putaway
         exclude = ['created_at', 'confirmed_at']
-        
+
+from .models import Picking
+
+# forms.py
+from django import forms
+from .models import Picking
+
+class PickingForm(forms.ModelForm):
+    class Meta:
+        model = Picking
+        fields = ['id', 'pallet', 'created_by', 'location', 'product', 'quantity', 'status']
+
+from .models import Customer
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = '__all__'

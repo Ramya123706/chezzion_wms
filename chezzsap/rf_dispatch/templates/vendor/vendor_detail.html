@@ -14,8 +14,8 @@
                     <td>{{ vendor.name }}</td>
                 </tr>
                 <tr>
-                    <th> ID</th>
-                    <td>{{ vendor.id }}</td>
+                    <th> Vendor ID</th>
+                    <td>{{ vendor.vendor_id }}</td>
                 </tr>
                 <tr>
                     <th>Vendor code</th>
@@ -33,17 +33,14 @@
                     <th>Address</th>
                     <td>{{vendor.address }}</td>
                 </tr>
-                <tr>
-                    <th>Location</th>
-                    <td>{{ vendor.location }}</td>
-                </tr>
+                
                 <tr>
                     <th>Profile image</th>
                     <td> {% load static %}
                         {% if vendor.profile_image %}
-                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="120">
+                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="200">
                         {% else %}
-                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="120">
+                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="200">
                         {% endif %}</td>
                 </tr>
 
@@ -51,7 +48,7 @@
         </table>
 
         <div class="text-center mt-4">
-            <a href="{% url 'vendor_edit' vendor.id %}" class="btn btn-primary">Edit</a>
+            <a href="{% url 'vendor_edit' vendor.vendor_id %}" class="btn btn-primary">Edit</a>
             
             <a href="{% url 'add_vendor' %}" class="btn btn-secondary">F7 BACK</a>
                 

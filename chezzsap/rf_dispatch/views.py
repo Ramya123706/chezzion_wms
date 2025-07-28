@@ -675,38 +675,55 @@ from django.contrib import messages
 def add_customers(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        id= request.POST.get('id')
+        customer_id= request.POST.get('customer_id')
         customer_code = request.POST.get('customer_code')
         email = request.POST.get('email')
         phone_no = request.POST.get('phone_no')
         address = request.POST.get('address')
         location = request.POST.get('location')
 
-        try:
-            customer = Customers.objects.create(
-                name=name,
-                id=id,
-                customer_code=customer_code,
-                email=email,
-                phone_no=phone_no,
-                address=address,
-                location=location,
-                )
-            return redirect('customers_detail', customer_id=customer.id)
-        except Exception as e:
-            return render(request, 'customers/add_customers.html', {'error': str(e)})
+    #     try:
+    #         customer = Customers.objects.create(
+    #             name=name,
+    #             customer_id=customer_id,
+    #             customer_code=customer_code,
+    #             email=email,
+    #             phone_no=phone_no,
+    #             address=address,
+    #             location=location,
+    #             )
+    #         return redirect('customers_detail', customer_id=customer.customer_id)
+    #     except Exception as e:
+    #         return render(request, 'customers/add_customers.html', {'error': str(e)})
 
-    return render(request, 'customers/add_customers.html')
+    # return render(request, 'customers/add_customers.html')
+
+        customers = Customers(
+            name=name,
+            customer_id=customer_id,
+            customer_code=customer_code,
+            email=email,
+            phone_no=phone_no,
+            address=address,
+            location=location,
+        )
+        customers.save()
+        return redirect('customers_detail', customer_id=customers.customer_id)
+    
+    customers = Customers.objects.all()
+    return render(request, 'customers/add_customers.html',{'customers': customers})
+
 
 def customers_detail(request, customer_id):  
-    customer = get_object_or_404(Customers, id=customer_id)
+    customer = get_object_or_404(Customers, customer_id=customer_id)
     return render(request, 'customers/customers_detail.html', {'customer': customer})
 
 def customers_edit(request, customer_id):
-    customer = get_object_or_404(Customers, id=customer_id)
+    customer = get_object_or_404(Customers, customer_id=customer_id)
 
     if request.method == 'POST':
         customer.name = request.POST.get('name')
+        customer.customer_id = request.POST.get('customer_id')
         customer.customer_code = request.POST.get('customer_code')
         customer.email = request.POST.get('email')
         customer.phone_no = request.POST.get('phone_no')
@@ -834,15 +851,20 @@ def add_vendor(request):
             profile_image=profile_image
         )
         vendor.save()
-        return redirect('vendor_detail', vendor_id=vendor.id)
-
-    return render(request, 'vendor/add_vendor.html')
+        return redirect('vendor_detail', vendor_id=vendor.vendor_id)
+    
+    vendor =Vendor.objects.all()
+    return render(request, 'vendor/add_vendor.html',{'vendor': vendor})
 
 from .models import Vendor  
 
+# def vendor_detail(request, vendor_id):
+#     vendor = get_object_or_404(Vendor, id=vendor_id)
+#     return redirect('vendor_detail', vendor_id=vendor.id)
+
 def vendor_detail(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
-    return redirect('vendor_detail', vendor_id=vendor.id)
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+    return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
 
 
 def vendor_edit(request, vendor_id):
@@ -858,7 +880,8 @@ def vendor_edit(request, vendor_id):
         vendor.save()
         return redirect('vendor_detail', vendor_id=vendor.id)
     
-    return render(request, 'vendor_edit.html', {'vendor': vendor})
+    return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
+
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Vendor
@@ -872,7 +895,8 @@ def vendor_delete(request, vendor_id):
     if request.method == 'POST':
         vendor.delete()
         return redirect('vendor_list')
-    return render(request, 'vendor_detail.html', {'vendor': vendor})
+    return render(request, 'vendor/vendor_confirm_delete.html', {'vendor': vendor})
+
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -1209,3 +1233,76 @@ def delete_putaway(request, pk):
     task.delete()
     messages.success(request, "Task deleted successfully.")
     return redirect('putaway_pending')
+
+
+from django.shortcuts import render, redirect
+from .models import Picking
+from .forms import PickingForm
+
+def add_picking(request):
+    if request.method == 'POST':
+       
+        id = request.POST.get('id')
+        pallet = request.POST.get('pallet')
+        created_by = request.POST.get('created_by')
+        location = request.POST.get('location')
+        product = request.POST.get('product')
+        quantity = request.POST.get('quantity')
+        status = request.POST.get('status')
+
+     
+        Picking.objects.create(
+            id=id,
+            pallet=pallet,
+            created_by=created_by,
+            location=location,
+            product=product,
+            quantity=quantity,
+            status=status
+        )
+        return redirect('pending_task')
+    return render(request, 'picking/add_picking.html')
+
+    
+def pending_task(request):
+    pending_picking = Picking.objects.filter(status__iexact='Pending').order_by('id')
+    return render(request, 'picking/pending_task.html', {'pending_picking': pending_picking})
+
+
+def edit_picking(request, pk): 
+    picking = get_object_or_404(Picking, pk=pk)
+    if request.method == 'POST':
+        form = PickingForm(request.POST, instance=picking)
+        if form.is_valid():
+            form.save()
+            return redirect('pending_task')  
+    else:
+        form = PickingForm(instance=picking)
+
+    return render(request, 'picking/edit_picking.html', {'form': form})
+
+
+
+def confirm_picking(request, id):
+    picking = get_object_or_404(Picking, id=id)
+    picking.status = 'Completed'
+    picking.save()
+    return redirect('customer')
+
+
+def delete_picking(request, id):
+    picking = get_object_or_404(Picking, id=id)
+    picking.delete()
+    return redirect('pending_task')
+
+from .forms import CustomerForm
+
+def customer_popup(request):
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('')  
+    else:
+        form = CustomerForm()
+    return render(request, 'customer.html', {'form': form})

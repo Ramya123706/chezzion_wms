@@ -19,7 +19,7 @@
             {% for vendor in vendors %}
             <tr>
                 <td>{{vendor.name }}</td>
-                <td>{{vendor.id }}</td>
+                <td>{{vendor.vendor_id }}</td>
                 <td>{{ vendor.phone_no }}</td>
                 <td action class="text-nowrap text-center">
                     <a href="{% url 'vendor_detail' vendor.id %}" class="btn btn-sm btn-primary">View details</a>

@@ -182,31 +182,40 @@ class Pallet(models.Model):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
 class Vendor(models.Model):
     name = models.CharField(max_length=100)
+    vendor_id = models.CharField(max_length=10, primary_key=True, editable=False) 
     vendor_code = models.CharField(max_length=100)
     email = models.EmailField()
     phone_no = models.CharField(max_length=15)
     address = models.TextField()
-    location = models.CharField(max_length=100)
+    location = models.CharField(max_length=100, null=True, blank=True)
+
     profile_image = models.ImageField(upload_to='vendor_images/', blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if not self.vendor_id:
+            last_vendor = Vendor.objects.order_by('-vendor_id').first()
+            if last_vendor and last_vendor.vendor_id[1:].isdigit():
+                next_id = int(last_vendor.vendor_id[1:]) + 1
+            else:
+                next_id = 1
+            self.vendor_id = f"V{next_id:03d}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
-   
+
 class Customers(models.Model):
     name = models.CharField(max_length=255)
-    vendor_id = models.CharField(max_length=100, unique=True, default=True)
+    customer_id = models.CharField(max_length=10, primary_key=True, editable=False) 
     customer_code = models.CharField(max_length=50)
-    email = models.EmailField()  
+    email = models.EmailField()
     phone_no = models.CharField(max_length=10)
-    address = models.CharField()
+    address = models.CharField(max_length=255)
     location = models.CharField(max_length=255, blank=True, null=True)
-
-
 
     def __str__(self):
         return self.name
-    
 
 from django.db import models
 from django.db.models import F
@@ -355,3 +364,35 @@ class Putaway(models.Model):
 
     def __str__(self):
         return f"{self.pallet} - {self.status}"
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Picking(models.Model):
+    id = models.AutoField(primary_key=True) 
+    pallet = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)
+    product = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    def __str__(self):
+        return f"Picking {self.id} - {self.product}"
+
+class Customer(models.Model):
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    product = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name

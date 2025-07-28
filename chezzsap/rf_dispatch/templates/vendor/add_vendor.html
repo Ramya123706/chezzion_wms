@@ -18,8 +18,8 @@
                             <input type="text" class="form-control" id="name" name="name" required>
                         </div>
                         <div class="form-group">
-                            <label for="id"><b>ID</b></label>
-                            <input type="text" id="id" name="id" class="form-control" value="{{ vendor.id }}" required>
+                            <label for="vendor_id"><b>Vendor ID</b></label>
+                            <input type="text" id="vendor_id" name="vendor_id" class="form-control" value="{{ vendor.vendor_id }}" placeholder="Auto Generates" readonly>
                         </div>
 
                         <div class="form-group mb-2">
@@ -64,7 +64,7 @@
                         </div>
                     </form>
 
-                    {% if vendors %} 
+                    {% if vendor %} 
                         <!-- Desktop Table View -->
                         <div class="d-none d-md-block px-3 pb-3">
                             <table class="table table-bordered text-center align-middle">
@@ -76,12 +76,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for vendor in vendors %}
+                                    {% for vendor in vendor %}
                                     <tr>
                                         <td>{{ vendor.name }}</td>
-                                        <td>{{ vendor.id }}</td>
+                                        <td>{{ vendor.vendor_id }}</td>
                                         <td>
-                                            <a href="{% url 'vendor_search_details' vendor.id %}" class="btn btn-sm btn-info">View Details</a>
+                                            <a href="{% url 'add_vendor' %}" class="btn btn-sm btn-info">View Details</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -91,12 +91,12 @@
 
                         <!-- Mobile Card View -->
                         <div class="d-md-none px-3 pb-3">
-                            {% for vendor in vendors %}
+                            {% for vendor in vendor %}
                             <div class="card mb-3">
                                 <div class="card-body">
-                                    <h5 class="card-title">Vendor #{{ vendor.id }}</h5>
+                                    <h5 class="card-title">Vendor #{{ vendor.vendor_id }}</h5>
                                     <p class="card-text mb-1"><strong>Name:</strong> {{ vendor.name }}</p>
-                                    <a href="{% url 'vendor_search_details' vendor.id %}" class="btn btn-sm btn-info">View Details</a>
+                                    <a href="{% url 'add_vendor' %}" class="btn btn-sm btn-info">View Details</a>
                                 </div>
                             </div>
                             {% endfor %}
