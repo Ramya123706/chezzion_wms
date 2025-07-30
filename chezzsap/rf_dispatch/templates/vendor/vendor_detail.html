@@ -1,18 +1,61 @@
 {% extends "base.html" %}
-
+ 
 {% block content %}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<div class="container">
+    <div class="card mx-auto shadow-lg p-4" style="max-width: 600px;">
+        <div class="card-header text-center bg-primary text-white">
+            <h5>Vendor details</h5>
+        </div>
+       
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th> Name</th>
+                    <td>{{ vendor.name }}</td>
+                </tr>
+                <tr>
+                    <th> ID</th>
+                    <td>{{ vendor.id }}</td>
+                </tr>
+                <tr>
+                    <th>Vendor code</th>
+                    <td>{{ vendor.vendor_code }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ vendor.email }}</td>
+                </tr>
+                <tr>
+                    <th>Phone Number</th>
+                    <td>{{vendor.phone_no }}</td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>{{vendor.address }}</td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>{{ vendor.location }}</td>
+                </tr>
+                <!-- <tr>
+                    <th>Profile image</th>
+                    <td> {% load static %}
+                        {% if vendor.profile_image %}
+                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="120">
+                        {% else %}
+                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="120">
+                        {% endif %}</td>
+                </tr> -->
+ 
+            </tbody>
+        </table>
+ 
+        <div class="text-center mt-4">
+            <a href="{% url 'vendor_edit' vendor.id %}" class="btn btn-primary">Edit</a>
+           
+            <a href="{% url 'add_vendor' %}" class="btn btn-secondary">F7 BACK</a>
+               
+        </div>
+    </div>
+</div>
 {% endblock %}
