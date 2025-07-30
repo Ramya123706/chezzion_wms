@@ -348,7 +348,7 @@ class Category(models.Model):
 class Putaway(models.Model):
     id = models.CharField(max_length=20, primary_key=True)
     pallet = models.CharField(max_length=100)
-    created_by = models.CharField(max_length=100) 
+    # created_by = models.CharField(max_length=100) 
     location = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
@@ -372,7 +372,7 @@ from django.contrib.auth.models import User
 class Picking(models.Model):
     id = models.AutoField(primary_key=True) 
     pallet = models.CharField(max_length=100)
-    created_by = models.CharField(max_length=100)
+    # created_by = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()

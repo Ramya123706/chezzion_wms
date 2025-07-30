@@ -171,8 +171,7 @@ from .models import Picking
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        fields = ['id', 'pallet', 'created_by', 'location', 'product', 'quantity', 'status']
-
+        exclude = ['created_by']
 from .models import Customer
 
 class CustomerForm(forms.ModelForm):
