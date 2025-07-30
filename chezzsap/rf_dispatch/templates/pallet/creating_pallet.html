@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- LEFT SIDE: Pallet Creation Form -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Pallet Creation</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'creating_pallet' %}" method="post">
+                        {% csrf_token %}
+
+                        <!-- Error Display -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul>
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Form Fields -->
+                        {{ form.as_p }}
+
+                        <button type="submit" class="btn btn-success w-100">Create Pallet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Search and Display -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white text-center">
+                    <h5>Search Pallet</h5>
+                </div>
+                <div class="card-body">
+
+                    <!-- Search Form -->
+                    <form method="get" class="mb-3 text-center">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" placeholder="Enter Pallet Number">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+
+                    {% if pallets %}
+                        <!-- Desktop Table View -->
+                        <div class="d-none d-md-block">
+                            <table class="table table-bordered text-center align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Pallet No</th>
+                                        <th>Product Name</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for pallet in pallets %}
+                                    <tr>
+                                        <td>{{ pallet.pallet_no }}</td>
+                                        <td>{{ pallet.product }}</td>
+                                        <td>
+                                            <a href="{% url 'pallet_search_details' pallet.pallet_no %}"  class="btn btn-sm btn-info">View Details</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Card View -->
+                        <div class="d-md-none">
+                            {% for pallet in pallets %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pallet #{{ pallet.pallet_no }}</h5>
+                                    <p class="card-text mb-1"><strong>Name:</strong> {{ pallet.pallet_name }}</p>
+                                    <a href="{% url 'pallet_search_details' pallet.pallet_no %}" class="btn btn-sm btn-info">View Detail</a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center mt-3">
+                            No pallets found matching your search.
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

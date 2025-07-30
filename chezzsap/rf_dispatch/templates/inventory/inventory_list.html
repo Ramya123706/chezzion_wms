@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto my-4">
+    <h2 class="mb-4">Inventory Summary</h2>
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="bg-warning text-dark">
+            <tr>
+                <th scope="col">Product ID</th>
+                <th scope="col">Product Name</th>
+                <th scope="col">SKU</th>
+                <th scope="col">Total Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventory %}
+            <tr>
+    <td>{{ item.product.product_id }}</td>
+    <td>
+        <a href="{% url 'product_detail' item.product.product_id %}">
+            {{ item.product.name }}
+        </a>
+    </td>
+    <td>{{ item.product.sku }}</td>
+    <td>{{ item.total_quantity }}</td>
+</tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

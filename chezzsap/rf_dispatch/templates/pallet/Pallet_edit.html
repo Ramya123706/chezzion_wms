@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+
+        <!-- LEFT SIDE: Pallet Creation Form -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Pallet Creation</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'edit_pallet' pallet.pallet_no %}" method="post">
+                        {% csrf_token %}
+
+                        <!-- Error Display -->
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <ul>
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- Form Fields -->
+                        {{ form.as_p }}
+                        <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success w-100">Create Pallet</button>
+                        <a href="{% url 'pallet_search_details' pallet.pallet_no %}" class="btn btn-secondary w-100">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

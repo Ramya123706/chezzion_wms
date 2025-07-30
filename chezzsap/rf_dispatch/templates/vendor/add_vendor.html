@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header text-center text-white bg-primary">
+                <h5>Add Vendor</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'add_vendor' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ error }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="name"><b>Name</b></label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vendor_id"><b>vendor ID</b></label>
+                        <input type="text" id="vendor_id" name="vendor_id" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vendor_code"><b>vendor Code</b></label>
+                        <input type="text" id="vendor_code" name="vendor_code" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email"><b>Email</b></label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone_no"><b>Phone Number</b></label>
+                        <input type="text" id="phone_no" name="phone_no" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address"><b>Address</b></label>
+                        <input type="text" id="address" name="address" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location"><b>Location</b></label>
+                        <input type="text" id="location" name="location" class="form-control">
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form> <!-- ✅ This was missing -->
+            </div> <!-- card-body -->
+        </div> <!-- card -->
+    </div> <!-- col -->
+</div> <!-- container -->
+{% endblock %}
