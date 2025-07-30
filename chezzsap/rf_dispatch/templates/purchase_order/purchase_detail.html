@@ -45,6 +45,8 @@
         <div class="text-center mt-4">
             <a href="{% url 'purchase_edit' po.id %}" class="btn btn-primary">Edit</a>
             <a href="{% url 'add_purchase' %}" class="btn btn-secondary">Back</a>
+            <a href="{% url 'purchase_pdf' po.id %}" class="btn btn-success">Download PDF</a>
+
         </div>
 
     </div>

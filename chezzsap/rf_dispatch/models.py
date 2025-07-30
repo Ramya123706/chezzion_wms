@@ -1,15 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 YES_NO_CHOICES = [
     ('Yes', 'Yes'),
     ('No', 'No'),
 ]
 class YardHdr(models.Model):
-    truck_no = models.CharField(max_length=10, primary_key=True)
-    whs_no = models.CharField(max_length=5, unique=True)
-    truck_no = models.CharField(max_length=10, primary_key=True)
-    whs_no = models.CharField(max_length=5, unique=True)
+    
+    truck_no = models.CharField(max_length=100)
+    whs_no = models.CharField(max_length=5)
     truck_type = models.CharField(max_length=20)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -17,7 +17,7 @@ class YardHdr(models.Model):
     truck_date = models.DateField()
     truck_time = models.TimeField()
     seal_no = models.CharField(max_length=10)
-    yard_scan = models.CharField(max_length=10)
+    yard_scan = models.CharField(max_length=20)
     truck_status = models.CharField(max_length=10, editable=False, default='Not planned')
     is_the_lock_secure = models.CharField(max_length=3, choices=YES_NO_CHOICES)
     is_the_truck_clean = models.CharField(max_length=3, choices=YES_NO_CHOICES)
@@ -30,10 +30,9 @@ class YardHdr(models.Model):
      
 
     def __str__(self):
-        return f"YardHdr(whs_no={self.whs_no}, truck_no={self.truck_no})"
-
+        return str(self.truck_no)
+    
 class TruckLog(models.Model):
-    truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
@@ -54,6 +53,7 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         status_changed_by=user,
         comment=comment
     )
+
 
 # class StockUpload(models.Model):
 #     whs_no = models.CharField(max_length=20, primary_key=True)
@@ -80,12 +80,14 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
 
 
 class Truck(models.Model):
-    truck_no = models.ForeignKey(YardHdr, to_field='truck_no', on_delete=models.CASCADE)
+    yard = models.ForeignKey(YardHdr, on_delete=models.CASCADE, default=None, null=True, blank=True)
+    truck_no = models.CharField(max_length=100, unique=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
-    
+
     def __str__(self):
         return f"Truck(truck_no={self.truck_no}, driver_name={self.driver_name})"
+
     
 class Warehouse(models.Model):
     whs_no = models.IntegerField(primary_key=True)
@@ -100,7 +102,34 @@ class Warehouse(models.Model):
         return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
 
 
+class Category(models.Model):
+    
+    category = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True) 
 
+    def __str__(self):
+        return self.category 
+
+class Bin(models.Model):
+    whs_no = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name="bins" 
+    )
+    bin_id = models.CharField(max_length=50, unique=True) 
+    capacity = models.IntegerField()
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
+    shelves = models.CharField(null=True, blank=True, max_length=100) 
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    existing_quantity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
 
 # class Inventory(models.Model):
 #     product = models.CharField(max_length=50, unique=True)
@@ -109,11 +138,6 @@ class Warehouse(models.Model):
 #     def __str__(self):
 #         return f"{self.product} - {self.total_quantity} units"
 
-
-
-
-
-from django.db import models
 
 # class Product(models.Model):
 #     product_id = models.CharField(max_length=50)
@@ -134,7 +158,10 @@ from django.db import models
 #     id = models.AutoField(primary_key=True)
 
 #     def __str__(self):
-#         return self.name 
+#         return self.name
+
+
+
 class Product(models.Model):
 #     id= models.AutoField(primary_key=True)
     product_id = models.CharField(max_length=50, unique=True)
@@ -144,7 +171,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=100)
     description = models.TextField()
     unit_of_measure = models.CharField(max_length=50)
-    category = models.CharField(max_length=100)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products", null=True, blank=True)
     re_order_level = models.IntegerField()
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -180,11 +207,11 @@ class Pallet(models.Model):
 
     def __str__(self):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
-class Vendor(models.Model):
-    name = models.CharField(max_length=100)
-    vendor_id = models.CharField(max_length=10, primary_key=True, editable=False) 
-    vendor_code = models.CharField(max_length=100)
-    email = models.EmailField()
+
+class vendor(models.Model):
+    name = models.CharField(max_length=255)
+    vendor_code = models.CharField(max_length=50, unique=True)
+    email = models.EmailField()  
     phone_no = models.CharField(max_length=15)
     address = models.TextField()
     location = models.CharField(max_length=100, null=True, blank=True)
@@ -220,21 +247,19 @@ class Customers(models.Model):
 from django.db import models
 from django.db.models import F
 from .models import Product
-
-
-
-from django.db import models
 from django.db.models import Sum
-from .models import Product  
+
+
+  
 
 class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
     whs_no = models.CharField(max_length=20)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
     batch = models.CharField(max_length=20)
-    bin = models.CharField(max_length=20)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
     pallet = models.CharField(max_length=20)
     p_mat = models.CharField(max_length=20)
     inspection = models.CharField(max_length=20)
@@ -263,10 +288,9 @@ class StockUpload(models.Model):
         self.product.save()
 
     def delete(self, *args, **kwargs):
-        product = self.product  # save reference before deletion
+        product = self.product  
         super().delete(*args, **kwargs)
 
-        # Update Inventory after deletion
         total_quantity = StockUpload.objects.filter(product=product).aggregate(
             total=Sum('quantity')
         )['total'] or 0
@@ -284,6 +308,9 @@ class StockUpload(models.Model):
 class Inventory(models.Model):
     product = models.OneToOneField(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
 
     def __str__(self):
         return f"{self.product.name} - {self.total_quantity} units"
