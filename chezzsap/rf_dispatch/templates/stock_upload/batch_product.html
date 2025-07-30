@@ -36,21 +36,22 @@
                     
 
                     <div class="form-group">
-                    <label for="product">Product</label>
-                    <select class="form-control" id="product" name="product" required>
-                        <option value="">-- Select Product --</option>
-                        {% for p in products %}
-                            <option value="{{ p.id }}">{{ p.product_id }} - {{ p.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <label for="product_input">Product</label>
+                    <input type="text" class="form-control" id="product_input" name="product" placeholder="Start typing product ID or name" autocomplete="off" required>
+                    <div id="product_suggestions" class="border bg-white position-absolute w-100" style="z-index: 1000; display: none;"></div>
+                    
+                    </div>
                     <small class="form-text text-muted">
                         Can't find your product?
                         <a href="{% url 'add_product' %}" class="btn btn-sm btn-link">Add New Product</a>
                     </small>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <input type="text" class="form-control" id="category" name="category" required>
                     </div>
                     <div class="form-group">
                         <label for="description">Description</label>
-                        <input type="text" class="form-control" id="description" name="description" readonly required>
+                        <input type="text" class="form-control" id="description" name="description" required>
                     </div>
 
 
@@ -137,14 +138,54 @@ document.getElementById('product').addEventListener('change', function () {
             .then(response => response.json())
             .then(data => {
                 document.getElementById('description').value = data.description || '';
+                document.getElementById('category').value = data.category || '';
             })
             .catch(error => {
-                console.error('Error fetching description:', error);
+                console.error('Error fetching product info:', error);
             });
     } else {
         document.getElementById('description').value = '';
+        document.getElementById('category').value = '';
     }
 });
 </script>
+
+<script>
+document.getElementById("product_input").addEventListener("keyup", function () {
+    const query = this.value;
+    const suggestionBox = document.getElementById("product_suggestions");
+
+    if (query.length > 0) {
+        fetch(`/ajax/product-suggestions/?q=${encodeURIComponent(query)}`)
+
+            .then(response => response.json())
+            .then(data => {
+                suggestionBox.innerHTML = "";
+                if (data.results.length > 0) {
+                    data.results.forEach(item => {
+                        const div = document.createElement("div");
+                        div.textContent = `${item.product_id} - ${item.name}`;
+                        div.style.cursor = "pointer";
+                        div.classList.add("p-2");
+                        div.onclick = function () {
+                            document.getElementById("product_input").value = `${item.product_id}`;
+                            document.getElementById("description").value = item.description || "";
+                            document.getElementById("category").value = item.category || "";
+                            suggestionBox.style.display = "none";
+                        };
+                        suggestionBox.appendChild(div);
+                    });
+                    suggestionBox.style.display = "block";
+                } else {
+                    suggestionBox.style.display = "none";
+                }
+            });
+    } else {
+        suggestionBox.style.display = "none";
+    }
+});
+</script>
+
+
 
 {% endblock %}

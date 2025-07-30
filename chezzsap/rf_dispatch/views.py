@@ -34,6 +34,7 @@ def new4(request):
 # rf_dispatch/views.py
 from django.shortcuts import render, redirect
 from .forms import YardHdrForm
+from .models import Truck
 
 
 def yard_checkin_view(request):
@@ -47,24 +48,40 @@ def yard_checkin_view(request):
                 instance.truck_status = 'door'
             elif 'parking' in scan:
                 instance.truck_status = 'parking'
-            elif 'Checkin' in scan:
-                instance.truck_status = 'Checkin'
+            elif 'checkin' in scan:
+                instance.truck_status = 'checkin'
             elif 'gate' in scan:
                 instance.truck_status = 'gate'
             elif 'checkout' in scan:
                 instance.truck_status = 'checkout'
             else:
                 instance.truck_status = 'not planned'
-
             instance.save()
+            truck_no = request.POST.get('truck_no')
+            driver_name = request.POST.get('driver_name')
+            driver_phn_no = request.POST.get('driver_phn_no')
+
+            if truck_no:
+                try:
+                    yard_instance = YardHdr.objects.filter(truck_no=truck_no).last()
+                    if yard_instance and not Truck.objects.filter(truck_no=yard_instance).exists():
+                        Truck.objects.create(
+                            truck_no=yard_instance,
+                            driver_name=driver_name,
+                            driver_phn_no=driver_phn_no
+                        )
+                except YardHdr.DoesNotExist:
+                    # This should never happen since YardHdr was just saved
+                    print(f"YardHdr with truck_no {truck_no} does not exist.")
 
             # ✅ Redirect to truck_inspection_view with truck_no
             return redirect('truck_inspection', truck_no=instance.truck_no)
 
     else:
         form = YardHdrForm()
-
-    return render(request, 'truck_screen/one.html', {'form': form})
+    warehouses = Warehouse.objects.all()
+    
+    return render(request, 'truck_screen/one.html', {'form': form, 'warehouses': warehouses, 'truck': Truck.objects.all()})
 
 
 
@@ -89,6 +106,27 @@ def yard_checkin_view(request):
 #     else:
 #         form = TruckInspectionForm()
 #     return render(request, 'truck_screen/two.html', {'form': form})
+
+
+from django.http import JsonResponse
+from .models import Truck
+
+def get_truck_details(request):
+    truck_no = request.GET.get('truck_no')
+    try:
+        truck = Truck.objects.get(truck_no=truck_no)
+        data = {
+            'driver_name': truck.driver_name,
+            'driver_phn_no': truck.driver_phn_no
+        }
+    except Truck.DoesNotExist:
+        data = {
+            'driver_name': '',
+            'driver_phn_no': ''
+        }
+    return JsonResponse(data)
+
+
 from django.shortcuts import render, redirect
 from .forms import TruckInspectionForm
 from .models import Pallet, YardHdr, TruckLog
@@ -96,7 +134,8 @@ from .utils import log_truck_status  # create this helper
 
 def truck_inspection_view(request, truck_no):
     try:
-        existing_truck = YardHdr.objects.get(truck_no=truck_no)
+        existing_truck = YardHdr.objects.filter(truck_no=truck_no).last()
+
         seal_no = existing_truck.seal_no
     except YardHdr.DoesNotExist:
         existing_truck = None
@@ -228,6 +267,7 @@ def truck_status_view(request, truck_no):
         'form': form,
         'truck': truck,
         'not_found': not_found,
+        'trucklog':TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time') if truck else None
     })
 
 # View 2: Truck List (Search using GET, shows list)
@@ -580,13 +620,27 @@ def product_view(request):
     return render(request, 'product/add_product.html', {
         'form': form,
         'products': products,
-        'query': query
+        'query': query,
+        'categories': Category.objects.all(),
     })
 
 
 def product_detail_view(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     return render(request, 'product/product_detail.html', {'product': product})
+
+# def get_category(request):
+#     category = request.GET.get('category')
+#     try:
+#         product = Product.objects.get(name=category)
+#         data = {
+#             'category': product.category
+#         }
+#     except Product.DoesNotExist:
+#         data = {
+#             'category': '',
+#         }
+#     return JsonResponse(data)
 
 # from django.shortcuts import render, redirect, get_object_or_404
 # from .models import Product
@@ -630,7 +684,7 @@ def product_detail_view(request, product_id):
 
 # from django.shortcuts import render, get_object_or_404, redirect
 # from .models import Product
-# from .forms import ProductForm
+# from .forms import  ProductForm
 # from django.contrib import messages
 
 # def product_detail(request, product_id):
@@ -662,7 +716,19 @@ def product_list(request):
     products = Product.objects.all()
     return render(request, 'product/product_list.html', {'products': products})
 
-    
+from django.http import JsonResponse
+from .models import Product
+
+def get_product_description(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+        return JsonResponse({
+            'description': product.description,
+            'category': product.category
+        })
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
 
   
 # views.py
@@ -961,6 +1027,26 @@ from .models import PurchaseOrder
 def purchase_detail(request, pk):
     po = get_object_or_404(PurchaseOrder, pk=pk)
     return render(request, 'purchase_order/purchase_detail.html', {'po': po})
+    
+# views.py
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
+from weasyprint import HTML
+from django.template.loader import render_to_string
+from .models import PurchaseOrder  # Replace with your actual model
+
+def download_po_pdf(request, pk):  # <-- Accept `pk` here
+    po = get_object_or_404(PurchaseOrder, pk=pk)
+    html_string = render_to_string('purchase_order/purchase_order_pdf.html', {'po': po})
+
+    html = HTML(string=html_string)
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'filename="purchase_order_{pk}.pdf"'
+    return response
+
+
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
@@ -978,10 +1064,10 @@ from .forms import PurchaseOrderForm
 #             messages.success(request, "Purchase order updated successfully.")
 #             return redirect('purchase_detail')  # Change this if needed
 #     else:
-#         form = PurchaseOrderForm(instance=po)
+#         form = PurchaseOrderForm(instance=po) 
 
 #     return render(request, 'purchase_order/purchase_edit.html', {
-#         'form': form,
+#         'form': form, 
 #         'po': po,
 #     })
 
@@ -1233,3 +1319,77 @@ def vendor_delete(request, vendor_id):
     vendor = get_object_or_404(Vendor, id=vendor_id)
     vendor.delete()
     return redirect('vendor_list')
+
+
+from .models import Warehouse  # replace with your warehouse model name
+
+def whs_suggestions(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        warehouses = Warehouse.objects.filter(whs_no__icontains=query)[:10]
+        results = [{'whs_no': w.whs_no} for w in warehouses]
+
+    return JsonResponse({'results': results})
+
+from django.http import JsonResponse
+from .models import Truck  # or your truck model
+
+def truck_suggestions(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        trucks = Truck.objects.filter(truck_no__icontains=query)[:10]
+        results = [{'truck_no': t.truck_no} for t in trucks]
+
+    return JsonResponse({'results': results})
+
+from django.http import JsonResponse
+from .models import Product  # Adjust import to match your app
+
+def product_suggestions(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        products = Product.objects.filter(
+            product_id__icontains=query
+        )[:10]  # Limit to top 10 matches
+
+        for p in products:
+            results.append({
+                'product_id': p.product_id,
+                'name': p.name,
+                'description': p.description,
+                'category': p.category,
+            })
+
+    return JsonResponse({'results': results})
+
+from django.http import JsonResponse
+from .models import Warehouse  # Replace with your actual model
+
+def whs_suggestions(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        whs_list = Warehouse.objects.filter(whs_no__icontains=query).values_list('whs_no', flat=True).distinct()[:10]
+        results = [{'whs_no': wh} for wh in whs_list]
+
+    return JsonResponse({'results': results})
+
+from django.http import JsonResponse
+from .models import Category  # Adjust based on your model
+
+def category_suggestions(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        cats = Category.objects.filter(category__icontains=query).values_list('category', flat=True).distinct()[:10]
+        results = [{'category': cat} for cat in cats]
+
+    return JsonResponse({'results': results})

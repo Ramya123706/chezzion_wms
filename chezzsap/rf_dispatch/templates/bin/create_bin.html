@@ -20,12 +20,9 @@
                         {% endif %}
                         <div class="form-group">
                             <label><b>Warehouse</b></label>
-                            <select name="whs_no" class="form-control" required>
-                                <option value="">Select Warehouse</option>
-                                {% for wh in warehouse %}
-                                    <option value="{{ wh.whs_no }}">{{ wh.whs_no }}</option>
-                                {% endfor %}
-                            </select>
+                            <input type="text" name="whs_no" id="whs_no" class="form-control" autocomplete="off" required>
+<div id="whs_suggestions" class="list-group position-absolute" style="z-index:1000;"></div>
+
                         </div>
                         <div class="form-group">
                             <label for="bin_id"><b>Bin ID</b></label>
@@ -41,16 +38,9 @@
                         </div>
                         <div class="form-group">
                             <label for="category"><b>Category</b></label>
-                            <div class="input-group">
-                                <select id="category" name="category" class="form-control" required>
-                                    <option value="">Select Category</option>
-                                    {% for cat in categories %}
-                                        <option value="{{ cat.id }}">{{ cat.category }}</option>
-
-                                    {% endfor %}
-                                </select>
-                                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Add New Category</button>
-                            </div>
+                            <input type="text" id="category" name="category" class="form-control" autocomplete="off" required>
+                            <div id="category_suggestions" class="list-group position-absolute" style="z-index:1000;"></div>
+                            <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Add New Category</button>
                         </div>
 
                         
@@ -175,5 +165,85 @@ document.getElementById('addCategoryForm').addEventListener('submit', function(e
     });
 });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const whsInput = document.getElementById('whs_no');
+    const suggestionBox = document.getElementById('whs_suggestions');
+
+    whsInput.addEventListener('input', function () {
+        const query = this.value;
+
+        if (query.length < 1) {
+            suggestionBox.innerHTML = '';
+            return;
+        }
+
+        fetch(`/ajax/whs-suggestions/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionBox.innerHTML = '';
+                data.results.forEach(item => {
+                    const option = document.createElement('a');
+                    option.classList.add('list-group-item', 'list-group-item-action');
+                    option.textContent = item.whs_no;
+                    option.href = '#';
+                    option.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        whsInput.value = item.whs_no;
+                        suggestionBox.innerHTML = '';
+                    });
+                    suggestionBox.appendChild(option);
+                });
+            });
+    });
+
+    // Hide suggestion box when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!suggestionBox.contains(e.target) && e.target !== whsInput) {
+            suggestionBox.innerHTML = '';
+        }
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const categoryInput = document.getElementById('category');
+    const catSuggestionBox = document.getElementById('category_suggestions');
+
+    categoryInput.addEventListener('input', function () {
+        const query = this.value;
+
+        if (query.length < 1) {
+            catSuggestionBox.innerHTML = '';
+            return;
+        }
+
+        fetch(`/ajax/category-suggestions/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                catSuggestionBox.innerHTML = '';
+                data.results.forEach(item => {
+                    const option = document.createElement('a');
+                    option.classList.add('list-group-item', 'list-group-item-action');
+                    option.textContent = item.category;
+                    option.href = '#';
+                    option.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        categoryInput.value = item.category;
+                        catSuggestionBox.innerHTML = '';
+                    });
+                    catSuggestionBox.appendChild(option);
+                });
+            });
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!catSuggestionBox.contains(e.target) && e.target !== categoryInput) {
+            catSuggestionBox.innerHTML = '';
+        }
+    });
+});
+</script>
+
 
 {% endblock %}

@@ -14,15 +14,15 @@
 </style> -->
 
 <div class="container">
-  <div class="row justify-content-center">
+  <div class="row justify-content-center mt-5">
     <div class="col-md-10">
       <div class="card">
 
-        <h4 class="text-center mb-4">🔍 Truck Search Results</h4>
+        <h4 class="text-center mb-4 mt-4">🔍 Truck Search Results</h4>
 
         <!-- Search Form -->
         <form method="get" class="mb-4 text-center">
-          <div class="input-group mx-auto">
+          <div class="input-group mx-auto w-50">
             <input type="text" name="search" class="form-control" placeholder="Enter Truck Number">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
@@ -30,7 +30,7 @@
 
         {% if trucks %}
           <!-- Desktop Table View -->
-          <div class="d-none d-md-block">
+          <div class="d-none d-md-block w-75 mx-auto">
             <table class="table table-bordered text-center align-middle">
               <thead class="table-light">
                 <tr>

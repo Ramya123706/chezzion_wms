@@ -130,29 +130,32 @@
         </div>
 
         <!-- Product Information -->
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <strong>Product Details</strong>
+<div class="card mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <strong>Product Details</strong>
+        <button type="button" class="btn btn-sm btn-primary" id="addProductRow">➕ Add Product</button>
+    </div>
+    <div class="card-body" id="productRows">
+        <div class="row product-entry mb-3">
+            <div class="col-md-3">
+                <label>Item Number:</label>
+                <input type="text" name="item_number[]" class="form-control" required>
             </div>
-            <div class="card-body row">
-                <div class="col-md-3">
-                    <label>Item Number:</label>
-                    <input type="text" name="item_number" class="form-control" required>
-                </div>
-                <div class="col-md-5">
-                    <label>Product Name / Description:</label>
-                    <input type="text" name="product_name" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                    <label>Quantity:</label>
-                    <input type="number" name="quantity" class="form-control" required>
-                </div>
-                <div class="col-md-2">
-                    <label>Unit Price:</label>
-                    <input type="text" name="unit_price" class="form-control" required>
-                </div>
+            <div class="col-md-5">
+                <label>Product Name / Description:</label>
+                <input type="text" name="product_name[]" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <label>Quantity:</label>
+                <input type="number" name="quantity[]" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <label>Unit Price:</label>
+                <input type="text" name="unit_price[]" class="form-control" required>
             </div>
         </div>
+    </div>
+
 
         <!-- Submit Button -->
         <div class="text-center">
@@ -161,4 +164,38 @@
     </form>
 
 </div>
+<script>
+document.getElementById("addProductRow").addEventListener("click", function () {
+    const container = document.getElementById("productRows");
+
+    const newRow = document.createElement("div");
+    newRow.classList.add("row", "product-entry", "mb-3");
+
+    newRow.innerHTML = `
+        <div class="col-md-3">
+            <input type="text" name="item_number[]" class="form-control" placeholder="Item Number" required>
+        </div>
+        <div class="col-md-5">
+            <input type="text" name="product_name[]" class="form-control" placeholder="Product Name / Description" required>
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" required>
+        </div>
+        <div class="col-md-2 d-flex align-items-center">
+            <input type="text" name="unit_price[]" class="form-control" placeholder="Unit Price" required>
+            <button type="button" class="btn btn-danger btn-sm ms-2 remove-product">✖</button>
+        </div>
+    `;
+
+    container.appendChild(newRow);
+});
+
+// Remove row handler
+document.addEventListener("click", function (e) {
+    if (e.target && e.target.classList.contains("remove-product")) {
+        e.target.closest(".product-entry").remove();
+    }
+});
+</script>
+
 {% endblock %}

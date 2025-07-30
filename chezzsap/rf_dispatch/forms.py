@@ -6,8 +6,10 @@ from .models import Warehouse
 from .models import StockUpload
 from .models import Customers
 from .models import Vendor
+from .models import Truck
 
 class YardHdrForm(forms.ModelForm):
+  
     class Meta:
         model = YardHdr
         fields = [
@@ -54,7 +56,8 @@ class Trucksearchform(forms.Form):
       
 
       
-class ProductForm(forms.ModelForm):
+class ProductForm(forms.ModelForm): 
+    
     class Meta:
         model = Product
         fields = '__all__'
