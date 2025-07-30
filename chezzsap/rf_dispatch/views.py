@@ -1279,30 +1279,27 @@ def edit_picking(request, pk):
     else:
         form = PickingForm(instance=picking)
 
-    return render(request, 'picking/edit_picking.html', {'form': form})
+    return render(request, 'picking/add_picking.html', {'form': form})
 
-
-
-def confirm_picking(request, id):
-    picking = get_object_or_404(Picking, id=id)
+def confirm_picking(request, pk):
+    picking = get_object_or_404(Picking, pk=pk)
     picking.status = 'Completed'
     picking.save()
     return redirect('customer')
 
-
-def delete_picking(request, id):
-    picking = get_object_or_404(Picking, id=id)
+def delete_picking(request, pk):
+    picking = get_object_or_404(Picking, pk=pk)
     picking.delete()
-    return redirect('pending_task')
+    return redirect('pending_task') 
 
 from .forms import CustomerForm
 
-def customer_popup(request):
+def customer(request):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('')  
+            return redirect('pending_task')  
     else:
         form = CustomerForm()
-    return render(request, 'customer.html', {'form': form})
+    return render(request, 'picking/customer.html', {'form': form})
