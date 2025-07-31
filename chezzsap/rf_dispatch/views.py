@@ -1242,9 +1242,9 @@ from .forms import PickingForm
 def add_picking(request):
     if request.method == 'POST':
        
-        id = request.POST.get('id')
+        picking_id = request.POST.get('picking_id')
         pallet = request.POST.get('pallet')
-        created_by = request.POST.get('created_by')
+        # created_by = request.POST.get('created_by')
         location = request.POST.get('location')
         product = request.POST.get('product')
         quantity = request.POST.get('quantity')
@@ -1252,25 +1252,27 @@ def add_picking(request):
 
      
         Picking.objects.create(
-            id=id,
+            picking_id=picking_id,
             pallet=pallet,
-            created_by=created_by,
+            # created_by=created_by,
             location=location,
             product=product,
             quantity=quantity,
             status=status
         )
-        return redirect('pending_task')
+     
+        return redirect('pending_task') 
     return render(request, 'picking/add_picking.html')
 
     
 def pending_task(request):
-    pending_picking = Picking.objects.filter(status__iexact='Pending').order_by('id')
-    return render(request, 'picking/pending_task.html', {'pending_picking': pending_picking})
+    pending_picking = Picking.objects.filter(status__iexact='In Progress').order_by('picking_id')
+    # pending_picking=Picking.objects.all()
+    return render(request, 'picking/picking_pending_task.html', {'pending_picking': pending_picking})
 
 
-def edit_picking(request, pk): 
-    picking = get_object_or_404(Picking, pk=pk)
+def edit_picking(request, picking_id): 
+    picking = get_object_or_404(Picking, picking_id=picking_id)
     if request.method == 'POST':
         form = PickingForm(request.POST, instance=picking)
         if form.is_valid():
@@ -1281,14 +1283,14 @@ def edit_picking(request, pk):
 
     return render(request, 'picking/add_picking.html', {'form': form})
 
-def confirm_picking(request, pk):
-    picking = get_object_or_404(Picking, pk=pk)
+def confirm_picking(request, picking_id):
+    picking = get_object_or_404(Picking, picking_id=picking_id)
     picking.status = 'Completed'
     picking.save()
     return redirect('customer')
 
-def delete_picking(request, pk):
-    picking = get_object_or_404(Picking, pk=pk)
+def delete_picking(request, picking_id):
+    picking = get_object_or_404(Picking, picking_id=picking_id)
     picking.delete()
     return redirect('pending_task') 
 

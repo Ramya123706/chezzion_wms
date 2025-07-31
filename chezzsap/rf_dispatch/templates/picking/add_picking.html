@@ -10,11 +10,10 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    <div class="form-group">
-    <label for="id"><b>ID</b></label>
-    <input type="text" class="form-control" id="id" name="id" value="" readonly>
-</div>
-
+             <div class="form-group">
+                            <label for="picking_id"><b>Picking ID</b></label>
+                            <input type="text" id="picking_id" name="picking_id" class="form-control" value="{{ picking.picking_id }}" placeholder="Auto Generates" readonly>
+                        </div>
 
                     <div class="form-group">
                         <label for="pallet"><b>Pallet</b></label>
@@ -38,11 +37,16 @@
                     <div class="form-group">
                         <label for="quantity"><b>Quantity</b></label>
                         <input type="text" id="quantity" name="quantity" class="form-control" required>
+                        </div>
  <div class="form-group">
     <label for="status"><b>Status</b></label>
-    <input type="text" class="form-control" value="In Progress" readonly>
-    <input type="hidden" name="status" value="In Progress">
+    <select name="status" id="status" class="form-control" required>
+        <option value="Pending">Pending</option>
+        <option value="In Progress" selected>In Progress</option>
+        <option value="Completed">Completed</option>
+    </select>
 </div>
+
 
 
        <div class="text-center mt-3">

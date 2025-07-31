@@ -162,19 +162,20 @@ class PutawayForm(forms.ModelForm):
         model = Putaway
         exclude = ['created_at', 'confirmed_at']
 
-from .models import Picking
+
 
 # forms.py
+
 from django import forms
-from .models import Picking
+from .models import Picking, Customer
 
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        exclude = ['created_by']
-from .models import Customer
-
+        exclude = ['created_by'] 
+        fields='__all__'
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = '__all__'
+        exclude = ['created_by']  
+        fields='__all__'

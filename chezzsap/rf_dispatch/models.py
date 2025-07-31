@@ -370,7 +370,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Picking(models.Model):
-    id = models.AutoField(primary_key=True) 
+    picking_id = models.CharField(max_length=10, null=True, blank=True) 
     pallet = models.CharField(max_length=100)
     # created_by = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
@@ -378,11 +378,20 @@ class Picking(models.Model):
     quantity = models.PositiveIntegerField()
 
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
+        ('Pending', 'Pending'),
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='In Progress')
+    def save(self, *args, **kwargs):
+        if not self.picking_id:
+            last_picking = Picking.objects.order_by('-picking_id').first()
+            if last_picking and last_picking.picking_id[1:].isdigit():
+                next_id = int(last_picking.picking_id[1:]) + 1
+            else:
+                next_id = 1
+            self.picking_id = f"PICK{next_id:03d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Picking {self.id} - {self.product}"
