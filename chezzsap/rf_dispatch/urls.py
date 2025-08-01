@@ -83,9 +83,9 @@ urlpatterns = [
     
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
-    path('putaway/edit/<int:pk>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<int:pk>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<int:pk>/', views.delete_putaway, name='delete_putaway'),
+    path('putaway/edit/<int:putaway_id>/', views.edit_putaway, name='edit_putaway'),
+    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
     path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),

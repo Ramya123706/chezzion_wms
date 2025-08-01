@@ -161,7 +161,7 @@ class PutawayForm(forms.ModelForm):
     class Meta:
         model = Putaway
         exclude = ['created_at', 'confirmed_at']
-
+        fields = '__all__'
 
 
 # forms.py

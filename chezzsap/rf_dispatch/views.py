@@ -1209,8 +1209,8 @@ def putaway_pending(request):
     return render(request, 'putaway/pending_task.html', {'tasks': pending_tasks})
 
 
-def edit_putaway(request, pk):
-    putaway = get_object_or_404(Putaway, pk=pk)
+def edit_putaway(request, putaway_id):
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
     if request.method == 'POST':
         form = PutawayForm(request.POST, instance=putaway)
         if form.is_valid():
@@ -1221,15 +1221,15 @@ def edit_putaway(request, pk):
     return render(request, 'putaway/putaway_task.html', {'form': form})
 
 
-def confirm_putaway(request, pk):
-    putaway = get_object_or_404(Putaway, pk=pk)
+def confirm_putaway(request, putaway_id):
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
     putaway.status = "Completed"
     putaway.is_confirmed = True
     putaway.save()
     return redirect('putaway_pending')
 
-def delete_putaway(request, pk):
-    task = get_object_or_404(Putaway, pk=pk)
+def delete_putaway(request,putaway_id):
+    task = get_object_or_404(Putaway, putaway_id=putaway_id)
     task.delete()
     messages.success(request, "Task deleted successfully.")
     return redirect('putaway_pending')
