@@ -13,13 +13,13 @@
             <div class="card-body">
                 <form method="post" action="{% url 'add_product' %}" enctype="multipart/form-data">
                     {% csrf_token %}
-
+ 
                     {% if error %}
                         <div class="alert alert-danger">
                             <strong>Error:</strong> {{ error }}
                         </div>
                     {% endif %}
-
+ 
                     <div class="form-group">
                         <label for="name"><b>Product Name</b></label>
                         <input type="text" id="name" name="name" class="form-control" required>
@@ -65,7 +65,7 @@
                         <label for="images"><b>Image</b></label>
                         <input type="file" id="images" name="images" class="form-control" accept="image/*">
                     </div>
-
+ 
                     </div>
                     <div class="text-center mb-2 ">
                         <button type="submit" class="btn btn-primary ">Submit</button>

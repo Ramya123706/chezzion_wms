@@ -17,7 +17,7 @@
             {% for customers in customer %}
             <tr>
                 <td>{{ customers.name }}</td>
-                <td>{{ customers.id }}</td>
+                <!-- <td>{{ customers.customer_id }}</td> -->
                 <td>{{ customers.phone_no }}</td>
                 <td action class="text-nowrap text-center">
                     <a href="{% url 'customers_detail' customers.id %}" class="btn btn-sm btn-primary">View details</a>

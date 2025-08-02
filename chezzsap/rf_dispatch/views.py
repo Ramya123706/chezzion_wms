@@ -749,7 +749,7 @@ def product_delete(request, product_id):
 # .......................
 # customers.views.py
 # .......................
-from .forms import Customersform
+from .forms import CustomerForm
 from .models import Customers
 from.models import Vendor
 from django.utils import timezone

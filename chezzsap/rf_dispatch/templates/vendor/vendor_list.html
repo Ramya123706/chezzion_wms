@@ -12,14 +12,22 @@
                 <th>Name</th>
                 <th>Vendor ID</th>
                 <th>Phone No</th>
+<<<<<<< HEAD
+                <th>Action</th>     
+=======
                 <th>Action</th>    
+>>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
             </tr>
         </thead>
         <tbody>
             {% for vendor in vendors %}
             <tr>
                 <td>{{vendor.name }}</td>
+<<<<<<< HEAD
+                <td>{{vendor.vendor_id }}</td>
+=======
                 <td>{{vendor.id }}</td>
+>>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
                 <td>{{ vendor.phone_no }}</td>
                 <td action class="text-nowrap text-center">
                     <a href="{% url 'vendor_detail' vendor.id %}" class="btn btn-sm btn-primary">View details</a>
@@ -34,13 +42,22 @@
         </tbody>
     </table>
 </div>
+<<<<<<< HEAD
+
+=======
  
+>>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
 <script>
 function confirmDelete() {
     return confirm("Are you sure you want to delete this vendor?");
 }
 </script>
 {% endblock %}
+<<<<<<< HEAD
+
+
+=======
  
  
  
+>>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
