@@ -1,16 +1,13 @@
+
 {% extends "base.html" %}
- 
+
 {% block content %}
 <div class="container">
     <div class="card mx-auto shadow-lg p-4" style="max-width: 600px;">
         <div class="card-header text-center bg-primary text-white">
             <h5>Vendor details</h5>
         </div>
-<<<<<<< HEAD
         
-=======
-       
->>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
         <table class="table table-bordered">
             <tbody>
                 <tr>
@@ -18,13 +15,8 @@
                     <td>{{ vendor.name }}</td>
                 </tr>
                 <tr>
-<<<<<<< HEAD
                     <th> Vendor ID</th>
                     <td>{{ vendor.vendor_id }}</td>
-=======
-                    <th> ID</th>
-                    <td>{{ vendor.id }}</td>
->>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
                 </tr>
                 <tr>
                     <th>Vendor code</th>
@@ -42,7 +34,6 @@
                     <th>Address</th>
                     <td>{{vendor.address }}</td>
                 </tr>
-<<<<<<< HEAD
                 
                 <tr>
                     <th>Profile image</th>
@@ -62,47 +53,7 @@
             
             <a href="{% url 'add_vendor' %}" class="btn btn-secondary">F7 BACK</a>
                 
-=======
-                <tr>
-                    <th>Location</th>
-                    <td>{{ vendor.location }}</td>
-                </tr>
-                <!-- <tr>
-                    <th>Profile image</th>
-                    <td> {% load static %}
-                        {% if vendor.profile_image %}
-                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="120">
-                        {% else %}
-                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="120">
-                        {% endif %}</td>
-                </tr> -->
- 
-            </tbody>
-        </table>
- 
-        <div class="text-center mt-4">
-            <a href="{% url 'vendor_edit' vendor.id %}" class="btn btn-primary">Edit</a>
-           
-            <a href="{% url 'add_vendor' %}" class="btn btn-secondary">F7 BACK</a>
-               
->>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
         </div>
     </div>
 </div>
 {% endblock %}
-<<<<<<< HEAD
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
->>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866

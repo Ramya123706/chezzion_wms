@@ -74,10 +74,10 @@ urlpatterns = [
     path('pallet_search/<str:pallet_no>/', views.pallet_search, name='pallet_search_details'),
     path('pallet/edit/<int:pallet_no>/', views.edit_pallet, name='edit_pallet'),
     path('add_vendor/',views.add_vendor, name='add_vendor'),
-    path('vendors/<int:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
-    path('vendors/<int:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
+    path('vendors/<str:vendor_id>/', views.vendor_detail, name='vendor_detail'), 
+    path('vendors/<str:vendor_id>/edit/', views.vendor_edit, name='vendor_edit'),
     path('vendors/', views.vendor_list, name='vendor_list'), 
-    path('vendors/<int:vendor_id>/delete/', views.vendor_delete, name='vendor_delete'),
+    path('vendors/<str:vendor_id>/delete/', views.vendor_delete, name='vendor_delete'),
     path('purchase_order/add_purchase/', views.add_purchase, name='add_purchase'),
     path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
     path('purchase/edit/<int:po_id>/', views.purchase_edit, name='purchase_edit'),
@@ -91,7 +91,13 @@ urlpatterns = [
     
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
-
+    path('add_picking/', views.add_picking, name='add_picking'),
+    path('pending_task/', views.pending_task, name='pending_task'),
+    path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
+    
+    path('customer/', views.customer, name='customer'),
+    path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
+    path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

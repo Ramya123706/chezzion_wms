@@ -1256,7 +1256,7 @@ def add_vendor(request):
         email = request.POST.get('email')
         phone_no = request.POST.get('phone_no')
         address = request.POST.get('address')
-        location = request.POST.get('location')
+        
         profile_image = request.FILES.get('profile_image')
 
         vendor = Vendor(
@@ -1265,19 +1265,19 @@ def add_vendor(request):
             email=email,
             phone_no=phone_no,
             address=address,
-            location=location,
+            
             profile_image=profile_image
         )
         vendor.save()
 
-        return redirect('vendor_detail', vendor_id=vendor.id)  # or any success page
+        return redirect('vendor_detail', vendor_id=vendor.vendor_id)  # or any success page
     return render(request, 'vendor/add_vendor.html')
 
 from django.shortcuts import render, get_object_or_404
 from .models import Vendor
 
 def vendor_detail(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
     return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1288,7 +1288,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Vendor
 
 def vendor_edit(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
 
     if request.method == 'POST':
         vendor.name = request.POST.get('name')
@@ -1296,9 +1296,9 @@ def vendor_edit(request, vendor_id):
         vendor.email = request.POST.get('email')
         vendor.phone_no = request.POST.get('phone_no')
         vendor.address = request.POST.get('address')
-        vendor.location = request.POST.get('location')
+        
         vendor.save()
-        return redirect('vendor_detail', vendor_id=vendor.id)
+        return redirect('vendor_detail', vendor_id=vendor.vendor_id)
 
     return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
 
@@ -1393,3 +1393,92 @@ def category_suggestions(request):
         results = [{'category': cat} for cat in cats]
 
     return JsonResponse({'results': results})
+
+from django.shortcuts import render, redirect
+from .models import Picking
+from .forms import PickingForm
+
+def add_picking(request):
+    if request.method == 'POST':
+       
+        picking_id = request.POST.get('picking_id')
+        pallet = request.POST.get('pallet')
+        # created_by = request.POST.get('created_by')
+        location = request.POST.get('location')
+        product = request.POST.get('product')
+        quantity = request.POST.get('quantity')
+        status = request.POST.get('status')
+
+     
+        Picking.objects.create(
+            picking_id=picking_id,
+            pallet=pallet,
+            # created_by=created_by,
+            location=location,
+            product=product,
+            quantity=quantity,
+            status=status
+        )
+     
+        return redirect('pending_task') 
+    return render(request, 'picking/add_picking.html')
+
+    
+def pending_task(request):
+    pending_picking = Picking.objects.filter(status__iexact='In Progress').order_by('picking_id')
+    # pending_picking=Picking.objects.all()
+    return render(request, 'picking/picking_pending_task.html', {'pending_picking': pending_picking})
+
+
+# def edit_picking(request, picking_id): 
+#     picking = get_object_or_404(Picking, picking_id=picking_id)
+#     if request.method == 'POST':
+#         form = PickingForm(request.POST, instance=picking)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('pending_task')  
+#     else:
+#         form = PickingForm(instance=picking)
+
+#     return render(request, 'picking/add_picking.html', {'form': form})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Picking
+from .forms import PickingForm
+
+def edit_picking(request, picking_id):
+    picking = get_object_or_404(Picking, picking_id=picking_id)
+
+    if request.method == 'POST':
+        form = PickingForm(request.POST, instance=picking)
+        if form.is_valid():
+            form.save()
+            return redirect('pending_task', picking_id=picking.picking_id)  # or your listing page
+    else:
+        form = PickingForm(instance=picking)
+
+    return render(request, 'picking/edit_picking.html', {'form': form, 'picking': picking})
+
+def confirm_picking(request, picking_id):
+    picking = get_object_or_404(Picking, picking_id=picking_id)
+    picking.status = 'Completed'
+    picking.save()
+    return redirect('customer')  # Redirect to the customer page
+
+
+
+def delete_picking(request, picking_id):
+    picking = get_object_or_404(Picking, picking_id=picking_id)
+    picking.delete()
+    return redirect('pending_task') 
+
+def customer(request):
+    products = Product.objects.all()  # Assuming a Product model
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('pending_task')
+    else:
+        form = CustomerForm()
+    return render(request, 'picking/customer.html', {'form': form, 'products': products})

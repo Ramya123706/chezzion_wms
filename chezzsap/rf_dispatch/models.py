@@ -209,12 +209,13 @@ class Pallet(models.Model):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
 
 class Vendor(models.Model):
-    name = models.CharField(max_length=255)
-    vendor_code = models.CharField(max_length=50, unique=True)
-    email = models.EmailField()  
+    name = models.CharField(max_length=100)
+    vendor_id = models.CharField(max_length=10, primary_key=True, editable=False) 
+    vendor_code = models.CharField(max_length=100)
+    email = models.EmailField()
     phone_no = models.CharField(max_length=15)
     address = models.TextField()
-    location = models.CharField(max_length=100, null=True, blank=True)
+    
 
     profile_image = models.ImageField(upload_to='vendor_images/', blank=True, null=True)
 
@@ -388,22 +389,32 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Picking(models.Model):
-    id = models.AutoField(primary_key=True) 
+    picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
     pallet = models.CharField(max_length=100)
-    created_by = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
 
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
+       
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='In Progress')
+    def save(self, *args, **kwargs):
+        if not self.picking_id:
+            last_picking = Picking.objects.order_by('-picking_id').first()
+            if last_picking and last_picking.picking_id[1:].isdigit():
+                next_id = int(last_picking.picking_id[1:]) + 1
+            else:
+                next_id = 1
+            self.picking_id = f"P{next_id:03d}"  # Example: P001, P002
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Picking {self.id} - {self.product}"
+        return f"{self.picking_id} - {self.product}"
+    
 
 class Customer(models.Model):
     name = models.CharField(max_length=100)

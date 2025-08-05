@@ -1,5 +1,5 @@
 {% extends "base.html" %}
- 
+
 {% block content %}
 <div class="container mt-5">
     <div class="col-md-6 col-sm-12 mx-auto">
@@ -15,19 +15,11 @@
                         <input type="text" id="name" name="name" class="form-control" value="{{ vendor.name }}" >
                     </div>
                     <div class="form-group">
-<<<<<<< HEAD
                         <label for="vendor_id"><b>Vendor ID</b></label>
                         <input type="text" id="name" name="vendor_id" class="form-control" value="{{ vendor.vendor_id }}" >
                     </div>
                     <div class="form-group">
                         <label for="vendor_code"><b>Vendor Code</b></label> 
-=======
-                        <label for="id"><b>ID</b></label>
-                        <input type="text" id="name" name="id" class="form-control" value="{{ vendor.id }}" >
-                    </div>
-                    <div class="form-group">
-                        <label for="vendor_code"><b>Vendor Code</b></label>
->>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
                         <input type="text" id="vendor_code" name="vendor_code" class="form-control" value="{{ vendor.vendor_code }}" >
                     </div>
                     <div class="form-group">
@@ -42,7 +34,6 @@
                         <label for="address"><b>Address</b></label>
                         <input type="text" id="address" name="address" class="form-control" value="{{ vendor.address }}">
                     </div>
-<<<<<<< HEAD
                     
                     <div class="form-group mt-4">
                         <label for="profile"><b>Profile Image</b></label>
@@ -56,8 +47,8 @@
 
                     <div class="form-group text-center mt-5">
                         <button class="btn btn-primary" type="submit">Update</button>
-                        
-                    <a href="{% url 'vendor_detail' %}" class="btn btn-secondary">F7 BACK</a>
+
+                    <a href="{% url 'vendor_detail' vendor.vendor_id %}" class="btn btn-secondary">F7 BACK</a>
                     </div>
                 </form>
             </div>
@@ -65,49 +56,3 @@
     </div>
 </div>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-=======
-                    <div class="form-group">
-                        <label for="city"><b>Location</b></label>
-                        <input type="text" id="location" name="location" class="form-control"value="{{ vendor.location }}">      
-                    </div>
-                    <!-- <div class="form-group">
-                        <label for="profile"><b>Profile Image</b></label>
-                        {% load static %}
-                        {% if vendor.profile_image %}
-                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="120">
-                        {% else %}
-                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="120">
-                        {% endif %}
-                    </div> -->
- 
-                    <div class="form-group text-center mt-5">
-                        <a href="{% url 'vendor_list' %}" class="btn btn-primary">Update</a>
-
-                    <a href="{% url 'vendor_detail' vendor.id %}" class="btn btn-secondary">F7 BACK</a>
-                                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
->>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
