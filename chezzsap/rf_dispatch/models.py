@@ -7,8 +7,8 @@ YES_NO_CHOICES = [
     ('No', 'No'),
 ]
 class YardHdr(models.Model):
-    
-    truck_no = models.CharField(max_length=100)
+    yard_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    truck_no = models.CharField(primary_key=True, max_length=100)
     whs_no = models.CharField(max_length=5)
     truck_type = models.CharField(max_length=20)
     driver_name = models.CharField(max_length=50)

@@ -81,7 +81,7 @@
                                         <td>{{ vendor.name }}</td>
                                         <td>{{ vendor.vendor_id }}</td>
                                         <td>
-                                            <a href="{% url 'add_vendor' %}" class="btn btn-sm btn-info">View Details</a>
+                                            <a href="{% url 'add_vendor' vendor.vendor_id %}" class="btn btn-sm btn-info">View Details</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
