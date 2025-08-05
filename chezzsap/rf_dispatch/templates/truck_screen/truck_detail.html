@@ -1,46 +1,9 @@
 {% extends 'base.html'%}
 {% block content %}
 <div class="container mt-5">
-<<<<<<< HEAD
-   
-    <div class="card-header text-dark  text-center">
-   <h4> Truck Details</h4>
-    <div class="card-body">
-<div class="row">
-    <div class="col-md-6 col-sm-12">
-    <table class="table text-start table-responsive table-striped  p-2">
-        
-    <tbody>
-       <tr>  <th colspan="2" class="text-center bg-warning">Truck Details</th></tr>
-        <tr><th>Whs no</th><td> {{truck.whs_no }}</td></tr>
-        <tr><th>Truck Number</th><td> {{ truck.truck_no }}</td></tr>
-        <tr><th>Truck Type</th><td>{{ truck.truck_type }}</td></tr>
-        <tr><th>Driver name</th><td>{{ truck.driver_name }}</td></tr>
-        <tr><th>Phn no</th><td>{{ truck.driver_phn_no}}</td></tr>
-        <tr><th>PO No</th><td>{{truck.po_no}}</td></tr>
-        <tr><th>Truck date</th><td> {{truck.truck_date }}</td></tr>
-        <tr><th>Truck time</th><td> {{ truck.truck_time}}</td></tr>
-        <tr><th>Seal No</th><td>{{ truck.seal_no }}</td></tr>
-        <tr><th>yard scan</th><td>{{ truck.yard_scan }}</td></tr>
-<tr>
-    <th>Truck Status</th>
-    <td>
-        {% if truck.truck_no %}
-  <form method="post" action="{% url 'update_truck_status' truck.truck_no %}">
-    {% csrf_token %}
-    <select name="new_status" class="form-select d-inline w-auto">
-        <option value="Not planned" {% if truck.truck_status == 'Not planned' %}selected{% endif %}>Not planned</option>
-        <option value="gate" {% if truck.truck_status == 'gate' %}selected{% endif %}>Gate</option>
-        <option value="parking" {% if truck.truck_status == 'parking' %}selected{% endif %}>Parking</option>
-        <option value="door" {% if truck.truck_status == 'door' %}selected{% endif %}>Door</option>
-        <option value="Checkin" {% if truck.truck_status == 'Checkin' %}selected{% endif %}>Check-in</option>
-        <option value="checkout" {% if truck.truck_status == 'checkout' %}selected{% endif %}>Checkout</option>
-    </select>
-=======
->>>>>>> bf2b8a0808155279419bb24c3b85182d4027f95b
 
     <div class="card-header text-dark text-center">
-        <h4>Truck Details</h4>
+        <h2>Truck Entry Summary</h2>
         <div class="card-body">
             <div class="row">
 
@@ -84,34 +47,7 @@
                         </tbody>
                     </table>
                 </div>
-
-<<<<<<< HEAD
-    </td>
-</tr>
-    </tbody>
-    </table>
-</div>
-
-    <div class="container col-md-6 col-sm-12">
-<table class="table text-start table-responsive table-striped  p-2">
-<tbody>
-        <tr>  <th colspan="2" class="text-center bg-warning">Truck Inspection Details</th></tr>
-        <tr><th>Lock secure</th><td>{{truck.is_the_lock_secure }}</td></tr>
-        <tr><th>Truck Clean</th><td> {{truck.is_the_truck_clean }}</td></tr>
-        <tr><th>Driver safe</th><td> {{ truck.is_the_driver_safe }}</td></tr>
-        <tr><th>Pallet stable</th><td>{{ truck.is_the_pallet_stable }}</td></tr>
-        <tr><th>Temperature ideal</th><td>{{ truck.is_the_temperature_ideal }}</td></tr>
-        <tr><th>AC working</th><td>{{ truck.is_the_ac_working }}</td></tr>
-        <tr><th>Good odor</th><td>{{truck.does_the_truck_have_a_good_odor}}</td></tr>
-        <tr><th>Dock level OK</th><td>{{truck.is_the_truck_dock_level_ok}}</td></tr>
-    </tbody>
-</table>
-</div>
-</div>
-</div>
-        
-        <div class="text-center mt-4">
-=======
+                
                 <div class="container col-md-6 col-sm-12">
                     <table class="table text-start table-responsive table-striped p-2">
                         <tbody>
@@ -127,7 +63,6 @@
                         </tbody>
                     </table>
                 </div>
->>>>>>> bf2b8a0808155279419bb24c3b85182d4027f95b
 
             </div>
 
@@ -136,39 +71,6 @@
             </div>
         </div>
     </div>
-<<<<<<< HEAD
-</div>
-<div class="container col-md-6 col-sm-12 mt-4">
-    <h5 class="text-center">Truck Log</h5>
-    {% if logs %}
-    <table class="table text-start  table-bordered table-hover table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Comment</th>
-                <th>Updated By</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.truck_date }}</td>
-                <td>{{ log.truck_time }}</td>
-                <td>{{ log.status }}</td>
-                <td>{{ log.comment|default:"-" }}</td>
-                <td>{{ log.status_changed_by|default:"System" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-muted text-center">No status updates found for this truck.</p>
-    {% endif %}
-</div>
-=======
->>>>>>> bf2b8a0808155279419bb24c3b85182d4027f95b
 
     <div class="container col-md-6 col-sm-12 mt-4">
         <h5 class="text-center">Truck Log</h5>
@@ -200,8 +102,5 @@
         {% endif %}
     </div>
 
-<<<<<<< HEAD
-=======
 </div>
->>>>>>> bf2b8a0808155279419bb24c3b85182d4027f95b
 {% endblock %}

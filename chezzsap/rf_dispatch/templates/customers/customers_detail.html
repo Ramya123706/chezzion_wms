@@ -16,7 +16,7 @@
                 </tr>
                 <tr>
                     <th>Customer ID</th>
-                    <td>{{ customer.id }}</td>
+                    <td>{{ customer.customer_id }}</td>
                 </tr>
                 <tr>
                     <th>Customer code</th>
@@ -42,7 +42,6 @@
         </table>
 
         <div class="text-center mt-4">
-            <a href="{% url 'customers_edit' customer.id %}" class="btn btn-primary">Edit</a>
         </div>
     </div>
 </div>

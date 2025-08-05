@@ -5,9 +5,11 @@ from .models import Product
 from .models import Warehouse
 from .models import StockUpload
 from .models import Customers
-from .models import vendor
+from .models import Vendor
+from .models import Truck
 
 class YardHdrForm(forms.ModelForm):
+  
     class Meta:
         model = YardHdr
         fields = [
@@ -54,7 +56,8 @@ class Trucksearchform(forms.Form):
       
 
       
-class ProductForm(forms.ModelForm):
+class ProductForm(forms.ModelForm): 
+    
     class Meta:
         model = Product
         fields = '__all__'
@@ -90,15 +93,15 @@ class WarehouseForm(forms.ModelForm):
         fields = '__all__'
         
         
-class Customersform(forms.ModelForm):
+class CustomersForm(forms.ModelForm):
     class Meta:
-        model=Customers
-        fields='__all__'
+        model = Customers
+        exclude = ['customer_id'] 
     
-class vendorform(forms.ModelForm):
+class Vendorform(forms.ModelForm):
     class Meta:
-        model=vendor
-        fields='__all__'        
+        model=Vendor
+        fields='__all__'
 
 from django.utils import timezone
 from django import forms
@@ -118,3 +121,67 @@ class PalletForm(forms.ModelForm):
             'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
 
+from django import forms
+
+from django import forms
+from .models import PurchaseOrder
+
+class PurchaseOrderForm(forms.ModelForm):
+    class Meta:
+        model = PurchaseOrder
+        fields = '__all__'  # You can also manually list the fields if needed
+
+    def __init__(self, *args, **kwargs):
+        super(PurchaseOrderForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
+from django import forms
+from .models import Bin
+
+class BinForm(forms.ModelForm):
+    class Meta:
+        model = Bin
+        fields = '__all__'
+        exclude = ['created_by', 'updated_by', 'existing_quantity']  # Exclude fields that are not needed in the form
+
+from .models import Category
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = '__all__'
+        widgets = {
+            'category': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        exclude = ['created_by', 'created_at', 'updated_by', 'updated_at']  # Exclude fields that are not needed in the form
+        
+        
+   
+from .models import Putaway
+
+class PutawayForm(forms.ModelForm):
+    class Meta:
+        model = Putaway
+        exclude = ['created_at', 'confirmed_at']
+        fields = '__all__'
+
+
+# forms.py
+
+from django import forms
+from .models import Picking, Customer
+
+class PickingForm(forms.ModelForm):
+    class Meta:
+        model = Picking
+        fields = ['id', 'pallet', 'location', 'product', 'quantity', 'status']
+        exclude = ['created_at']
+
+from .models import Customer
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        exclude = ['created_by']  
+        fields='__all__'

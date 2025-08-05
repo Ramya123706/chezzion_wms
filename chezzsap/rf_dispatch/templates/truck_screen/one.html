@@ -19,19 +19,29 @@
                 </div>
                 {% endif %}	    
                 <div class="mb-3 row">
-
-                    <label class="col-sm-4 col-form-label">WHS. No</label>
+                    <label class="col-sm-4 col-form-label">WHS No</label>
+                    <!-- <div class="col-sm-8">
+                    <select class="form-select" name="whs_no" required>
+                        <option value="" selected disabled>Select WHS No</option>
+                        {% for warehouse in warehouses %}
+                            <option value="{{ warehouse.whs_no }}">{{ warehouse.whs_no }}</option>
+                        {% endfor %}
+                    </select>
+                    </div> -->
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" name="whs_no" required>
+                    <input type="text" id="whs_no_input" name="whs_no" class="form-control" placeholder="Enter WHS No" autocomplete="off">
+<div id="whs_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
                     </div>
                 </div>
                 <div class="mb-3 row">
-
-                <label class="col-sm-4 col-form-label">Truck No</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control" name="truck_no" required>
-                </div>
+    <label class="col-sm-4 col-form-label">Truck No</label>
+   
+    <div class="col-sm-8">
+    <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off">
+<div id="truck_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
+</div>
             </div>
+
 
             <div class="mb-3 row">
 
@@ -47,14 +57,14 @@
 
                 <label class="col-sm-4 col-form-label">Driver Name</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" name="driver_name" required>
+                    <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}" >
                 </div>
             </div>
             <div class="mb-3 row">
 
                 <label class="col-sm-4 col-form-label">Driver Phn No</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}"  required>
+                    <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}" value="{{ truck.driver_phn_no }}" required>
                 </div>
             </div>
             <div class="mb-3 row">
@@ -90,7 +100,7 @@
     <div class="col-sm-8">
         <select class="form-select"id="yardScanSelect" name="yard_scan">
             <option value="" selected>Not Planned</option>
-            <option value="Checkin">Check-In</option>
+            <option value="checkin">Checkin</option>
             <option value="door1">Door 1</option>
             <option value="door2">Door 2</option>
             <option value="door3">Door 3</option>
@@ -108,7 +118,7 @@
 <div class="mb-3 row">
     <label class="col-sm-4 col-form-label">Truck Status</label>
     <div class="col-sm-8">
-        <input type="text" class="form-control" id="truckStatusInput" name="truck_status" readonly>
+        <input type="text" class="form-control" id="truckStatusInput" name="truck_status" >
     </div>
 </div>
             
@@ -143,11 +153,11 @@
             status = "door";
         } else if (value.startsWith("parkinglot")) {
             status = "parkinglot";
-        } else if (value.startsWith("Checkin")) {
-            status = "Checkinn";
+        } else if (value.startsWith("checkin")) {
+            status = "checkin";
         } else if (value.startsWith("gate")) {
             status = "gate";
-        } else if (value === "checkout") {
+        } else if (value.startsWith("checkout")) {
             status = "checkout";
         } else {
             status = "";
@@ -172,5 +182,83 @@
         document.querySelector('input[name="truck_time"]').value = timeStr;
     });
 </script>
+<script>
+    document.querySelector('input[name="truck_no"]').addEventListener('change', function () {
+        const truckNo = this.value;
+
+        fetch(`/get-truck-details/?truck_no=${encodeURIComponent(truckNo)}`)
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('input[name="driver_name"]').value = data.driver_name;
+                document.querySelector('input[name="driver_phn_no"]').value = data.driver_phn_no;
+            });
+    });
+</script>
+<script>
+document.getElementById("truck_no_input").addEventListener("keyup", function () {
+    const query = this.value;
+    const suggestionBox = document.getElementById("truck_suggestions");
+
+    if (query.length > 0) { 
+        fetch(`/ajax/truck-suggestions/?q=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionBox.innerHTML = "";
+                if (data.results.length > 0) {
+                    data.results.forEach(item => {
+                        const div = document.createElement("div");
+                        div.textContent = item.truck_no;
+                        div.style.cursor = "pointer";
+                        div.onclick = function () {
+                            document.getElementById("truck_no_input").value = item.truck_no;
+                            suggestionBox.style.display = "none";
+                            // Optional: trigger change event
+                            document.getElementById("truck_no_input").dispatchEvent(new Event("change"));
+                        };
+                        suggestionBox.appendChild(div);
+                    });
+                    suggestionBox.style.display = "block";
+                } else {
+                    suggestionBox.style.display = "none";
+                }
+            });
+    } else {
+        suggestionBox.style.display = "none";
+    }
+});
+</script>
+<script>
+document.getElementById("whs_no_input").addEventListener("keyup", function () {
+    const query = this.value;
+    const suggestionBox = document.getElementById("whs_suggestions");
+
+    if (query.length > 0) {
+        fetch(`/ajax/whs-suggestions/?q=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionBox.innerHTML = "";
+                if (data.results.length > 0) {
+                    data.results.forEach(item => {
+                        const div = document.createElement("div");
+                        div.textContent = item.whs_no;
+                        div.style.cursor = "pointer";
+                        div.onclick = function () {
+                            document.getElementById("whs_no_input").value = item.whs_no;
+                            suggestionBox.style.display = "none";
+                        };
+                        suggestionBox.appendChild(div);
+                    });
+                    suggestionBox.style.display = "block";
+                } else {
+                    suggestionBox.style.display = "none";
+                }
+            });
+    } else {
+        suggestionBox.style.display = "none";
+    }
+});
+</script>
+
+
 
 {% endblock %}
