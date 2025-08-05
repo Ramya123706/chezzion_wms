@@ -10,10 +10,11 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-             <div class="form-group">
-                            <label for="picking_id"><b>Picking ID</b></label>
-                            <input type="text" id="picking_id" name="picking_id" class="form-control" value="{{ picking.picking_id }}" placeholder="Auto Generates" readonly>
-                        </div>
+
+                    <div class="form-group">
+                        <label for="picking_id"><b>ID</b></label>
+                        <input type="text" id="picking_id" name="picking_id" class="form-control" value="{{ picking.picking_id }}" placeholder="Auto Generates" readonly>
+                    </div>
 
                     <div class="form-group">
                         <label for="pallet"><b>Pallet</b></label>
