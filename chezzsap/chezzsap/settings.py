@@ -101,9 +101,9 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 DATABASES = {
     'default': {    
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chezzion',
+        'NAME': 'chezz',
         'USER': 'postgres',
-        'PASSWORD': 'prasanna',
+        'PASSWORD': 'chezzion@2025',
         'HOST': 'localhost',
         'PORT': '5432',
     }
