@@ -93,10 +93,10 @@ class WarehouseForm(forms.ModelForm):
         fields = '__all__'
         
         
-class Customersform(forms.ModelForm):
+class CustomersForm(forms.ModelForm):
     class Meta:
-        model=Customers
-        fields='__all__'
+        model = Customers
+        exclude = ['customer_id'] 
     
 class Vendorform(forms.ModelForm):
     class Meta:
@@ -155,3 +155,31 @@ class CategoryForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
         exclude = ['created_by', 'created_at', 'updated_by', 'updated_at']  # Exclude fields that are not needed in the form
+        
+        
+   
+from .models import Putaway
+
+class PutawayForm(forms.ModelForm):
+    class Meta:
+        model = Putaway
+        exclude = ['created_at', 'confirmed_at']
+
+from .models import Picking
+
+# forms.py
+from django import forms
+from .models import Picking
+
+class PickingForm(forms.ModelForm):
+    class Meta:
+        model = Picking
+        fields = ['id', 'pallet', 'location', 'product', 'quantity', 'status']
+        exclude = ['created_at']
+
+from .models import Customer
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Customer
+        fields = '__all__'

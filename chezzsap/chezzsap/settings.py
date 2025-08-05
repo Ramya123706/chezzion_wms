@@ -59,7 +59,7 @@ ROOT_URLCONF = 'chezzsap.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / "templates"],
+        'DIRS': [BASE_DIR / 'rf_dispatch'/"templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,7 +101,7 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 DATABASES = {
     'default': {    
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'chezz_sap',
+        'NAME': 'chezz',
         'USER': 'postgres',
         'PASSWORD': 'chezzion@2025',
         'HOST': 'localhost',

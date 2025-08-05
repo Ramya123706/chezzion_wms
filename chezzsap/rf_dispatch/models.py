@@ -163,7 +163,7 @@ class Bin(models.Model):
 
 
 class Product(models.Model):
-    id = models.AutoField(primary_key=True)
+#     id= models.AutoField(primary_key=True)
     product_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)
@@ -209,31 +209,41 @@ class Pallet(models.Model):
         return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
 
 class Vendor(models.Model):
-    name = models.CharField(max_length=255)
-    vendor_code = models.CharField(max_length=50, unique=True)
-    email = models.EmailField()  
+    name = models.CharField(max_length=100)
+    vendor_id = models.CharField(max_length=10, primary_key=True, editable=False) 
+    vendor_code = models.CharField(max_length=100)
+    email = models.EmailField()
     phone_no = models.CharField(max_length=15)
     address = models.TextField()
-    location = models.CharField(max_length=100)
-    profile_image = models.ImageField(upload_to='vendor_images/', default='vendor_images/default.jpg', null=True, blank=True)
-   
+    
+
+    profile_image = models.ImageField(upload_to='vendor_images/', blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.vendor_id:
+            last_vendor = Vendor.objects.order_by('-vendor_id').first()
+            if last_vendor and last_vendor.vendor_id[1:].isdigit():
+                next_id = int(last_vendor.vendor_id[1:]) + 1
+            else:
+                next_id = 1
+            self.vendor_id = f"V{next_id:03d}"
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
-   
+
+
 class Customers(models.Model):
     name = models.CharField(max_length=255)
-    id = models.AutoField(primary_key=True) 
+    customer_id = models.CharField(max_length=10, primary_key=True, editable=False) 
     customer_code = models.CharField(max_length=50)
-    email = models.EmailField()  
+    email = models.EmailField()
     phone_no = models.CharField(max_length=10)
-    address = models.CharField()
+    address = models.CharField(max_length=255)
     location = models.CharField(max_length=255, blank=True, null=True)
-
-
 
     def __str__(self):
         return self.name
-    
 
 from django.db import models
 from django.db.models import F
@@ -332,3 +342,86 @@ class PurchaseOrder(models.Model):
     product_quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+# class Bin(models.Model):
+#     whs_no = models.ForeignKey(
+#         Warehouse,
+#         on_delete=models.CASCADE,
+#         related_name="bins"  # use plural for clarity
+#     )
+#     bin_id = models.CharField(max_length=50, unique=True)  # Add max_length and make it unique if applicable
+#     capacity = models.IntegerField()
+#     category = models.CharField(max_length=100)  # Add max_length
+#     shelves = models.CharField(null=True, blank=True, max_length=100)  # Add max_length
+#     created_by = models.CharField(max_length=100, null=True, blank=True)
+#     updated_by = models.CharField(max_length=100, null=True, blank=True)
+#     existing_quantity = models.IntegerField(default=0)  # Add default value
+
+#     def __str__(self):
+#         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
+
+#    
+    
+
+
+class Putaway(models.Model):
+    id = models.CharField(max_length=20, primary_key=True)
+    pallet = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=100) 
+    location = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    
+    is_confirmed = models.BooleanField(default=False)
+
+    STATUS_CHOICES = [
+        ('In Progress', 'In Progress'),
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+
+    def __str__(self):
+        return f"{self.pallet} - {self.status}"
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Picking(models.Model):
+    picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
+    pallet = models.CharField(max_length=100)
+    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+    location = models.CharField(max_length=100)
+    product = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+
+    STATUS_CHOICES = [
+       
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='In Progress')
+    def save(self, *args, **kwargs):
+        if not self.picking_id:
+            last_picking = Picking.objects.order_by('-picking_id').first()
+            if last_picking and last_picking.picking_id[1:].isdigit():
+                next_id = int(last_picking.picking_id[1:]) + 1
+            else:
+                next_id = 1
+            self.picking_id = f"P{next_id:03d}"  # Example: P001, P002
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.picking_id} - {self.product}"
+    
+
+class Customer(models.Model):
+    name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    product = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name

@@ -48,6 +48,32 @@
                     </table>
                 </div>
 
+<<<<<<< HEAD
+                <div class="container col-md-6 col-sm-12">
+                    <table class="table text-start table-responsive table-striped p-2">
+                        <tbody>
+                            <tr><th colspan="2" class="text-center bg-warning">Truck Inspection Details</th></tr>
+                            <tr><th>Lock secure</th><td>{{ truck.is_the_lock_secure }}</td></tr>
+                            <tr><th>Truck Clean</th><td>{{ truck.is_the_truck_clean }}</td></tr>
+                            <tr><th>Driver safe</th><td>{{ truck.is_the_driver_safe }}</td></tr>
+                            <tr><th>Pallet stable</th><td>{{ truck.is_the_pallet_stable }}</td></tr>
+                            <tr><th>Temperature ideal</th><td>{{ truck.is_the_temperature_ideal }}</td></tr>
+                            <tr><th>AC working</th><td>{{ truck.is_the_ac_working }}</td></tr>
+                            <tr><th>Good odor</th><td>{{ truck.does_the_truck_have_a_good_odor }}</td></tr>
+                            <tr><th>Dock level OK</th><td>{{ truck.is_the_truck_dock_level_ok }}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'truck_list' %}" class="btn btn-primary">Back to List</a>
+            </div>
+        </div>
+    </div>
+=======
+>>>>>>> 6198a47b58078bec755e415f2a434d7291bf1866
 
     <div class="container col-md-6 col-sm-12 mt-4">
         <h5 class="text-center">Truck Log</h5>
