@@ -868,7 +868,7 @@ def vendor_detail(request, vendor_id):
 
 
 def vendor_edit(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
     
     if request.method == 'POST':
         vendor.name = request.POST.get('name')
@@ -878,7 +878,7 @@ def vendor_edit(request, vendor_id):
         vendor.address = request.POST.get('address')
         vendor.location = request.POST.get('location')
         vendor.save()
-        return redirect('vendor_detail', vendor_id=vendor.id)
+        return redirect('vendor_detail', vendor_id=vendor_id)
     
     return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
 
@@ -891,7 +891,7 @@ def vendor_list(request):
     return render(request, 'vendor_list.html', {'vendors': vendors})
 
 def vendor_delete(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
     if request.method == 'POST':
         vendor.delete()
         return redirect('vendor_list')
@@ -972,7 +972,7 @@ def add_purchase(request):
             )
 
             # Redirect to detail view that shows data in PDF-style format
-            return redirect('purchase_detail', pk=po.pk)
+            return redirect('purchase_detail', po_number=po_number)
 
         except Exception as e:
             return render(request, 'purchase_order/add_purchase.html', {'error': str(e)})
@@ -1001,8 +1001,8 @@ from .models import PurchaseOrder
 
 
 
-def purchase_detail(request, pk):
-    po = get_object_or_404(PurchaseOrder, pk=pk)
+def purchase_detail(request, po_number):
+    po = get_object_or_404(PurchaseOrder, po_number=po_number)
     return render(request, 'purchase_order/purchase_detail.html', {'po': po})
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1032,11 +1032,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder
 
-def purchase_edit(request, po_id):
-    po = get_object_or_404(PurchaseOrder, id=po_id)
+def purchase_edit(request, po_number):
+    po = get_object_or_404(PurchaseOrder, po_number=po_number)
 
     if request.method == 'POST':
-        # Update all fields manually
+        # Update all fields manually 
         po.company_name = request.POST.get('company_name')
         po.company_address = request.POST.get('company_address')
         po.company_phone = request.POST.get('company_phone')
@@ -1069,9 +1069,9 @@ def purchase_edit(request, po_id):
 
         po.save()
         messages.success(request, "Purchase order updated successfully.")
-        return redirect('purchase_detail', po_id=po.id)
+        return redirect('purchase_detail', po_number=po_number)
 
-    return render(request, 'purchase/purchase_order_edit.html', {'po': po})
+    return render(request, 'purchase_order/purchase_edit.html', {'po': po})
 
 
 def rf_ptl(request):

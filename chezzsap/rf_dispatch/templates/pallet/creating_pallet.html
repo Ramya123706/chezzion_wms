@@ -70,7 +70,7 @@
                                     {% for pallet in pallets %}
                                     <tr>
                                         <td>{{ pallet.pallet_no }}</td>
-                                        <td>{{ pallet.product_name }}</td>
+                                        <td>{{ pallet.product.name }}</td>
                                         <td>
                                             <a href="{% url 'pallet_search_details' pallet.pallet_no %}"  class="btn btn-sm btn-info">View Details</a>
                                         </td>
