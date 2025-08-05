@@ -35,20 +35,7 @@
                 </div>
                 <div class="mb-3 row">
     <label class="col-sm-4 col-form-label">Truck No</label>
-    <!-- <div class="col-sm-8">
-        <input 
-            class="form-control" 
-            list="truck" 
-            name="truck_no" 
-            required 
-            placeholder="Enter or select truck no"
-        >
-        <datalist id="truck">
-            {% for t in truck %}
-                <option value="{{ t.truck_no }}"></option>
-            {% endfor %}
-        </datalist>
-    </div> -->
+   
     <div class="col-sm-8">
     <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off">
 <div id="truck_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
