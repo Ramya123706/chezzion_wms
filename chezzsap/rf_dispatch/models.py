@@ -424,3 +424,26 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+
+class InboundDelivery(models.Model):
+    inbound_delivery_number = models.CharField(max_length=50, unique=True)
+    delivery_date = models.DateField()
+    supplier_name = models.CharField(max_length=100)
+    purchase_order_number = models.CharField(max_length=50)
+    receiving_plant = models.CharField(max_length=100)
+    material_code = models.CharField(max_length=50)
+    material_description = models.CharField(max_length=200)
+    quantity_delivered = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity_received = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_of_measure = models.CharField(max_length=20)
+    batch_number = models.CharField(max_length=50, blank=True, null=True)
+    delivery_status = models.CharField(max_length=50)
+    storage_location = models.CharField(max_length=100)
+    carrier_info = models.CharField(max_length=100)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Delivery #{self.inbound_delivery_number}"

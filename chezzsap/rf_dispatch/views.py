@@ -1523,3 +1523,45 @@ def customer(request):
     else:
         form = CustomerForm()
     return render(request, 'picking/customer.html', {'form': form, 'products': products})
+
+    
+from django.shortcuts import render, get_object_or_404
+from .models import InboundDelivery
+
+def inbound_delivery_detail(request):
+    search_query = request.GET.get('ibd_no')
+    deliveries = InboundDelivery.objects.filter(inbound_delivery_number__icontains=search_query) if search_query else InboundDelivery.objects.all()
+
+    if request.method == "POST":
+        # Save or update the delivery
+        delivery_id = request.POST.get("id")
+        if delivery_id:
+            delivery = InboundDelivery.objects.get(id=delivery_id)
+        else:
+            delivery = InboundDelivery()
+
+        delivery.inbound_delivery_number = request.POST.get("inbound_delivery_number")
+        delivery.delivery_date = request.POST.get("delivery_date")
+        delivery.supplier_name = request.POST.get("supplier_name")
+        delivery.purchase_order_number = request.POST.get("purchase_order_number")
+        delivery.receiving_plant = request.POST.get("receiving_plant")
+        delivery.material_code = request.POST.get("material_code")
+        delivery.material_description = request.POST.get("material_description")
+        delivery.quantity_delivered = request.POST.get("quantity_delivered")
+        delivery.quantity_received = request.POST.get("quantity_received")
+        delivery.unit_of_measure = request.POST.get("unit_of_measure")
+        delivery.batch_number = request.POST.get("batch_number")
+        delivery.delivery_status = request.POST.get("delivery_status")
+        delivery.storage_location = request.POST.get("storage_location")
+        delivery.carrier_info = request.POST.get("carrier_info")
+        delivery.remarks = request.POST.get("remarks")
+        delivery.save()
+
+    # Show empty form for new entry or return the last entry for convenience
+    latest_delivery = InboundDelivery.objects.last()
+
+    return render(request, 'inbound/inbound_delivery_detail.html', {
+        'delivery': latest_delivery,  # or empty InboundDelivery() if desired
+        'deliveries': deliveries
+    })
+

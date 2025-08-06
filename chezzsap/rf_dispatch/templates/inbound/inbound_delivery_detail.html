@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="text-white bg-primary text-center mb-3">Inbound Delivery Form</h3>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="inbound_delivery_number"><b>Inbound Delivery Number</b></label>
+                        <input type="text" class="form-control" name="inbound_delivery_number" id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number }}" placeholder="enter a number">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="delivery_date"><b>Delivery Date</b></label>
+                        <input type="date" class="form-control" name="delivery_date" id="delivery_date" value="{{ delivery.delivery_date }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="supplier_name"><b>Supplier</b></label>
+                        <input type="text" class="form-control" name="supplier_name" id="supplier_name" value="{{ delivery.supplier_name }}" placeholder="enter name">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="purchase_order_number"><b>Purchase Order Number</b></label>
+                        <input type="text" class="form-control" name="purchase_order_number" id="purchase_order_number" value="{{ delivery.purchase_order_number }}" placeholder="enter the number">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="receiving_plant"><b>Receiving Plant</b></label>
+                        <input type="text" class="form-control" name="receiving_plant" id="receiving_plant" value="{{ delivery.receiving_plant }}" placeholder="whs number">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="material_code"><b>Material Code</b></label>
+                        <input type="text" class="form-control" name="material_code" id="material_code" value="{{ delivery.material_code }}" placeholder="enter the number">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="material_description"><b>Material Description</b></label>
+                        <input type="text" class="form-control" name="material_description" id="material_description" value="{{ delivery.material_description }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="quantity_delivered"><b>Quantity Delivered</b></label>
+                        <input type="text" step="0.01" class="form-control" name="quantity_delivered" id="quantity_delivered" value="{{ delivery.quantity_delivered }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="quantity_received"><b>Quantity Received</b></label>
+                        <input type="text" step="0.01" class="form-control" name="quantity_received" id="quantity_received" value="{{ delivery.quantity_received }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="unit_of_measure"><b>Unit of Measure</b></label>
+                        <input type="text" class="form-control" name="unit_of_measure" id="unit_of_measure" value="{{ delivery.unit_of_measure }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="batch_number"><b>Batch Number</b></label>
+                        <input type="text" class="form-control" name="batch_number" id="batch_number" value="{{ delivery.batch_number }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="delivery_status"><b>Delivery Status</b></label>
+                        <input type="text" class="form-control" name="delivery_status" id="delivery_status" value="{{ delivery.delivery_status }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="storage_location"><b>Storage Location</b></label>
+                        <input type="text" class="form-control" name="storage_location" id="storage_location" value="{{ delivery.storage_location }}">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="carrier_info"><b>Carrier Info</b></label>
+                        <input type="text" class="form-control" name="carrier_info" id="carrier_info" value="{{ delivery.carrier_info }}">
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label for="remarks"><b>Remarks</b></label>
+                        <textarea class="form-control" name="remarks" id="remarks">{{ delivery.remarks }}</textarea>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary px-5 mt-3">Submit</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Search Inbound Deliveries</h4>
+                </div>
+                <div class="card-body">
+                       <form method="get" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" name="ibd_no" class="form-control" placeholder="Search by IBD No." value="{{ request.GET.ibd_no }}">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                        </div>
+                    </form>
+
+                    {% if deliveries %}
+                        <table class="table table-sm table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>IBD No.</th>
+                                    <th>PO No.</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in deliveries %}
+                                <tr>
+                                    <td>{{ entry.delivery_date }}</td>
+                                    <td>{{ entry.inbound_delivery_number }}</td>
+                                    <td>{{ entry.purchase_order_number }}</td>
+                                    <td>
+                                        <a href="{% url 'inbound_delivery_detail' %}" class="btn btn-sm btn-info">View Details</a>
+
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="alert alert-warning text-center">
+                            No deliveries found.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

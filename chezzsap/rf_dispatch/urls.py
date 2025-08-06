@@ -109,6 +109,8 @@ urlpatterns = [
     path('customer/', views.customer, name='customer'),
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
+    path('inbound_delivery/', views.inbound_delivery_detail, name='inbound_delivery_detail'),
+    path('inbound-delivery/', views.inbound_delivery_detail, name='inbound_delivery_detail'),
      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
