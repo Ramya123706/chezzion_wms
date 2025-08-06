@@ -17,12 +17,12 @@
             {% for customers in customer %}
             <tr>
                 <td>{{ customers.name }}</td>
-                <!-- <td>{{ customers.customer_id }}</td> -->
+                <td>{{ customers.customer_id }}</td>
                 <td>{{ customers.phone_no }}</td>
                 <td action class="text-nowrap text-center">
-                    <a href="{% url 'customers_detail' customers.id %}" class="btn btn-sm btn-primary">View details</a>
-                    <a href="{% url 'customers_edit' customers.id %}" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="{% url 'customers_delete' customers.id %}" method="post" style="display:inline;" onsubmit="return confirmDelete()">
+                    <a href="{% url 'customers_detail' customers.customer_id %}" class="btn btn-sm btn-primary">View details</a>
+                    <a href="{% url 'customers_edit' customers.customer_id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <form action="{% url 'customers_delete' customers.customer_id %}" method="post" style="display:inline;" onsubmit="return confirmDelete()">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>

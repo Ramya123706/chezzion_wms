@@ -869,7 +869,6 @@ def pallet_search(request, pallet_no):
     pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
     return render(request, 'pallet/pallet_search_details.html', {'pallet': pallet})
 
-
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pallet
 from .forms import PalletForm
@@ -995,7 +994,7 @@ def add_purchase(request):
             )
 
             # Redirect to detail view that shows data in PDF-style format
-            return redirect('purchase_detail', pk=po.pk)
+            return redirect('purchase_detail', po_number=po_number)
 
         except Exception as e:
             return render(request, 'purchase_order/add_purchase.html', {'error': str(e)})
@@ -1024,8 +1023,8 @@ from .models import PurchaseOrder
 
 
 
-def purchase_detail(request, pk):
-    po = get_object_or_404(PurchaseOrder, pk=pk)
+def purchase_detail(request, po_number):
+    po = get_object_or_404(PurchaseOrder, po_number=po_number)
     return render(request, 'purchase_order/purchase_detail.html', {'po': po})
     
 # views.py
@@ -1075,11 +1074,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder
 
-def purchase_edit(request, po_id):
-    po = get_object_or_404(PurchaseOrder, id=po_id)
+def purchase_edit(request, po_number):
+    po = get_object_or_404(PurchaseOrder, po_number=po_number)
 
     if request.method == 'POST':
-        # Update all fields manually
+        # Update all fields manually 
         po.company_name = request.POST.get('company_name')
         po.company_address = request.POST.get('company_address')
         po.company_phone = request.POST.get('company_phone')
@@ -1289,21 +1288,48 @@ from .models import Vendor
 
 def vendor_edit(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+    
+from django.shortcuts import render, get_object_or_404
+from .models import Putaway 
+from django.shortcuts import render, redirect
+
+
+def putaway_task(request):
+    if request.method == 'POST':
+     
+        putaway_id = request.POST.get('putaway_id')
+        pallet = request.POST.get('pallet')
+        location = request.POST.get('location')
+        status = request.POST.get('status')
+        putaway = Putaway(
+            putaway_id=putaway_id,
+            pallet=pallet,
+            location=location,
+            status = status
+        )
+        putaway.save()
+
+        return redirect('putaway_pending')  # adjust if needed
+
+    return render(request, 'putaway/putaway_task.html')
+
+    
+def putaway_pending(request):
+    pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
+    return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
 
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
 
     if request.method == 'POST':
-        vendor.name = request.POST.get('name')
-        vendor.vendor_code = request.POST.get('vendor_code')
-        vendor.email = request.POST.get('email')
-        vendor.phone_no = request.POST.get('phone_no')
-        vendor.address = request.POST.get('address')
-        
-        vendor.save()
-        return redirect('vendor_detail', vendor_id=vendor.vendor_id)
+        putaway.pallet = request.POST.get('pallet')
+        putaway.location = request.POST.get('location')
+        putaway.status = request.POST.get('status')
+        putaway.save()
+        return redirect('putaway_pending')  # or some other appropriate page
 
-    return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
+    return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
+
 
 
 
@@ -1318,7 +1344,7 @@ def delete_putaway(request,putaway_id):
     task = get_object_or_404(Putaway, putaway_id=putaway_id)
     task.delete()
     messages.success(request, "Task deleted successfully.")
-    return redirect('putaway_pending')\
+    return redirect('putaway_pending')
   
 from django.shortcuts import render
 from .models import Vendor
