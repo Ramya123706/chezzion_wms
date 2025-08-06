@@ -42,7 +42,6 @@ def yard_checkin_view(request):
         form = YardHdrForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
-
             scan = instance.yard_scan.lower()   
             if 'door' in scan:
                 instance.truck_status = 'door'
