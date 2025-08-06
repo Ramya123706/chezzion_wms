@@ -1290,20 +1290,22 @@ from .models import Vendor
 def vendor_edit(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
 
+from .models import Putaway
+
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
 
     if request.method == 'POST':
-        vendor.name = request.POST.get('name')
-        vendor.vendor_code = request.POST.get('vendor_code')
-        vendor.email = request.POST.get('email')
-        vendor.phone_no = request.POST.get('phone_no')
-        vendor.address = request.POST.get('address')
+        putaway.name = request.POST.get('name')
+        putaway.vendor_code = request.POST.get('vendor_code')
+        putaway.email = request.POST.get('email')
+        putaway.phone_no = request.POST.get('phone_no')
+        putaway.address = request.POST.get('address')
         
-        vendor.save()
-        return redirect('vendor_detail', vendor_id=vendor.vendor_id)
+        putaway.save()
+        return redirect('vendor_detail', vendor_id=putaway.putaway_id)
 
-    return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
+    return render(request, 'vendor/vendor_edit.html', {'vendor': putaway})
 
 
 
