@@ -930,73 +930,95 @@ from decimal import Decimal
 from .models import PurchaseOrder
 from django.urls import reverse
 
+from django.shortcuts import render, redirect
+from decimal import Decimal, InvalidOperation
+from .models import PurchaseOrder
+
 def add_purchase(request):
     if request.method == 'POST':
         try:
-            # Extract form data
-            company_name = request.POST.get('company_name')
-            company_address = request.POST.get('company_address')
-            phone_number = request.POST.get('phone_number')
-            email_address = request.POST.get('email_address')
-            website = request.POST.get('website')
+            # Get POST values
+            company_name = request.POST.get('company_name', '').strip()
+            company_address = request.POST.get('company_address', '').strip()
+            phone = request.POST.get('phone', '').strip()
+            email = request.POST.get('email', '').strip()
+            website = request.POST.get('website', '').strip()
+            po_date = request.POST.get('po_date', '').strip()
+            po_number = request.POST.get('po_number', '').strip()
+            customer_number = request.POST.get('customer_number', '').strip()
+            vendor_company_name = request.POST.get('vendor_company_name', '').strip()
+            contact_name = request.POST.get('contact_name', '').strip()
+            vendor_phone = request.POST.get('vendor_phone', '').strip()
+            vendor_address = request.POST.get('vendor_address', '').strip()
+            vendor_email = request.POST.get('vendor_email', '').strip()
+            vendor_website = request.POST.get('vendor_website', '').strip()
+            # ship_to_name = request.POST.get('ship_to_name', '').strip()
+            # ship_to_company_name = request.POST.get('ship_to_company_name', '').strip()
+            # ship_to_address = request.POST.get('ship_to_address', '').strip()
+            # ship_to_phone = request.POST.get('ship_to_phone', '').strip()
+            # ship_to_email = request.POST.get('ship_to_email', '').strip()
+            # ship_to_website = request.POST.get('ship_to_website', '').strip()
+            item_number = request.POST.get('item_number', '').strip()
+            product_name = request.POST.get('product_name', '').strip()
+            quantity = request.POST.get('quantity', '').strip()
+            unit_price = request.POST.get('unit_price', '').strip()
 
-            date = request.POST.get('date')  # not used due to auto_now_add
-            po_number = request.POST.get('po_number')
-            customer_number = request.POST.get('customer_number')
+            # Validate required fields
+            if not all([company_name, po_number, product_name, quantity, unit_price]):
+                raise ValueError("Missing required fields")
 
-            vendor_contact_name = request.POST.get('vendor_contact_name')
-            vendor_company_name = request.POST.get('vendor_company_name')
-            vendor_address = request.POST.get('vendor_address')
-            vendor_phn_number = request.POST.get('vendor_phn_number')
-            vendor_website = request.POST.get('vendor_website')
-            vendor_email = request.POST.get('vendor_email')
+            # Convert quantity and unit_price
+            try:
+                quantity = int(quantity)
+            except ValueError:
+                raise ValueError("Quantity must be an integer")
 
-            ship_to_name = request.POST.get('ship_to_name')
-            ship_cmpny_name = request.POST.get('ship_cmpny_name')
-            ship_address = request.POST.get('ship_address')
-            ship_phn_no = request.POST.get('ship_phn_no')
-            ship_email = request.POST.get('ship_email')
-            ship_website = request.POST.get('ship_website')
+            try:
+                unit_price = Decimal(unit_price)
+            except InvalidOperation:
+                raise ValueError("Unit price must be a valid decimal number")
 
-            item_number = request.POST.get('item_number')
-            product_name = request.POST.get('product_name')
-            quantity = int(request.POST.get('quantity'))
-            unit_price = Decimal(request.POST.get('unit_price'))
+            # Calculate total
             total_price = quantity * unit_price
 
             # Save to DB
-            po = PurchaseOrder.objects.create(
+            purchase_order = PurchaseOrder.objects.create(
                 company_name=company_name,
                 company_address=company_address,
-                company_phone=phone_number,
-                company_email=email_address,
-                company_website=website,
+                phone=phone,
+                email=email,
+                website=website,
+                po_date=po_date,
                 po_number=po_number,
                 customer_number=customer_number,
-                vendor_contact_name=vendor_contact_name,
                 vendor_company_name=vendor_company_name,
+                contact_name=contact_name,
+                vendor_phone=vendor_phone,
                 vendor_address=vendor_address,
-                vendor_phone=vendor_phn_number,
-                vendor_website=vendor_website,
                 vendor_email=vendor_email,
-                ship_to_name=ship_to_name,
-                ship_to_company_name=ship_cmpny_name,
-                ship_to_address=ship_address,
-                ship_to_phone=ship_phn_no,
-                ship_to_email=ship_email,
-                ship_to_website=ship_website,
+                vendor_website=vendor_website,
+                # ship_to_name=ship_to_name,
+                # ship_to_company_name=ship_to_company_name,
+                # ship_to_address=ship_to_address,
+                # ship_to_phone=ship_to_phone,
+                # ship_to_email=ship_to_email,
+                # ship_to_website=ship_to_website,
                 item_number=item_number,
                 product_name=product_name,
-                product_quantity=quantity,
+                quantity=quantity,
                 unit_price=unit_price,
                 total_price=total_price
             )
 
+            return redirect('purchase_order_detail', pk=purchase_order.pk)
             # Redirect to detail view that shows data in PDF-style format
             return redirect('purchase_detail', po_number=po_number)
 
-        except Exception as e:
-            return render(request, 'purchase_order/add_purchase.html', {'error': str(e)})
+        except ValueError as ve:
+            return render(request, 'purchase_order/add_purchase.html', {
+                'error': str(ve),
+                'data': request.POST
+            })
 
     return render(request, 'purchase_order/add_purchase.html')
 
@@ -1095,12 +1117,12 @@ def purchase_edit(request, po_number):
         po.vendor_email = request.POST.get('vendor_email')
         po.vendor_website = request.POST.get('vendor_website')
 
-        po.ship_to_name = request.POST.get('ship_to_name')
-        po.ship_to_company_name = request.POST.get('ship_to_company_name')
-        po.ship_to_address = request.POST.get('ship_to_address')
-        po.ship_to_phone = request.POST.get('ship_to_phone')
-        po.ship_to_email = request.POST.get('ship_to_email')
-        po.ship_to_website = request.POST.get('ship_to_website')
+        # po.ship_to_name = request.POST.get('ship_to_name')
+        # po.ship_to_company_name = request.POST.get('ship_to_company_name')
+        # po.ship_to_address = request.POST.get('ship_to_address')
+        # po.ship_to_phone = request.POST.get('ship_to_phone')
+        # po.ship_to_email = request.POST.get('ship_to_email')
+        # po.ship_to_website = request.POST.get('ship_to_website')
 
         po.item_number = request.POST.get('item_number')
         po.product_name = request.POST.get('product_name')
@@ -1317,11 +1339,14 @@ def putaway_pending(request):
     pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
     return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
 
+<<<<<<< HEAD
 from .models import Putaway
 
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
 
+=======
+>>>>>>> 249a7668431939160c4a93afb07a2ba7ca0cb0ec
     if request.method == 'POST':
 <<<<<<< HEAD
         putaway.name = request.POST.get('name')
@@ -1344,6 +1369,17 @@ def edit_putaway(request, putaway_id):
     return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
 
 >>>>>>> f5dc12094c7c5cbe0feaaf67e76191c8dddd9e30
+
+from .models import Putaway
+
+def edit_putaway(request, putaway_id):
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id) # pyright: ignore[reportUndefinedVariable]
+
+    if request.method == 'POST':
+        # Your putaway edit logic here
+        pass
+
+    return render(request, 'putaway/putaway_edit.html', {'putaway': putaway})
 
 
 
