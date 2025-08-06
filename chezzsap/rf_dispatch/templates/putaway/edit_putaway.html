@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header text-center text-white bg-primary">
+                <h3>Edit Putaway Task</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="putaway_id"><b>Putaway ID</b></label>
+                        <input type="text" id="putaway_id" name="putaway_id" class="form-control"
+                               value="{{ putaway.putaway_id }}" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pallet"><b>Pallet</b></label>
+                        <input type="text" id="pallet" name="pallet" class="form-control"
+                               value="{{ putaway.pallet }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location"><b>Location</b></label>
+                        <input type="text" id="location" name="location" class="form-control"
+                               value="{{ putaway.location }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status"><b>Status</b></label>
+                        <select id="status" name="status" class="form-control" required>
+                            <option value="In Progress" {% if putaway.status == "In Progress" %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if putaway.status == "Completed" %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <a href="{% url 'putaway_pending' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
