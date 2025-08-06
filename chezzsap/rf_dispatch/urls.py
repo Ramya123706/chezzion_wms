@@ -33,6 +33,8 @@ urlpatterns = [
 
     # Check-in and inspection
     path('one/', yard_checkin_view, name='one'),
+    path('three/', views.three, name='three'),
+    path('four/', views.four, name='four'),
     path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
     path('get-truck-details/', views.get_truck_details, name='get_truck_details'),
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
@@ -107,8 +109,8 @@ urlpatterns = [
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
     path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
+    path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<str:putaway_id>/', views.delete_putaway, name='delete_putaway'),
 
     # Picking
     path('add_picking/', views.add_picking, name='add_picking'),

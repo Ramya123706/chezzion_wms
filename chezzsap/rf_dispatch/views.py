@@ -937,8 +937,8 @@ from .models import PurchaseOrder
 def add_purchase(request):
     if request.method == 'POST':
         try:
-            # Get POST values
             company_name = request.POST.get('company_name', '').strip()
+            item_number = request.POST.get('item_number', '').strip()
             company_address = request.POST.get('company_address', '').strip()
             phone = request.POST.get('phone', '').strip()
             email = request.POST.get('email', '').strip()
@@ -952,13 +952,6 @@ def add_purchase(request):
             vendor_address = request.POST.get('vendor_address', '').strip()
             vendor_email = request.POST.get('vendor_email', '').strip()
             vendor_website = request.POST.get('vendor_website', '').strip()
-            # ship_to_name = request.POST.get('ship_to_name', '').strip()
-            # ship_to_company_name = request.POST.get('ship_to_company_name', '').strip()
-            # ship_to_address = request.POST.get('ship_to_address', '').strip()
-            # ship_to_phone = request.POST.get('ship_to_phone', '').strip()
-            # ship_to_email = request.POST.get('ship_to_email', '').strip()
-            # ship_to_website = request.POST.get('ship_to_website', '').strip()
-            item_number = request.POST.get('item_number', '').strip()
             product_name = request.POST.get('product_name', '').strip()
             quantity = request.POST.get('quantity', '').strip()
             unit_price = request.POST.get('unit_price', '').strip()
@@ -997,12 +990,6 @@ def add_purchase(request):
                 vendor_address=vendor_address,
                 vendor_email=vendor_email,
                 vendor_website=vendor_website,
-                # ship_to_name=ship_to_name,
-                # ship_to_company_name=ship_to_company_name,
-                # ship_to_address=ship_to_address,
-                # ship_to_phone=ship_to_phone,
-                # ship_to_email=ship_to_email,
-                # ship_to_website=ship_to_website,
                 item_number=item_number,
                 product_name=product_name,
                 quantity=quantity,
@@ -1339,45 +1326,11 @@ def putaway_pending(request):
     pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
     return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
 
-<<<<<<< HEAD
-from .models import Putaway
-
-def edit_putaway(request, putaway_id):
-    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
-
-=======
->>>>>>> 249a7668431939160c4a93afb07a2ba7ca0cb0ec
-    if request.method == 'POST':
-<<<<<<< HEAD
-        putaway.name = request.POST.get('name')
-        putaway.vendor_code = request.POST.get('vendor_code')
-        putaway.email = request.POST.get('email')
-        putaway.phone_no = request.POST.get('phone_no')
-        putaway.address = request.POST.get('address')
-        
-        putaway.save()
-        return redirect('vendor_detail', vendor_id=putaway.putaway_id)
-
-    return render(request, 'vendor/vendor_edit.html', {'vendor': putaway})
-=======
-        putaway.pallet = request.POST.get('pallet')
-        putaway.location = request.POST.get('location')
-        putaway.status = request.POST.get('status')
-        putaway.save()
-        return redirect('putaway_pending')  # or some other appropriate page
-
-    return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
-
->>>>>>> f5dc12094c7c5cbe0feaaf67e76191c8dddd9e30
 
 from .models import Putaway
 
 def edit_putaway(request, putaway_id):
-    putaway = get_object_or_404(Putaway, putaway_id=putaway_id) # pyright: ignore[reportUndefinedVariable]
-
-    if request.method == 'POST':
-        # Your putaway edit logic here
-        pass
+    putaway = Putaway.objects.filter(putaway_id=putaway_id)
 
     return render(request, 'putaway/putaway_edit.html', {'putaway': putaway})
 
@@ -1450,18 +1403,20 @@ def product_suggestions(request):
             product_id__icontains=query
         )[:10]  # Limit to top 10 matches
 
-        for p in products:
-            results.append({
+        results.extend([
+            {
                 'product_id': p.product_id,
                 'name': p.name,
                 'description': p.description,
                 'category': p.category,
-            })
+            }
+            for p in products
+        ])
 
     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
-from .models import Warehouse  # Replace with your actual model
+from .models import Warehouse 
 
 def whs_suggestions(request):
     query = request.GET.get('q', '')
@@ -1492,7 +1447,6 @@ from .forms import PickingForm
 
 def add_picking(request):
     if request.method == 'POST':
-       
         picking_id = request.POST.get('picking_id')
         pallet = request.POST.get('pallet')
         # created_by = request.POST.get('created_by')
