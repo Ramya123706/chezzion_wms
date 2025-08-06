@@ -106,11 +106,12 @@ urlpatterns = [
     # Suggestions
     path('ajax/truck-suggestions/', views.truck_suggestions, name='truck_suggestions'),
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
-    path('putaway_task/', views.putaway_task, name='putaway_task'),
-    path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
-    path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<str:putaway_id>/', views.delete_putaway, name='delete_putaway'),
+
+    # Putaway
+   
+    path('putaway/edit/<int:putaway_id>/', views.edit_putaway, name='edit_putaway'),
+    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
 
     # Picking
     path('add_picking/', views.add_picking, name='add_picking'),
@@ -118,9 +119,21 @@ urlpatterns = [
     path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
+    path('putaway_task/', views.putaway_task, name='putaway_task'),
+    path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
+    path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
+    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
+    path('add_picking/', views.add_picking, name='add_picking'),
+    path('pending_task/', views.pending_task, name='pending_task'),
+    path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
+    path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
+    path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('customer/', views.customer, name='customer'),
+
+    path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
+    path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
 
     # Customer landing
     path('customer/', views.customer, name='customer'),
-
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
