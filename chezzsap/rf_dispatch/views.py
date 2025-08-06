@@ -1352,14 +1352,22 @@ def putaway_pending(request):
 
 from .models import Putaway
 
+from .models import Putaway
+
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id) # pyright: ignore[reportUndefinedVariable]
 
     if request.method == 'POST':
-        # Your putaway edit logic here
-        pass
+        putaway.name = request.POST.get('name')
+        putaway.vendor_code = request.POST.get('vendor_code')
+        putaway.email = request.POST.get('email')
+        putaway.phone_no = request.POST.get('phone_no')
+        putaway.address = request.POST.get('address')
+        
+        putaway.save()
+        return redirect('vendor_detail', vendor_id=putaway.putaway_id)
 
-    return render(request, 'putaway/putaway_edit.html', {'putaway': putaway})
+    return render(request, 'vendor/vendor_edit.html', {'vendor': putaway})
 
 
 
