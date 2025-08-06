@@ -7,7 +7,7 @@
             <h4>Pending Putaway Tasks</h4>
         </div>
         <div class="card-body">
-            {% if tasks %}
+            {% if pending_tasks %}
                 <table class="table table-bordered table-striped text-center">
                     <thead class="table-light">
                         <tr>
@@ -20,7 +20,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for task in tasks %}
+                        {% for task in pending_tasks %}
                             <tr>
                                 <td>{{ task.putaway_id }}</td>
                                 <td>{{ task.pallet }}</td>
