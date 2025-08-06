@@ -164,12 +164,13 @@ class PutawayForm(forms.ModelForm):
     class Meta:
         model = Putaway
         exclude = ['created_at', 'confirmed_at']
+        fields = '__all__'
 
-from .models import Picking
 
 # forms.py
+
 from django import forms
-from .models import Picking
+from .models import Picking, Customer
 
 class PickingForm(forms.ModelForm):
     class Meta:
@@ -182,4 +183,5 @@ from .models import Customer
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = '__all__'
+        exclude = ['created_by']  
+        fields='__all__'

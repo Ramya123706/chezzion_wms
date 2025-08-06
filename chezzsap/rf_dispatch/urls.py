@@ -51,7 +51,6 @@ urlpatterns = [
     path('product/edit/<str:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
-    path('product/', views.product_view, name='add_product'),
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
     # path('get-category/', views.get_category, name='get_category'),
@@ -88,17 +87,18 @@ urlpatterns = [
     path('add-category/', views.add_category, name='add_category'),
     path('ajax/truck-suggestions/', views.truck_suggestions, name='truck_suggestions'),
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
-    
-    path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
-    path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
+    path('putaway_task/', views.putaway_task, name='putaway_task'),
+    path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
+    path('putaway/edit/<int:putaway_id>/', views.edit_putaway, name='edit_putaway'),
+    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
     path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
-    
-    path('customer/', views.customer, name='customer'),
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
-     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('customer/', views.customer, name='customer'),
+    path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

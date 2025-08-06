@@ -1310,6 +1310,9 @@ from .models import Vendor
 def vendor_edit(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
 
+def edit_putaway(request, putaway_id):
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
+
     if request.method == 'POST':
         vendor.name = request.POST.get('name')
         vendor.vendor_code = request.POST.get('vendor_code')
@@ -1324,6 +1327,19 @@ def vendor_edit(request, vendor_id):
 
 
 
+def confirm_putaway(request, putaway_id):
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
+    putaway.status = "Completed"
+    putaway.is_confirmed = True
+    putaway.save()
+    return redirect('putaway_pending')
+
+def delete_putaway(request,putaway_id):
+    task = get_object_or_404(Putaway, putaway_id=putaway_id)
+    task.delete()
+    messages.success(request, "Task deleted successfully.")
+    return redirect('putaway_pending')\
+  
 from django.shortcuts import render
 from .models import Vendor
 
@@ -1468,7 +1484,6 @@ from .forms import PickingForm
 
 def edit_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
-
     if request.method == 'POST':
         form = PickingForm(request.POST, instance=picking)
         if form.is_valid():
