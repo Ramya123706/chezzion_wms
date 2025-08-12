@@ -107,19 +107,23 @@ from django.utils import timezone
 from django import forms
 from .models import Pallet
 
+from django import forms
+from .models import Pallet
+
 class PalletForm(forms.ModelForm):
+    has_child_pallets = forms.BooleanField(required=False, label="Does this pallet have child pallets?")
+    number_of_children = forms.IntegerField(required=False, min_value=1, label="Number of child pallets")
+
     class Meta:
         model = Pallet
-        exclude = ['created_by', 'updated_by']  
-        widgets = {
-            'pallet_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'product': forms.Select(attrs={'class': 'form-select'}),  
-            'capacity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'is_scanned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-        }
+        fields = '__all__'
+        exclude = ['scanned_at', 'created_by', 'updated_by','parent_pallet']
+
+    def __init__(self, *args, **kwargs):
+        super(PalletForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
 
 from django import forms
 

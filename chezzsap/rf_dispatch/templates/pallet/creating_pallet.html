@@ -11,29 +11,23 @@
                     <h5>Pallet Creation</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{% url 'creating_pallet' %}" method="post">
+                    <form method="POST">
                         {% csrf_token %}
-
-                        <!-- Error Display -->
-                        {% if form.errors %}
-                        <div class="alert alert-danger">
-                            <ul>
-                                {% for field in form %}
-                                    {% for error in field.errors %}
-                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-                                    {% endfor %}
-                                {% endfor %}
-                                {% for error in form.non_field_errors %}
-                                    <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
-
-                        <!-- Form Fields -->
                         {{ form.as_p }}
 
-                        <button type="submit" class="btn btn-success w-100">Create Pallet</button>
+                        <script>
+                            const checkbox = document.querySelector('[name="has_child_pallets"]');
+                            const numberInput = document.querySelector('[name="number_of_children"]').parentElement;
+
+                            function toggleChildField() {
+                                numberInput.style.display = checkbox.checked ? 'block' : 'none';
+                            }
+
+                            checkbox.addEventListener('change', toggleChildField);
+                            window.addEventListener('load', toggleChildField);
+                        </script>
+
+                        <button type="submit" class="btn btn-primary">Create Pallet</button>
                     </form>
                 </div>
             </div>
@@ -62,6 +56,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Pallet No</th>
+                                        <th>Parent Pallet</th>
                                         <th>Product Name</th>
                                         <th>Action</th>
                                     </tr>
@@ -70,9 +65,16 @@
                                     {% for pallet in pallets %}
                                     <tr>
                                         <td>{{ pallet.pallet_no }}</td>
+                                        <td>
+                                            {% if pallet.parent_pallet %}
+                                                {{ pallet.parent_pallet.pallet_no }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
                                         <td>{{ pallet.product }}</td>
                                         <td>
-                                            <a href="{% url 'pallet_search_details' pallet.pallet_no %}"  class="btn btn-sm btn-info">View Details</a>
+                                            <a href="{% url 'pallet_search_details' pallet.pallet_no %}" class="btn btn-sm btn-info">View Details</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -86,7 +88,15 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title">Pallet #{{ pallet.pallet_no }}</h5>
-                                    <p class="card-text mb-1"><strong>Name:</strong> {{ pallet.pallet_name }}</p>
+                                    <p class="card-text mb-1">
+                                        <strong>Parent:</strong> 
+                                        {% if pallet.parent_pallet %}
+                                            {{ pallet.parent_pallet.pallet_no }}
+                                        {% else %}
+                                            None
+                                        {% endif %}
+                                    </p>
+                                    <p class="card-text mb-1"><strong>Product:</strong> {{ pallet.product }}</p>
                                     <a href="{% url 'pallet_search_details' pallet.pallet_no %}" class="btn btn-sm btn-info">View Detail</a>
                                 </div>
                             </div>

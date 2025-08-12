@@ -193,20 +193,34 @@ class Product(models.Model):
 
 
 from django.utils import timezone
+from django.utils.timezone import now
+import uuid
+from django.db import models
+import uuid
+
+
+from django.db import models
+from django.utils.timezone import now
+import uuid
 
 class Pallet(models.Model):
-    pallet_no = models.CharField(max_length=100, unique=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    capacity = models.IntegerField(default=0)
+    pallet_no = models.CharField(max_length=100, unique=True, editable=False)  # ✅ Add this
+    parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
+    p_mat = models.CharField(max_length=100, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    is_scanned = models.BooleanField(default=False)
-    scanned_at = models.DateTimeField(default=timezone.now, blank=True)
+    
+    scanned_at = models.DateTimeField(default=now, blank=True)
     created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
 
-    def __str__(self):
-        return f"Pallet {self.pallet_no} - Product: {self.product.name if self.product else 'None'}"
+    def save(self, *args, **kwargs):
+        if not self.pallet_no:
+            date_str = now().strftime("%Y-%m-%d")
+            time_str = now().strftime("%H%M%S%f")[:-2]
+            self.pallet_no = f"PLT-{date_str}-{time_str}"
+        super().save(*args, **kwargs)
 
 class Vendor(models.Model):
     name = models.CharField(max_length=100)

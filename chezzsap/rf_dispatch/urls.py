@@ -51,6 +51,7 @@ urlpatterns = [
     path('product/edit/<str:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
+    
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
     # path('get-category/', views.get_category, name='get_category'),

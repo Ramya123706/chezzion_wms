@@ -838,7 +838,6 @@ from django.contrib.auth.models import User
 
 
 def creating_pallet(request):
-    # Handle form submission
     if request.method == 'POST':
         form = PalletForm(request.POST)
         if form.is_valid():
@@ -846,23 +845,42 @@ def creating_pallet(request):
             pallet.created_by = request.user
             pallet.updated_by = request.user
             pallet.save()
-            return redirect('creating_pallet')  # Refresh page after submission
+
+            # Handle child pallet creation
+            if form.cleaned_data.get('has_child_pallets'):
+                number = form.cleaned_data.get('number_of_children') or 0
+                for i in range(number):
+                    child = Pallet(
+                        product=pallet.product,
+                        p_mat=pallet.p_mat,
+                        quantity=0,
+                        weight=0,
+                        parent_pallet=pallet,
+                        created_by=request.user,
+                        updated_by=request.user,
+                    )
+                    child.save()
+
+            return redirect('creating_pallet')
     else:
         form = PalletForm()
 
-    # Handle pallet search
     query = request.GET.get('search')
     if query:
-        pallets = Pallet.objects.filter(pallet_no__icontains=query)
+        pallets = Pallet.objects.filter(
+            pallet_no__icontains=query,
+            parent_pallet__isnull=False  # ✅ Only children
+        )
     else:
-        pallets = Pallet.objects.all()  
+        pallets = Pallet.objects.filter(parent_pallet__isnull=False)  # ✅ Only children
 
-    
     return render(request, 'pallet/creating_pallet.html', {
-        'form': form, 
-        'pallets': pallets, 
-        'query': query
-        })
+        'form': form,
+        'pallets': pallets,
+        'query': query,
+    })
+
+
 
 
 def pallet_search(request, pallet_no):
@@ -1421,24 +1439,46 @@ def truck_suggestions(request):
 from django.http import JsonResponse
 from .models import Product  # Adjust import to match your app
 
+from django.http import JsonResponse
+from .models import Product
+
 def product_suggestions(request):
-    query = request.GET.get('q', '')
-    results = []
+    query = request.GET.get('q', '').strip()
 
-    if query:
-        products = Product.objects.filter(
-            product_id__icontains=query
-        )[:10]  # Limit to top 10 matches
+    if not query:
+        return JsonResponse({'results': []})
 
-        for p in products:
-            results.append({
-                'product_id': p.product_id,
-                'name': p.name,
-                'description': p.description,
-                'category': p.category,
-            })
+    # Fetch matching products
+    products = Product.objects.filter(
+        name__icontains=query
+    ).values(
+        'product_id',   # must exist in your Product model
+        'name',
+        'description',
+        'category'
+    )[:10]  # Limit to 10 suggestions
 
-    return JsonResponse({'results': results})
+    return JsonResponse({'results': list(products)})
+
+
+# def product_suggestions(request):
+#     query = request.GET.get('q', '')
+#     results = []
+
+#     if query:
+#         products = Product.objects.filter(
+#             product_id__icontains=query
+#         )[:10]  # Limit to top 10 matches
+
+#         for p in products:
+#             results.append({
+#                 'product_id': p.product_id,
+#                 'name': p.name,
+#                 'description': p.description,
+#                 'category': p.category,
+#             })
+
+#     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
 from .models import Warehouse  # Replace with your actual model
