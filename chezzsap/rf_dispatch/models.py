@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 
 YES_NO_CHOICES = [
@@ -163,31 +164,28 @@ class Bin(models.Model):
 
 
 class Product(models.Model):
-#     id= models.AutoField(primary_key=True)
-    product_id = models.CharField(max_length=50, unique=True)
+    product_id = models.CharField(max_length=50, unique=True)   # Your item_number
     name = models.CharField(max_length=255)
-    quantity = models.IntegerField(default=0)
-    pallet_no = models.CharField(max_length=50)
-    sku = models.CharField(max_length=100)
-    description = models.TextField()
-    unit_of_measure = models.CharField(max_length=50)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="products", null=True, blank=True)
-    re_order_level = models.IntegerField()
+    quantity = models.IntegerField(default=0)   # current stock
+    pallet_no = models.CharField(max_length=50, blank=True, null=True)
+    sku = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    unit_of_measure = models.CharField(max_length=50, default="pcs")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
+    re_order_level = models.IntegerField(default=10)
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-
-        # Sync with inventory
-        from .models import Inventory
+        # Sync with inventory automatically
         inventory, created = Inventory.objects.get_or_create(product=self)
         inventory.total_quantity = self.quantity
         inventory.save()
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.product_id})"
 
 
 
@@ -210,7 +208,7 @@ class Pallet(models.Model):
     p_mat = models.CharField(max_length=100, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    
+    created_at = models.DateTimeField(default=timezone.now)
     scanned_at = models.DateTimeField(default=now, blank=True)
     created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
@@ -325,37 +323,34 @@ class Inventory(models.Model):
     total_quantity = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
 
     def __str__(self):
         return f"{self.product.name} - {self.total_quantity} units"
     
+# Purchase Order Header
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
     company_phone = models.CharField(max_length=15)
     company_email = models.EmailField()
     company_website = models.URLField(blank=True, null=True)
-    po_date = models.DateField(auto_now_add=True)
+
+    po_date = models.DateField()
     po_number = models.CharField(max_length=50, unique=True)
     customer_number = models.CharField(max_length=50)
+
     vendor_company_name = models.CharField(max_length=255)
     vendor_contact_name = models.CharField(max_length=255)
     vendor_phone = models.CharField(max_length=15)
     vendor_address = models.TextField()
     vendor_website = models.URLField(blank=True, null=True)
     vendor_email = models.EmailField()
-    # ship_to_name = models.CharField(max_length=255)
-    # ship_to_company_name = models.CharField(max_length=255)
-    # ship_to_address = models.TextField()
-    # ship_to_phone = models.CharField(max_length=15)
-    # ship_to_email = models.EmailField()
-    # ship_to_website = models.URLField(blank=True, null=True)
-    item_number = models.CharField(max_length=50)
-    product_name = models.CharField(max_length=255)
-    product_quantity = models.IntegerField()
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"PO-{self.po_number}"
+
 
 # class Bin(models.Model):
 #     whs_no = models.ForeignKey(
@@ -438,3 +433,19 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
+
+# Purchase Order Line Items
+class PurchaseItem(models.Model):
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def save(self, *args, **kwargs):
+        # calculate total price
+        self.total_price = Decimal(self.quantity) * self.unit_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.product.name} ({self.quantity}) in {self.purchase_order.po_number}"

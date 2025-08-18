@@ -102,6 +102,15 @@ urlpatterns = [
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
+    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
+    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+
+    # urls.py
+    path('pallet/delete/<str:pallet_no>/', views.delete_pallet, name='delete_pallet'),
+
+    path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+    path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

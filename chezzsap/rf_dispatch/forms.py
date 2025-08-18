@@ -110,20 +110,45 @@ from .models import Pallet
 from django import forms
 from .models import Pallet
 
+from django import forms
+from .models import Pallet
+
 class PalletForm(forms.ModelForm):
-    has_child_pallets = forms.BooleanField(required=False, label="Does this pallet have child pallets?")
-    number_of_children = forms.IntegerField(required=False, min_value=1, label="Number of child pallets")
+    has_child_pallets = forms.BooleanField(
+        required=False,
+        label="Does this pallet have child pallets?",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    number_of_children = forms.IntegerField(
+        required=False,
+        min_value=1,
+        label="Number of child pallets",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = Pallet
         fields = '__all__'
-        exclude = ['scanned_at', 'created_by', 'updated_by','parent_pallet']
+        exclude = ['scanned_at', 'created_by', 'updated_by', 'parent_pallet','created_at']
 
     def __init__(self, *args, **kwargs):
         super(PalletForm, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({'class': 'form-control'})
+        for name, field in self.fields.items():
+            # Skip boolean field so it uses 'form-check-input'
+            if name != 'has_child_pallets':
+                field.widget.attrs.update({'class': 'form-control'})
 
+class PalletEditForm(forms.ModelForm):
+    class Meta:
+        model = Pallet
+        # include only the fields you want to edit
+        fields = ['product', 'p_mat', 'quantity', 'weight']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'p_mat': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
+        }
 
 from django import forms
 
