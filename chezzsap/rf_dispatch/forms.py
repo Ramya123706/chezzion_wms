@@ -185,3 +185,40 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         exclude = ['created_by']  
         fields='__all__'
+        
+from django import forms
+from .models import InboundDelivery
+
+class InboundDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = InboundDelivery
+        fields = '__all__'
+        exclude = ['inbound_delivery_number', 'batch_number']
+        widgets = {
+            'inbound_delivery_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'document_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'gr_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'supplier': forms.TextInput(attrs={'class': 'form-control'}),
+            'purchase_order_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'warehouse_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'material_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'product_description': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity_delivered': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantity_received': forms.NumberInput(attrs={'class': 'form-control'}),
+            'unit_of_measure': forms.TextInput(attrs={'class': 'form-control'}),
+            'batch_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_status': forms.Select(attrs={'class': 'form-control'}),
+            'storage_location': forms.TextInput(attrs={'class': 'form-control'}),
+            'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+from .models import PutawayTask
+
+class PutawayTaskForm(forms.ModelForm):
+    class Meta:
+        model = PutawayTask
+        fields = ['status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control', 'required': True}),
+        }

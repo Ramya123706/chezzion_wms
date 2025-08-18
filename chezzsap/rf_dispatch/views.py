@@ -642,43 +642,43 @@ def product_detail_view(request, product_id):
 #         }
 #     return JsonResponse(data)
 
-# from django.shortcuts import render, redirect, get_object_or_404
-# from .models import Product
-# from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Product
+from django.utils import timezone
 
-# def add_product(request):
-#     if request.method == 'POST':
-#         name = request.POST.get('name')
-#         product_id = request.POST.get('id')
-#         quantity = request.POST.get('quantity')
-#         pallet_no = request.POST.get('pallet_no')
-#         sku = request.POST.get('sku')
-#         description = request.POST.get('description')
-#         unit_of_measure = request.POST.get('unit_of_measure')
-#         category = request.POST.get('category')
-#         re_order_level = request.POST.get('re_order_level')
-#         images = request.FILES.get('images')
+def add_product(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        product_id = request.POST.get('id')
+        quantity = request.POST.get('quantity')
+        pallet_no = request.POST.get('pallet_no')
+        sku = request.POST.get('sku')
+        description = request.POST.get('description')
+        unit_of_measure = request.POST.get('unit_of_measure')
+        category = request.POST.get('category')
+        re_order_level = request.POST.get('re_order_level')
+        images = request.FILES.get('images')
 
-#         try:
-#             product = Product.objects.create(
-#                 product_id=product_id,
-#                 name=name,
-#                 quantity=quantity,
-#                 pallet_no=pallet_no,
-#                 sku=sku,
-#                 description=description,
-#                 unit_of_measure=unit_of_measure,
-#                 category=category,
-#                 re_order_level=re_order_level,
-#                 images=images,
-#                 created_at=timezone.now(),
-#                 updated_at=timezone.now()
-#             )
-#             return redirect('product_detail', product_id=product.product_id)
-#         except Exception as e:
-#             return render(request, 'product/add_product.html', {'error': str(e)})
+        try:
+            product = Product.objects.create(
+                product_id=product_id,
+                name=name,
+                quantity=quantity,
+                pallet_no=pallet_no,
+                sku=sku,
+                description=description,
+                unit_of_measure=unit_of_measure,
+                category=category,
+                re_order_level=re_order_level,
+                images=images,
+                created_at=timezone.now(),
+                updated_at=timezone.now()
+            )
+            return redirect('product_detail', product_id=product.product_id)
+        except Exception as e:
+            return render(request, 'product/add_product.html', {'error': str(e)})
 
-#     return render(request, 'product/add_product.html')
+    return render(request, 'product/add_product.html')
 
 
 
@@ -745,6 +745,7 @@ def product_delete(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     product.delete()
     return redirect('product_list')  
+
 
 # .......................
 # customers.views.py
@@ -930,42 +931,51 @@ from django.shortcuts import render, redirect, get_object_or_404
 from decimal import Decimal
 from .models import PurchaseOrder
 from django.urls import reverse
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from .models import PurchaseOrder
 
 def add_purchase(request):
     if request.method == 'POST':
         try:
-            # Extract form data
+            # Company Info
             company_name = request.POST.get('company_name')
             company_address = request.POST.get('company_address')
-            phone_number = request.POST.get('phone_number')
-            email_address = request.POST.get('email_address')
-            website = request.POST.get('website')
-
-            date = request.POST.get('date')  # not used due to auto_now_add
+            phone_number = request.POST.get('company_phone')
+            email_address = request.POST.get('company_email')
+            website = request.POST.get('company_website')
             po_number = request.POST.get('po_number')
             customer_number = request.POST.get('customer_number')
-
+            
+            # Vendor Info
             vendor_contact_name = request.POST.get('vendor_contact_name')
             vendor_company_name = request.POST.get('vendor_company_name')
             vendor_address = request.POST.get('vendor_address')
-            vendor_phn_number = request.POST.get('vendor_phn_number')
+            vendor_phn_number = request.POST.get('vendor_phone')
             vendor_website = request.POST.get('vendor_website')
             vendor_email = request.POST.get('vendor_email')
-
+            
+            # Ship To Info
             ship_to_name = request.POST.get('ship_to_name')
-            ship_cmpny_name = request.POST.get('ship_cmpny_name')
-            ship_address = request.POST.get('ship_address')
-            ship_phn_no = request.POST.get('ship_phn_no')
-            ship_email = request.POST.get('ship_email')
-            ship_website = request.POST.get('ship_website')
+            ship_cmpny_name = request.POST.get('ship_to_company_name')
+            ship_address = request.POST.get('ship_to_address')
+            ship_phn_no = request.POST.get('ship_to_phone')
+            ship_email = request.POST.get('ship_to_email')
+            ship_website = request.POST.get('ship_to_website')
+            
+            # Product Info (multiple)
+            item_numbers = request.POST.getlist('item_number[]')
+            product_names = request.POST.getlist('product_name[]')
+            quantities = request.POST.getlist('quantity[]')
+            unit_prices = request.POST.getlist('unit_price[]')
+            
+            total_prices = []
+            for i in range(len(item_numbers)):
+                qty = int(quantities[i])
+                price = Decimal(unit_prices[i])
+                total_prices.append(str(qty * price))  # storing as string
 
-            item_number = request.POST.get('item_number')
-            product_name = request.POST.get('product_name')
-            quantity = int(request.POST.get('quantity'))
-            unit_price = Decimal(request.POST.get('unit_price'))
-            total_price = quantity * unit_price
-
-            # Save to DB
+            # Save as comma-separated strings
             po = PurchaseOrder.objects.create(
                 company_name=company_name,
                 company_address=company_address,
@@ -986,20 +996,20 @@ def add_purchase(request):
                 ship_to_phone=ship_phn_no,
                 ship_to_email=ship_email,
                 ship_to_website=ship_website,
-                item_number=item_number,
-                product_name=product_name,
-                product_quantity=quantity,
-                unit_price=unit_price,
-                total_price=total_price
+                item_number=",".join(item_numbers),
+                product_name=",".join(product_names),
+                product_quantity=",".join(quantities),
+                unit_price=",".join(unit_prices),
+                total_price=",".join(total_prices)
             )
-
-            # Redirect to detail view that shows data in PDF-style format
+            
             return redirect('purchase_detail', po_number=po_number)
-
+        
         except Exception as e:
             return render(request, 'purchase_order/add_purchase.html', {'error': str(e)})
 
     return render(request, 'purchase_order/add_purchase.html')
+
 
 
 # from django.shortcuts import render, redirect
@@ -1527,41 +1537,151 @@ def customer(request):
     
 from django.shortcuts import render, get_object_or_404
 from .models import InboundDelivery
+from .forms import InboundDeliveryForm
 
-def inbound_delivery_detail(request):
-    search_query = request.GET.get('ibd_no')
-    deliveries = InboundDelivery.objects.filter(inbound_delivery_number__icontains=search_query) if search_query else InboundDelivery.objects.all()
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .models import InboundDelivery
 
-    if request.method == "POST":
-        # Save or update the delivery
-        delivery_id = request.POST.get("id")
-        if delivery_id:
-            delivery = InboundDelivery.objects.get(id=delivery_id)
-        else:
-            delivery = InboundDelivery()
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .forms import InboundDeliveryForm
+from .models import InboundDelivery
 
-        delivery.inbound_delivery_number = request.POST.get("inbound_delivery_number")
-        delivery.delivery_date = request.POST.get("delivery_date")
-        delivery.supplier_name = request.POST.get("supplier_name")
-        delivery.purchase_order_number = request.POST.get("purchase_order_number")
-        delivery.receiving_plant = request.POST.get("receiving_plant")
-        delivery.material_code = request.POST.get("material_code")
-        delivery.material_description = request.POST.get("material_description")
-        delivery.quantity_delivered = request.POST.get("quantity_delivered")
-        delivery.quantity_received = request.POST.get("quantity_received")
-        delivery.unit_of_measure = request.POST.get("unit_of_measure")
-        delivery.batch_number = request.POST.get("batch_number")
-        delivery.delivery_status = request.POST.get("delivery_status")
-        delivery.storage_location = request.POST.get("storage_location")
-        delivery.carrier_info = request.POST.get("carrier_info")
-        delivery.remarks = request.POST.get("remarks")
-        delivery.save()
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import InboundDelivery, InboundDeliveryproduct, Warehouse , Vendor , PurchaseOrder
+from django.shortcuts import render, redirect
+from .models import InboundDelivery, InboundDeliveryproduct
+import random
 
-    # Show empty form for new entry or return the last entry for convenience
-    latest_delivery = InboundDelivery.objects.last()
+def generate_inbound_delivery_number():
+    return f"IBD{random.randint(1000, 9999)}"
+import random
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import InboundDelivery, InboundDeliveryproduct, Vendor, Warehouse, PurchaseOrder
 
-    return render(request, 'inbound/inbound_delivery_detail.html', {
-        'delivery': latest_delivery,  # or empty InboundDelivery() if desired
-        'deliveries': deliveries
+def generate_inbound_delivery_number():
+    return f"IBD{random.randint(1000, 9999)}"
+
+def inbound_delivery(request):
+    # GET-related queries (always executed)
+    search_term = request.GET.get('inbound_delivery_number')
+    if search_term:
+        deliveries = InboundDelivery.objects.filter(
+            inbound_delivery_number__icontains=search_term
+        ).order_by('-delivery_date')
+    else:
+        deliveries = InboundDelivery.objects.all().order_by('-delivery_date')
+
+    warehouses = Warehouse.objects.all().order_by('whs_no')
+    vendors = Vendor.objects.all()
+    Purchase_orders = PurchaseOrder.objects.all()
+    products_list = Product.objects.all().order_by('name')  # renamed to avoid conflict
+
+    if request.method == 'POST':
+        inbound_delivery_number = generate_inbound_delivery_number()
+        supplier_id = request.POST.get('supplier')
+        supplier_obj = Vendor.objects.get(pk=supplier_id)
+        delivery = InboundDelivery.objects.create(
+            inbound_delivery_number=inbound_delivery_number,
+            delivery_date=request.POST.get('delivery_date'),
+            document_date=request.POST.get('document_date'),
+            gr_date=request.POST.get('gr_date'),
+            supplier=supplier_obj,
+            purchase_order_number_id=request.POST.get('po_number'),
+            whs_no_id=request.POST.get('whs_no'),
+            storage_location=request.POST.get('storage_location'),
+            delivery_status=request.POST.get('delivery_status'),
+            carrier_info=request.POST.get('carrier_info'),
+            remarks=request.POST.get('remarks')
+        )
+
+        product_ids = request.POST.getlist('product[]')  # renamed
+        descriptions = request.POST.getlist('product_description[]')
+        qty_delivered = request.POST.getlist('quantity_delivered[]')
+        qty_received = request.POST.getlist('quantity_received[]')
+        unit_of_measure = request.POST.getlist('unit_of_measure[]')
+        batch_number = request.POST.getlist('batch_number[]')
+
+        for i in range(len(product_ids)):
+            if product_ids[i].strip():
+                product_obj = Product.objects.get(pk=product_ids[i])
+                InboundDeliveryproduct.objects.create(
+                    delivery=delivery,
+                    product=product_obj,
+                    product_description=descriptions[i],
+                    quantity_delivered=qty_delivered[i],
+                    quantity_received=qty_received[i],
+                    unit_of_measure=unit_of_measure[i],
+                    batch_number=batch_number[i]
+                )
+
+        return redirect('inbound_delivery')
+
+    return render(request, 'inbound/inbound_delivery.html', {
+        'deliveries': deliveries,
+        'warehouses': warehouses,
+        'vendors': vendors,
+        'Purchase_orders': Purchase_orders,
+        'products': products_list
     })
 
+from django.shortcuts import render, get_object_or_404
+from .models import InboundDelivery, InboundDeliveryproduct
+
+def delivery_detail(request, inbound_delivery_number):
+    delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)
+    ibdproducts = InboundDeliveryproduct.objects.filter(delivery=delivery)
+    return render(request, 'inbound/delivery_detail.html', {
+        'delivery': delivery,
+        'ibdproducts': ibdproducts,
+    })
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import InboundDelivery
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import InboundDelivery, InboundDeliveryproduct, Vendor, PurchaseOrder
+
+def edit_inbound_delivery(request, inbound_delivery_number):
+    delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)
+    ibdproducts = InboundDeliveryproduct.objects.filter(delivery=delivery)
+
+    if request.method == 'POST':
+        supplier_id = request.POST.get('supplier') 
+        po_number_id = request.POST.get('purchase_order_number')  
+
+        if supplier_id:
+            delivery.supplier = get_object_or_404(Vendor, vendor_id=supplier_id)  
+
+        if po_number_id:
+            delivery.purchase_order_number = get_object_or_404(PurchaseOrder, po_number=po_number_id) 
+
+        delivery.delivery_status = request.POST.get('delivery_status')
+        delivery.save()
+        for product in ibdproducts:
+            prefix = f"product_{product.id}_"
+            product.product_description = request.POST.get(prefix + 'product_description', product.product_description)
+            product.quantity_delivered = request.POST.get(prefix + 'quantity_delivered', product.quantity_delivered)
+            product.quantity_received = request.POST.get(prefix + 'quantity_received', product.quantity_received)
+            product.unit_of_measure = request.POST.get(prefix + 'unit_of_measure', product.unit_of_measure)
+            product.save()
+        return redirect('inbound_delivery')
+
+    return render(request, 'inbound/delivery_info_edit.html', {
+        'delivery': delivery,
+        'ibdproducts': ibdproducts
+    })
+from django.http import JsonResponse
+from .models import PurchaseOrder  
+
+def po_suggestions(request):
+    query = request.GET.get('q', '')
+    if query:
+        purchase_orders = PurchaseOrder.objects.filter(
+            po_number__icontains=query  
+        ).values_list('po_number', flat=True)[:10]
+    else:
+        purchase_orders = []
+
+    return JsonResponse(list(purchase_orders), safe=False)  

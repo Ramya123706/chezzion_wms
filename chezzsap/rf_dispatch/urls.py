@@ -105,12 +105,15 @@ urlpatterns = [
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
     path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
-    
     path('customer/', views.customer, name='customer'),
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
-    path('inbound_delivery/', views.inbound_delivery_detail, name='inbound_delivery_detail'),
-    path('inbound-delivery/', views.inbound_delivery_detail, name='inbound_delivery_detail'),
-     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
+    path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
+
+    path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
+    path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
+
+     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
