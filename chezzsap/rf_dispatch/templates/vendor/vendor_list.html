@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div>
+        <a href="{% url 'add_vendor' %}" class="btn btn-secondary mb-2">F7 BACK</a>
+    </div>
+    <h4 class="mb-4 bg-primary text-center text-white">Vendor List</h4>
+    <table class="table table-bordered table-hover table-sm text-center">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>Name</th>
+                <th>Vendor ID</th>
+                <th>Phone No</th>
+                <th>Action</th>     
+            </tr>
+        </thead>
+        <tbody>
+            {% for vendor in vendors %}
+            <tr>
+                <td>{{vendor.name }}</td>
+                <td>{{vendor.vendor_id }}</td>
+                <td>{{ vendor.phone_no }}</td>
+                <td action class="text-nowrap text-center">
+                    <a href="{% url 'vendor_detail' vendor.id %}" class="btn btn-sm btn-primary">View details</a>
+                    <a href="{% url 'vendor_edit' vendor.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <form action="{% url 'vendor_delete' vendor.id %}" method="post" style="display:inline;" onsubmit="return confirmDelete()">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function confirmDelete() {
+    return confirm("Are you sure you want to delete this vendor?");
+}
+</script>
+{% endblock %}
