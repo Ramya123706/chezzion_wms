@@ -39,6 +39,25 @@
                     <th>SKU</th>
                     <td>{{ product.sku }}</td>
                 </tr>
+                 <tr>
+    <th>Purchase Orders</th>
+    <td>
+        {% if product.purchaseitem_set.all %}
+            <ul class="list-unstyled">
+                {% for item in product.purchaseitem_set.all %}
+                    <li><strong>PO No:</strong> {{ item.purchase_order.po_number }} </li>
+                    <li><strong>PO Date:</strong>({{ item.purchase_order.po_date }}) </li>
+                    <li><strong>Qty:</strong> {{ item.quantity }} at Rs. {{ item.unit_price }}</li>
+                        <hr>
+
+                {% endfor %}
+            </ul>
+        {% else %}
+            <span class="text-muted">No purchase orders found.</span>
+        {% endif %}
+    </td>
+</tr>
+
                 <tr>
                     <th>Description</th>
                     <td>{{ product.description }}</td>
