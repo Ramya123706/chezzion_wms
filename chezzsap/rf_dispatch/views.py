@@ -1310,19 +1310,21 @@ def putaway_task(request):
         putaway_id = request.POST.get('putaway_id')
         pallet = request.POST.get('pallet')
         location = request.POST.get('location')
+        putaway_task_type = request.POST.get('putaway_task_type')
         status = request.POST.get('status')
         putaway = Putaway(
             putaway_id=putaway_id,
             pallet=pallet,
             location=location,
-            status = status
+            status = status,
+            putaway_task_type=putaway_task_type
+            
         )
         putaway.save()
 
         return redirect('putaway_pending')  # adjust if needed
 
     return render(request, 'putaway/putaway_task.html')
-
     
 def putaway_pending(request):
     pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
@@ -1340,9 +1342,6 @@ def edit_putaway(request, putaway_id):
 
     return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
 
-
-
-
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
     putaway.status = "Completed"
@@ -1355,6 +1354,10 @@ def delete_putaway(request,putaway_id):
     task.delete()
     messages.success(request, "Task deleted successfully.")
     return redirect('putaway_pending')
+  
+  
+  
+  
   
 from django.shortcuts import render
 from .models import Vendor

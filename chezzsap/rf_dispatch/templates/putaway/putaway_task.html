@@ -4,53 +4,56 @@
 <div class="container mt-5">
     <div class="col-md-6 col-sm-12 mx-auto">
         <div class="card">
-            <div class=" card-header text-center text-white bg-primary">
+            <div class="card-header text-center text-white bg-primary">
                 <h3>Putaway</h3>
             </div>
             <div class="card-body">
-               
-                   <form method="post">
-    {% csrf_token %}
+                <form method="post">
+                    {% csrf_token %}
 
-    <div class="form-group">
-        <label for="putaway_id"><b>Putaway ID</b></label>
-        <input type="text" id="putaway_id" name="putaway_id" class="form-control"
-               value="{{ form.putaway_id.value|default_if_none:'' }}" >
-    </div>
+                  <div class="form-group mb-3">
+    <label for="putaway_id"><b>Putaway ID</b></label>
+    <input type="text" id="putaway_id" name="putaway_id" 
+           class="form-control"
+           value="{% if form.instance.putaway_id %}{{ form.instance.putaway_id }}{% endif %}"
+           placeholder="Auto-generated"
+           readonly>
+</div>
 
-    <div class="form-group">
-        <label for="pallet"><b>Pallet</b></label>
-        <input type="text" id="pallet" name="pallet" class="form-control"
-               value="{{ form.pallet.value|default_if_none:'' }}" required>
-    </div>
+                    <div class="form-group mb-3">
+                        <label for="pallet"><b>Pallet</b></label>
+                        <input type="text" id="pallet" name="pallet" class="form-control"
+                               value="{{ form.pallet.value|default_if_none:'' }}" required>
+                    </div>
 
-    <div class="form-group">
-        <label for="location"><b>Location</b></label>
-        <input type="text" id="location" name="location" class="form-control"
-               value="{{ form.location.value|default_if_none:'' }}" required>
-    </div>
-                    <div class="form-group">
-                        <label for="task_type"><b>Putaway Task type</b></label>
-                        <select id="task_type" name="task_type" class="form-control" required>
-                            <option value="Putaway by HU" {% if form.task_type.value == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
-                            <option value="Putaway by Warehouse" {% if form.task_type.value == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
-                            <option value="Putaway by Product" {% if form.task_type.value == "Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
-                            <option value="Putaway by Storage Bin" {% if form.task_type.value == "Putaway by Storage Bin" %}selected{% endif %}>Putaway by Storage Bin</option>
+                    <div class="form-group mb-3">
+                        <label for="location"><b>Location</b></label>
+                        <input type="text" id="location" name="location" class="form-control"
+                               value="{{ form.location.value|default_if_none:'' }}" required>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="putaway_task_type"><b>Putaway Task Type</b></label>
+                        <select id="putaway_task_type" name="putaway_task_type" class="form-control" required>
+                            <option value="" disabled {% if not form.task_type.value %}selected{% endif %}>Select Task</option>
+                            <option value="Putaway by HU" {% if form.tputaway_ask_type.value == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
+                            <option value="Putaway by Warehouse" {% if form.putaway_task_type.value == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
+                            <option value="Putaway by Product" {% if form.putaway_task_type.value == "Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
+                            <option value="Putaway by Storage Bin" {% if form.putaway_task_type.value == "Putaway by Storage Bin" %}selected{% endif %}>Putaway by Storage Bin</option>
                         </select>
                     </div>
 
-    <div class="form-group">
-        <label for="status"><b>Status</b></label>
-        <select id="status" name="status" class="form-control" required>
-            <option value="In Progress" {% if form.status.value == "In Progress" %}selected{% endif %}>In Progress</option>
-            <option value="Completed" {% if form.status.value == "Completed" %}selected{% endif %}>Completed</option>
-        </select>
-    </div>
+                    <div class="form-group mb-3">
+                        <label for="status"><b>Status</b></label>
+                        <select id="status" name="status" class="form-control" required>
+                            <option value="In Progress" {% if form.status.value == "In Progress" %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if form.status.value == "Completed" %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
 
-    <div class="text-center mt-3">
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </div>
-</form>
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
 
                 </form>
             </div>

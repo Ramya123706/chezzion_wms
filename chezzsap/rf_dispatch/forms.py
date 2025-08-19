@@ -213,12 +213,5 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
-from .models import PutawayTask
 
-class PutawayTaskForm(forms.ModelForm):
-    class Meta:
-        model = PutawayTask
-        fields = ['status']
-        widgets = {
-            'status': forms.Select(attrs={'class': 'form-control', 'required': True}),
-        }
+    
