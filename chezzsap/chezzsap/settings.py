@@ -99,7 +99,7 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 # }
 
 DATABASES = {
-    'default': {    
+    'default': {   
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chezz',
         'USER': 'postgres',
@@ -108,8 +108,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
-
 
 
 

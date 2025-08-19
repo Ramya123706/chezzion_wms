@@ -93,6 +93,8 @@ urlpatterns = [
     path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
     path('purchase/edit/<int:po_id>/', views.purchase_edit, name='purchase_edit'),
     path('purchase/<int:pk>/pdf/', views.download_po_pdf, name='purchase_pdf'),
+    path("purchases/", views.purchase_list_view, name="purchase_list"),
+
 
     # RF & Tasks
     path('rf_ptl/', views.rf_ptl, name="rf_plt"),
@@ -132,7 +134,21 @@ urlpatterns = [
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
+    path('pallet/', views.creating_pallet, name='creating_pallet'),
+    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
+    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+
+    # Pallet Management
+    path('create_pallet/', views.creating_pallet, name='creating_pallet'),
+    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
+    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+    path('pallet/delete/<str:pallet_no>/', views.delete_pallet, name='delete_pallet'), 
+    path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+    path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
+
+
 
     # Customer landing
     path('customer/', views.customer, name='customer'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

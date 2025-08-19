@@ -625,9 +625,18 @@ def product_view(request):
     })
 
 
+
+
 def product_detail_view(request, product_id):
-    product = get_object_or_404(Product, product_id=product_id)
-    return render(request, 'product/product_detail.html', {'product': product})
+    product = get_object_or_404(
+        Product.objects.prefetch_related(
+            "purchaseitem_set__purchase_order"  # prefetch purchase items + their orders
+        ),
+        product_id=product_id
+    )
+    return render(request, "product/product_detail.html", {"product": product})
+
+
 
 # def get_category(request):
 #     category = request.GET.get('category')
@@ -1663,3 +1672,28 @@ def add_child_pallet(request):
         
         messages.success(request, f"{num_children} child pallet(s) created for {parent_no}")
         return redirect('creating_pallet')  # replace with your view name
+
+from django.shortcuts import render
+from .models import PurchaseOrder
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import PurchaseOrder
+
+def purchase_list_view(request):
+    search_query = request.GET.get("q", "")  # Get search keyword from query params
+    purchase_orders = PurchaseOrder.objects.all().order_by("-po_date")
+
+    if search_query:
+        purchase_orders = purchase_orders.filter(
+            po_number__icontains=search_query
+        )
+
+    # Pagination (5 per page, you can change)
+    paginator = Paginator(purchase_orders, 5)
+    page_number = request.GET.get("page")
+    purchase_orders_page = paginator.get_page(page_number)
+
+    return render(request, "purchase_order/purchase_list.html", {
+        "purchase_orders": purchase_orders_page,
+        "search_query": search_query
+    })

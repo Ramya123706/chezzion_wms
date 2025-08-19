@@ -202,7 +202,7 @@ from django.utils.timezone import now
 import uuid
 
 class Pallet(models.Model):
-    pallet_no = models.CharField(max_length=100, unique=True, editable=False)  # ✅ Add this
+    pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
     p_mat = models.CharField(max_length=100, null=True, blank=True)
