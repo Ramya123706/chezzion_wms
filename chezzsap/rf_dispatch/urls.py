@@ -127,9 +127,6 @@ urlpatterns = [
     path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
-    path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
-    path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
-    path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('customer/', views.customer, name='customer'),
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),

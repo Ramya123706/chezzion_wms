@@ -1009,21 +1009,22 @@ def add_purchase(request):
         try:
             # 1️⃣ Save Purchase Order first
             po = PurchaseOrder.objects.create(
-                company_name=request.POST.get('company_name'),
-                company_address=request.POST.get('company_address'),
-                company_phone=request.POST.get('phone_number'),
-                company_email=request.POST.get('email_address'),
-                company_website=request.POST.get('website'),
-                po_date=request.POST.get('date'),
-                po_number=request.POST.get('po_number'),
-                customer_number=request.POST.get('customer_number'),
-                vendor_company_name=request.POST.get('vendor_company_name'),
-                vendor_contact_name=request.POST.get('vendor_contact_name'),
-                vendor_phone=request.POST.get('vendor_phn_number'),
-                vendor_address=request.POST.get('vendor_address'),
-                vendor_website=request.POST.get('vendor_website'),
-                vendor_email=request.POST.get('vendor_email'),
-            )
+            company_name=request.POST.get('company_name'),
+            company_address=request.POST.get('company_address'),
+            company_phone=request.POST.get('company_phone'),   
+            company_email=request.POST.get('email_address'),
+            company_website=request.POST.get('company_website'),  
+            po_date=request.POST.get('po_date'),  
+            po_number=request.POST.get('po_number'),
+            customer_number=request.POST.get('customer_number'),
+            vendor_company_name=request.POST.get('vendor_company_name'),
+            vendor_contact_name=request.POST.get('vendor_contact_name'),
+            vendor_phone=request.POST.get('vendor_phone'),  
+            vendor_address=request.POST.get('vendor_address'),
+            vendor_website=request.POST.get('vendor_website'),
+            vendor_email=request.POST.get('vendor_email'),
+        )
+
 
             # 2️⃣ Loop through multiple products
             item_numbers = request.POST.getlist('item_number[]')
@@ -1067,7 +1068,7 @@ def add_purchase(request):
             return redirect('purchase_detail', pk=po.pk)
 
 
-        except Exception as e:
+        except Exception as e:  
             return render(request, 'purchase_order/add_purchase.html', {
                 'error': str(e),
                 'data': request.POST
@@ -1608,7 +1609,7 @@ def edit_picking(request, picking_id):
         form = PickingForm(request.POST, instance=picking)
         if form.is_valid():
             form.save()
-            return redirect('pending_task', picking_id=picking.picking_id)  # or your listing page
+            return redirect('pending_task')  # or your listing page
     else:
         form = PickingForm(instance=picking)
 
