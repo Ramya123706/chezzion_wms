@@ -8,45 +8,42 @@
                 <h3>Edit Putaway Task</h3>
             </div>
             <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
+                <form method="post" class="form-group">
+                        {% csrf_token %}
 
-                    <div class="form-group">
-                        <label for="putaway_id"><b>Putaway ID</b></label>
-                        <input type="text" id="putaway_id" name="putaway_id" class="form-control"
-                               value="{{ putaway.putaway_id }}" readonly>
-                    </div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <ul>
+                                    {% for field in form %}
+                                        {% for error in field.errors %}
+                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
 
-                    <div class="form-group">
-                        <label for="pallet"><b>Pallet</b></label>
-                        <input type="text" id="pallet" name="pallet" class="form-control"
-                               value="{{ putaway.pallet }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="location"><b>Location</b></label>
-                        <input type="text" id="location" name="location" class="form-control"
-                               value="{{ putaway.location }}" required>
-                    </div>
-
-                    <!-- ✅ New Putaway Task Type Dropdown -->
-                    <div class="form-group">
-                        <label for="task_type"><b>Putaway Task Type</b></label>
-                        <select id="task_type" name="task_type" class="form-control" required>
-                            <option value="Putaway by HU" {% if putaway.task_type == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
-                            <option value="Putaway by Warehouse" {% if putaway.task_type == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
-                            <option value="Putaway by Product" {% if putaway.task_type == "Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
-                            <option value="Putaway by Storage Bin" {% if putaway.task_type == "Putaway by Storage Bin" %}selected{% endif %}>Putaway by Storage Bin</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status"><b>Status</b></label>
-                        <select id="status" name="status" class="form-control" required>
-                            <option value="In Progress" {% if putaway.status == "In Progress" %}selected{% endif %}>In Progress</option>
-                            <option value="Completed" {% if putaway.status == "Completed" %}selected{% endif %}>Completed</option>
-                        </select>
-                    </div>
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label"><b>{{ field.label }}</b></label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            <script>
+                                // Apply Bootstrap class to each field (in case it's not set in form class)
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    const input = document.getElementById("{{ field.id_for_label }}");
+                                    if (input) {
+                                        input.classList.add("form-control");
+                                    }
+                                });
+                            </script>
+                        {% endfor %}
 
                     <div class="text-center mt-3">
                         <button type="submit" class="btn btn-success">Update</button>
