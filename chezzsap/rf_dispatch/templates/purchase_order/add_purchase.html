@@ -2,12 +2,14 @@
 
 {% block content %}
 <div class="container mt-4 mb-3">
+
     {% if success %}
         <div class="alert alert-success">✅ Purchase uploaded successfully!</div>
     {% endif %}
 
     {% if error %}
         <div class="alert alert-danger">❌ {{ error }}</div>
+
     {% endif %}
 
     <form method="post" action="{% url 'add_purchase' %}">
@@ -30,7 +32,7 @@
                 </div>
                 <div class="col-md-6">
                     <label>Date:</label>
-                    <input type="date" name="date" class="form-control" required>
+                    <input type="date" name="po_date" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
                     <label><b>Company Address:</b></label>
@@ -42,7 +44,7 @@
                 </div>
                 <div class="col-md-6 mt-3">
                     <label><b>Phone Number:</b></label>
-                    <input type="text" name="phone_number" class="form-control" required>
+                    <input type="text" name="company_phone" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Supplier</label>
@@ -50,11 +52,13 @@
                 </div>
                 <div class="col-md-6 mt-3">
                     <label><b>Website:</b></label>
-                    <input type="text" name="website" class="form-control" required>
+                    <input type="text" name="company_website" class="form-control">
                 </div>
                 <div class="col-md-6 mt-3">
                     <label><b>Email Address:</b></label>
+
                     <input type="email" name="email_address" class="form-control" required>
+
                 </div>
             </div>
         </div>
@@ -77,11 +81,11 @@
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Phone Number:</label>
-                    <input type="text" name="vendor_phn_number" class="form-control" required>
+                    <input type="text" name="vendor_phone" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Website:</label>
-                    <input type="text" name="vendor_website" class="form-control" required>
+                    <input type="text" name="vendor_website" class="form-control">
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Email Address:</label>
@@ -100,23 +104,25 @@
                 </div>
                 <div class="col-md-6">
                     <label>Company Name:</label>
-                    <input type="text" name="ship_cmpny_name" class="form-control" required>
+                    <input type="text" name="ship_to_company_name" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Address:</label>
-                    <input type="text" name="ship_address" class="form-control" required>
+                    <input type="text" name="ship_to_address" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Phone Number:</label>
-                    <input type="text" name="ship_phn_no" class="form-control" required>
+                    <input type="text" name="ship_to_phone" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Website:</label>
-                    <input type="text" name="ship_website" class="form-control" required>
+                    <input type="text" name="ship_to_website" class="form-control">
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Email Address:</label>
+
                     <input type="email" name="ship_email" class="form-control" required>
+
                 </div>
             </div>
         </div> -->
@@ -150,7 +156,7 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="text-center">
+        <div class="text-center mb-4">
             <button type="submit" class="btn btn-success px-4 py-2">Submit Purchase Order</button>
         </div>
     </form>

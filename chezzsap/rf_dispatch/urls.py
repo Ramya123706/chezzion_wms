@@ -102,6 +102,18 @@ urlpatterns = [
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
+    path('add_picking/', views.add_picking, name='add_picking'),
+    path('pending_task/', views.pending_task, name='pending_task'),
+    path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
+    path('customer/', views.customer, name='customer'),
+    path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
+    path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
+    path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
+    path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
+
+    path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
+    path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
+
     path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
     path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
 
@@ -111,6 +123,7 @@ urlpatterns = [
     path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
     path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
 
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+     ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 

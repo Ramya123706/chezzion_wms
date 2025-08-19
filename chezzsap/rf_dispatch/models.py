@@ -162,6 +162,7 @@ class Bin(models.Model):
 #         return self.name
 
 
+import uuid
 
 class Product(models.Model):
     product_id = models.CharField(max_length=50, unique=True)   # Your item_number
@@ -377,19 +378,69 @@ class Putaway(models.Model):
     putaway_id = models.CharField(max_length=50)
     pallet = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
+    putaway_task_type = models.CharField(max_length=100, null=True, blank=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
    
 
     STATUS_CHOICES = [
         ('In Progress', 'In Progress'),
-        # ('Pending', 'Pending'),
         ('Completed', 'Completed'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
     def __str__(self):
         return f"{self.pallet} - {self.status}"
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils.timezone import now
+from .models import Putaway
+
+def pending_putaway(request):
+    pending_tasks = Putaway.objects.filter(status="In Progress")
+    return render(request, 'pending_task.html', {'pending_tasks': pending_tasks})
+
+def edit_putaway(request, pk):
+    putaway = get_object_or_404(Putaway, pk=pk)
+
+    if request.method == 'POST':
+        putaway.pallet = request.POST.get('pallet')
+        putaway.location = request.POST.get('location')
+        putaway.putaway_task_type = request.POST.get('putaway_task_type')
+        putaway.status = request.POST.get('status')
+
+        if putaway.status == "Completed":
+            putaway.confirmed_at = now()
+
+        putaway.save()
+        return redirect('pending_putaway')
+
+    return render(request, 'edit_putaway.html', {'putaway': putaway})
+
+class PutawayTask(models.Model):
+    PUTAWAY_TASK_CHOICES = [
+        ("Putaway by HU", "Putaway by HU"),
+        ("Putaway by Warehouse", "Putaway by Warehouse"),
+        ("Putaway by Product", "Putaway by Product"),
+        ("Putaway by Storage Bin", "Putaway by Storage Bin"),
+    ]
+
+    putaway_id = models.CharField(max_length=50)
+    pallet = models.CharField(max_length=50)
+    location = models.CharField(max_length=100)
+    putaway_task_type = models.CharField(
+        max_length=50,
+        choices=PUTAWAY_TASK_CHOICES,
+        default="Putaway by HU"
+    )
+    status = models.CharField(max_length=20, choices=[
+        ("In Progress", "In Progress"),
+        ("Completed", "Completed"),
+    ], default="In Progress")
+
+    def __str__(self):
+        return f"{self.putaway_id} - {self.putaway_task_type}"
+
 
 
 from django.db import models
@@ -434,6 +485,73 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
+
+
+class InboundDelivery(models.Model):
+    inbound_delivery_number = models.CharField(max_length=50, unique=True, editable=False)
+    delivery_date = models.DateField()
+    document_date = models.DateField(blank=True, null=True)
+    gr_date = models.DateField()
+    supplier = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+    purchase_order_number = models.ForeignKey(PurchaseOrder,on_delete=models.CASCADE,null=True,  blank=True)
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
+
+    
+    DELIVERY_STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+    ]
+    delivery_status = models.CharField(max_length=20, choices=DELIVERY_STATUS_CHOICES, default='Pending')
+    storage_location = models.CharField(max_length=100)
+    carrier_info = models.CharField(max_length=100)
+    remarks = models.TextField(blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.inbound_delivery_number:
+            self.inbound_delivery_number = f"IDN-{uuid.uuid4().hex[:8].upper()}"
+        
+        # if not self.batch_number:
+        #     self.batch_number = f"BATCH-{uuid.uuid4().hex[:6].upper()}"
+        
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Delivery #{self.inbound_delivery_number}"
+    def warehouse_number(self):
+        """Fetches the warehouse number from related Warehouse"""
+        return self.whs_no.whs_no
+    def vendor_number(self):
+        return self.supplier.supplier_id if self.supplier else None
+    def vendor_number(self):
+        """Fetches the vendor number from related Vendor"""
+        return f"{self.supplier.supplier_id} - {self.supplier.name}" if self.supplier else None
+
+    def po_number(self):
+        return self.purchase_order_number.po_number if self.purchase_order_number else None
+
+    def product(self):
+        """Fetches product ID and name from related Product"""
+        return f"{self.product.product_id} - {self.product.name}" if self.product else None
+
+class InboundDeliveryproduct(models.Model):
+    delivery = models.ForeignKey(InboundDelivery, on_delete=models.CASCADE, related_name='product')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product')
+    product_description = models.CharField(max_length=255)
+    quantity_delivered = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity_received = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_of_measure = models.CharField(max_length=20)
+    batch_number = models.CharField(max_length=50, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.batch_number:
+           self.batch_number = f"BATCH-{uuid.uuid4().hex[:6].upper()}"
+        
+        super().save(*args, **kwargs)
+        
+    def __str__(self):
+        return f"Delivery #{self.batch_number}"
+
+   
 # Purchase Order Line Items
 class PurchaseItem(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="items")
