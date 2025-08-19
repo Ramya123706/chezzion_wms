@@ -26,14 +26,8 @@
                                 <td>{{ task.pallet }}</td>
                                 <td>{{ task.location }}</td>
                                 <td>
-    <span class="badge 
-        {% if task.putaway_task_type == 'Putaway by HU' %}
-        {% elif task.putaway_task_type == 'Putaway by Warehouse' %}
-        {% elif task.putaway_task_type == 'Putaway by Product' %}
-        {% elif task.putaway_task_type == 'Putaway by Storage Bin' %}
-        {% else %}bg-secondary{% endif %}">
-        {{ task.putaway_task_type }}
-    </span>
+    {{ task.putaway_task_type }}
+
 </td>
                                 <td>
                                     <span class="badge 

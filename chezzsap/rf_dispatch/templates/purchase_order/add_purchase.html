@@ -2,13 +2,17 @@
 
 {% block content %}
 <div class="container mt-4 mb-3">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
+
+    {% if success %}
+        <div class="alert alert-success">✅ Purchase uploaded successfully!</div>
     {% endif %}
 
-    <form method="post" action="{% url 'add_purchase' %}" enctype="multipart/form-data">
+    {% if error %}
+        <div class="alert alert-danger">❌ {{ error }}</div>
+
+    {% endif %}
+
+    <form method="post" action="{% url 'add_purchase' %}">
         {% csrf_token %}
 
         <!-- Purchase Order Title -->
@@ -20,9 +24,7 @@
 
         <!-- Company & Order Details -->
         <div class="card mb-4">
-            <div class="card-header bg-light">
-                <strong>Company & Purchase Order Details</strong>
-            </div>
+            <div class="card-header bg-light"><strong>Company & Purchase Order Details</strong></div>
             <div class="card-body row">
                 <div class="col-md-6">
                     <label><b>Company Name:</b></label>
@@ -45,7 +47,7 @@
                     <input type="text" name="company_phone" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
-                    <label><b>Customer No.:</b></label>
+                    <label>Supplier</label>
                     <input type="text" name="customer_number" class="form-control" required>
                 </div>
                 <div class="col-md-6 mt-3">
@@ -54,16 +56,16 @@
                 </div>
                 <div class="col-md-6 mt-3">
                     <label><b>Email Address:</b></label>
-                    <input type="email" name="company_email" class="form-control" required>
+
+                    <input type="email" name="email_address" class="form-control" required>
+
                 </div>
             </div>
         </div>
 
         <!-- Vendor Information -->
         <div class="card mb-4">
-            <div class="card-header bg-light">
-                <strong>Vendor Information</strong>
-            </div>
+            <div class="card-header bg-light"><strong>Vendor Information</strong></div>
             <div class="card-body row">
                 <div class="col-md-6">
                     <label>Contact Name:</label>
@@ -93,10 +95,8 @@
         </div>
 
         <!-- Ship To -->
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <strong>Ship To</strong>
-            </div>
+        <!-- <div class="card mb-4">
+            <div class="card-header bg-light"><strong>Ship To</strong></div>
             <div class="card-body row">
                 <div class="col-md-6">
                     <label>Name:</label>
@@ -120,10 +120,12 @@
                 </div>
                 <div class="col-md-6 mt-3">
                     <label>Email Address:</label>
-                    <input type="email" name="ship_to_email" class="form-control" required>
+
+                    <input type="email" name="ship_email" class="form-control" required>
+
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Product Information -->
         <div class="card mb-4">
