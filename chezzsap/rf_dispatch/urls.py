@@ -51,7 +51,7 @@ urlpatterns = [
     path('product/edit/<str:product_id>', views.product_edit, name='product_edit'),
     path('product-list', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
-    path('product/', views.product_view, name='add_product'),
+    
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
     # path('get-category/', views.get_category, name='get_category'),
@@ -114,6 +114,16 @@ urlpatterns = [
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
 
+    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
+    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+
+    # urls.py
+    path('pallet/delete/<str:pallet_no>/', views.delete_pallet, name='delete_pallet'),
+
+    path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+    path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
+
      ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 
