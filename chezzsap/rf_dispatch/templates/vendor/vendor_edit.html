@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header text-center text-white bg-primary">
+                <h5>Edit Vendor</h5>
+            </div>
+            <div class="card-body">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="name"><b>Name</b></label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ vendor.name }}" >
+                    </div>
+                    <div class="form-group">
+                        <label for="vendor_id"><b>Vendor ID</b></label>
+                        <input type="text" id="name" name="vendor_id" class="form-control" value="{{ vendor.vendor_id }}" >
+                    </div>
+                    <div class="form-group">
+                        <label for="vendor_code"><b>Vendor Code</b></label> 
+                        <input type="text" id="vendor_code" name="vendor_code" class="form-control" value="{{ vendor.vendor_code }}" >
+                    </div>
+                    <div class="form-group">
+                        <label for="email"><b>Email</b></label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{ vendor.email }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone"><b>Phone</b></label>
+                        <input type="text" id="phone" name="phone_no" class="form-control" value="{{ vendor.phone_no }}" >
+                    </div>
+                    <div class="form-group">
+                        <label for="address"><b>Address</b></label>
+                        <input type="text" id="address" name="address" class="form-control" value="{{ vendor.address }}">
+                    </div>
+                    
+                    <div class="form-group mt-4">
+                        <label for="profile"><b>Profile Image</b></label>
+                        {% load static %}
+                        {% if vendor.profile_image %}
+                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="200">
+                        {% else %}
+                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="200">
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group text-center mt-5">
+                        <button class="btn btn-primary" type="submit">Update</button>
+<<<<<<< HEAD
+                        
+=======
+
+>>>>>>> 89a9e8235311711f75f22db38f6cb39adcfa0bb2
+                    <a href="{% url 'vendor_detail' vendor.vendor_id %}" class="btn btn-secondary">F7 BACK</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

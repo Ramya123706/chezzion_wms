@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h4 class="mb-4 bg-primary text-center text-white">Customer List</h4>
+    <table class="table table-bordered table-hover table-sm text-center">
+        <thead class="table-primary text-center">
+            <tr>
+                <th>Name</th>
+                <th>Customer ID</th>
+                <th>Phone No</th>
+                <th>Action</th>
+              
+            </tr>
+        </thead>
+        <tbody>
+            {% for customers in customer %}
+            <tr>
+                <td>{{ customers.name }}</td>
+                <td>{{ customers.customer_id }}</td>
+                <td>{{ customers.phone_no }}</td>
+                <td action class="text-nowrap text-center">
+                    <a href="{% url 'customers_detail' customers.customer_id %}" class="btn btn-sm btn-primary">View details</a>
+                    <a href="{% url 'customers_edit' customers.customer_id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <form action="{% url 'customers_delete' customers.customer_id %}" method="post" style="display:inline;" onsubmit="return confirmDelete()">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function confirmDelete() {
+    return confirm("Are you sure you want to delete this customer?");
+}
+</script>
+{% endblock %}

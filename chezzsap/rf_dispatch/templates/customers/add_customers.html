@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header text-center text-white bg-primary">
+                <h5>Add Customer</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'add_customers' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ error }}
+                        </div>
+                    {% endif %}
+           
+                    <div class="form-group">
+                        <label for="name"><b>Name</b></label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customer_id"><b>Customer ID</b></label>
+                        <input type="text" id="customer_id" name="customer_id" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customer_code"><b>Customer_code</b></label>
+                        <input type="text" id="customer_code" name="customer_code" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email"><b>Email</b></label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone_no"><b>Phone Number</b></label>
+                         <input type="text" name="phone_no" class="form-control"  required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address"><b>Address</b></label>
+                        <input type="text" id="address" name="address" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location"><b>Location</b></label>
+                        <input type="text" id="location" name="location" class="form-control">
+
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary text-center">Save</button>
+                        
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

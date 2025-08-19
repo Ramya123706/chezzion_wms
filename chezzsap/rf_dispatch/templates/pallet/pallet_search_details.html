@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-3">
+<div class="card-header text-dark text-center">
+        <h4>Pallet</h4>
+    </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="container col-md-6 col-sm-12">
+                    <table class="table text-start table-responsive table-striped p-2">
+                        <tbody>
+                            <tr><th colspan="2" class="text-center bg-warning">Pallet Info</th></tr>
+                            <tr><th>Pallet No</th><td>{{ pallet.pallet_no }}</td></tr>
+                            <tr><th>Product</th><td>{{ pallet.product }}</td></tr>
+                            <tr><th>Quantity</th><td>{{ pallet.quantity }}</td></tr>
+                            <tr><th>Weight</th><td>{{ pallet.weight }}</td></tr>
+                            <tr><th>Scanned At</th><td>{{ pallet.scanned_at }}</td></tr>
+                            <tr><th>Updated By</th><td>{{ pallet.updated_by }}</td></tr>
+                            <tr><th>Created By</th><td>{{ pallet.created_by }}</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="d-flex gap-2">
+                    <a href="{% url 'creating_pallet' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

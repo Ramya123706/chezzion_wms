@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+            <h5>Chezzion WMS-Magic Box</h5>
+            </div>
+            <div class="card-body">
+                <h5><img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50"
+                            alt="SAP logo"></h5>
+                <div class="card-body">
+                    
+                    <div class="form-group">
+                        <label for="warehouse">Warehouse No.</label>
+                        <input type="text" class="form-control" id="warehouse">
+                    </div>
+                    <div class="form-group">
+                        <label for="resource">Resource</label>
+                        <input type="text" class="form-control" id="resource">
+                    </div>
+                    <div class="form-group">
+                        <label for="device">Default Device</label>
+                        <input type="text" class="form-control">
+                    </div>
+                    <div class="d-flex justify-content-between mt-4">
+                        <button class="btn btn-secondary btn-sap">F1 Logo</button>
+                        <button class="btn btn-secondary btn-sap">Enter</button>
+                        <button class="btn btn-secondary btn-sap">F7 Back</button>
+                    </div>
+
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

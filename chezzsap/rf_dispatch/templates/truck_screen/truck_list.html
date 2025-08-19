@@ -4,61 +4,79 @@
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<style>
+<!-- <style>
   .card {
     margin-top: 60px;
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
-</style>
+</style> -->
 
 <div class="container">
-  <div class="row justify-content-center">
+  <div class="row justify-content-center mt-5">
     <div class="col-md-10">
       <div class="card">
 
-        <h4 class="text-center mb-4">🔍 Truck Search Results</h4>
+        <h4 class="text-center mb-4 mt-4">🔍 Truck Search Results</h4>
 
         <!-- Search Form -->
         <form method="get" class="mb-4 text-center">
-          <div class="input-group w-50 mx-auto">
-            <input type="text" name="search" class="form-control" placeholder="Enter Truck Number" >
+          <div class="input-group mx-auto w-50">
+            <input type="text" name="search" class="form-control" placeholder="Enter Truck Number">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
         </form>
 
         {% if trucks %}
-        <!-- Results Table -->
-        <table class="table table-bordered text-center align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Truck Number</th>
-              <th>Warehouse Number</th>
-              <th>Truck Type</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
+          <!-- Desktop Table View -->
+          <div class="d-none d-md-block w-75 mx-auto">
+            <table class="table table-bordered text-center align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Truck Number</th>
+                  <th>Warehouse Number</th>
+                  <th>Truck Type</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for truck in trucks %}
+                <tr>
+                  <td>{{ truck.truck_no }}</td>
+                  <td>{{ truck.whs_no }}</td>
+                  <td>{{ truck.truck_type }}</td>
+                  <td>{{ truck.truck_status }}</td>
+                  <td>
+                    <a href="{% url 'truck_detail' truck.truck_no %}" class="btn btn-sm btn-info">View Details</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Card View -->
+          <div class="d-md-none">
             {% for truck in trucks %}
-            <tr>
-              <td>{{ truck.truck_no }}</td>
-              <td>{{ truck.whs_no }}</td>
-              <td>{{ truck.truck_type }}</td>
-              <td>{{ truck.truck_status }}</td>
-              <td>
+            <div class="card mb-3">
+              <div class="card-body">
+                <h5 class="card-title">Truck #{{ truck.truck_no }}</h5>
+                <p class="card-text mb-1"><strong>Warehouse:</strong> {{ truck.whs_no }}</p>
+                <p class="card-text mb-1"><strong>Type:</strong> {{ truck.truck_type }}</p>
+                <p class="card-text mb-2"><strong>Status:</strong> {{ truck.truck_status }}</p>
                 <a href="{% url 'truck_detail' truck.truck_no %}" class="btn btn-sm btn-info">View Details</a>
-              </td>
-            </tr>
+              </div>
+            </div>
             {% endfor %}
-          </tbody>
-        </table>
+          </div>
+
         {% else %}
-        <!-- No results -->
-        <div class="alert alert-warning text-center">
-          No trucks found matching your search.
-        </div>
+          <!-- No Results -->
+          <div class="alert alert-warning text-center mt-4">
+            No trucks found matching your search.
+          </div>
         {% endif %}
 
       </div>
