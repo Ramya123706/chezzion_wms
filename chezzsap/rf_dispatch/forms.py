@@ -96,7 +96,7 @@ class WarehouseForm(forms.ModelForm):
 class CustomersForm(forms.ModelForm):
     class Meta:
         model = Customers
-        exclude = ['customer_id'] 
+        fields =  '__all__'
     
 class Vendorform(forms.ModelForm):
     class Meta:
@@ -242,12 +242,5 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
-from .models import PutawayTask
 
-class PutawayTaskForm(forms.ModelForm):
-    class Meta:
-        model = PutawayTask
-        fields = ['status']
-        widgets = {
-            'status': forms.Select(attrs={'class': 'form-control', 'required': True}),
-        }
+    

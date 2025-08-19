@@ -248,7 +248,7 @@ class Vendor(models.Model):
 
 class Customers(models.Model):
     name = models.CharField(max_length=255)
-    customer_id = models.CharField(max_length=10, primary_key=True, editable=False) 
+    customer_id = models.CharField(max_length=10, blank=True, null=True) 
     customer_code = models.CharField(max_length=50)
     email = models.EmailField()
     phone_no = models.CharField(max_length=10)
@@ -375,10 +375,16 @@ class PurchaseOrder(models.Model):
 
 
 class Putaway(models.Model):
-    putaway_id = models.CharField(max_length=50)
+    putaway_id = models.CharField(max_length=50, unique=True, editable=False)   
     pallet = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
-    putaway_task_type = models.CharField(max_length=100, null=True, blank=True) 
+    PUTAWAY_TASK_TYPE_CHOICES = [
+        ("Putaway by HU", "Putaway by HU"),
+        ("Putaway by Warehouse", "Putaway by Warehouse"),
+        ("Putaway by Product", "Putaway by Product"),
+        ("Putaway by Bin", "Putaway by Bin"),
+    ]
+    putaway_task_type = models.CharField(max_length=100, null=True, blank=True , choices= PUTAWAY_TASK_TYPE_CHOICES ) 
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
    
@@ -388,58 +394,72 @@ class Putaway(models.Model):
         ('Completed', 'Completed'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    def save(self, *args, **kwargs):
+        if not self.putaway_id:  
+           
+            date_str = now().strftime("%Y%m%d")
+            last_id = Putaway.objects.filter(putaway_id__startswith=f"PUT{date_str}") \
+                                      .order_by("-putaway_id") \
+                                      .first()
+            if last_id:
+                last_number = int(last_id.putaway_id[-4:])
+                new_number = last_number + 1
+            else:
+                new_number=1
+            self.putaway_id = f"PUT{date_str}{new_number:04d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.pallet} - {self.status}"
+        return f"{self.putaway_id} - {self.pallet} ({self.status})"
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
 from .models import Putaway
 
-def pending_putaway(request):
-    pending_tasks = Putaway.objects.filter(status="In Progress")
-    return render(request, 'pending_task.html', {'pending_tasks': pending_tasks})
+# def pending_putaway(request):
+#     pending_tasks = Putaway.objects.filter(status="In Progress")
+#     return render(request, 'pending_task.html', {'pending_tasks': pending_tasks})
 
-def edit_putaway(request, pk):
-    putaway = get_object_or_404(Putaway, pk=pk)
+# def edit_putaway(request, pk):
+#     putaway = get_object_or_404(Putaway, pk=pk)
 
-    if request.method == 'POST':
-        putaway.pallet = request.POST.get('pallet')
-        putaway.location = request.POST.get('location')
-        putaway.putaway_task_type = request.POST.get('putaway_task_type')
-        putaway.status = request.POST.get('status')
+#     if request.method == 'POST':
+#         putaway.pallet = request.POST.get('pallet')
+#         putaway.location = request.POST.get('location')
+#         putaway.putaway_task_type = request.POST.get('putaway_task_type')
+#         putaway.status = request.POST.get('status')
 
-        if putaway.status == "Completed":
-            putaway.confirmed_at = now()
+#         if putaway.status == "Completed":
+#             putaway.confirmed_at = now()
 
-        putaway.save()
-        return redirect('pending_putaway')
+#         putaway.save()
+#         return redirect('pending_putaway')
 
-    return render(request, 'edit_putaway.html', {'putaway': putaway})
+#     return render(request, 'edit_putaway.html', {'putaway': putaway})
 
-class PutawayTask(models.Model):
-    PUTAWAY_TASK_CHOICES = [
-        ("Putaway by HU", "Putaway by HU"),
-        ("Putaway by Warehouse", "Putaway by Warehouse"),
-        ("Putaway by Product", "Putaway by Product"),
-        ("Putaway by Storage Bin", "Putaway by Storage Bin"),
-    ]
+# class PutawayTask(models.Model):
+    # PUTAWAY_TASK_CHOICES = [
+    #     ("Putaway by HU", "Putaway by HU"),
+    #     ("Putaway by Warehouse", "Putaway by Warehouse"),
+    #     ("Putaway by Product", "Putaway by Product"),
+    #     ("Putaway by Storage Bin", "Putaway by Storage Bin"),
+    # ]
 
-    putaway_id = models.CharField(max_length=50)
-    pallet = models.CharField(max_length=50)
-    location = models.CharField(max_length=100)
-    putaway_task_type = models.CharField(
-        max_length=50,
-        choices=PUTAWAY_TASK_CHOICES,
-        default="Putaway by HU"
-    )
-    status = models.CharField(max_length=20, choices=[
-        ("In Progress", "In Progress"),
-        ("Completed", "Completed"),
-    ], default="In Progress")
+    # putaway_id = models.CharField(max_length=50)
+    # pallet = models.CharField(max_length=50)
+    # location = models.CharField(max_length=100)
+    # putaway_task_type = models.CharField(
+    #     max_length=50,
+    #     choices=PUTAWAY_TASK_CHOICES,
+    #     default="Putaway by HU"
+    # )
+    # status = models.CharField(max_length=20, choices=[
+    #     ("In Progress", "In Progress"),
+    #     ("Completed", "Completed"),
+    # ], default="In Progress")
 
-    def __str__(self):
-        return f"{self.putaway_id} - {self.putaway_task_type}"
+    # def __str__(self):
+    #     return f"{self.putaway_id} - {self.putaway_task_type}"
 
 
 

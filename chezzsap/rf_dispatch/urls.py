@@ -123,8 +123,8 @@ urlpatterns = [
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
     path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
+    path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<str:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
     path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
@@ -147,6 +147,7 @@ urlpatterns = [
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
     path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
     path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+
 
     # Pallet Management
     path('create_pallet/', views.creating_pallet, name='creating_pallet'),
