@@ -79,7 +79,7 @@ urlpatterns = [
     path('customers/', views.customers_list, name='customers_list'),
     path('customers/<str:customer_id>/', views.customers_detail, name='customers_detail'),
     path('customers/<str:customer_id>/edit/', views.customers_edit, name='customers_edit'),
-    path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
+    path('customers/delete/<int:customer_id>/', views.customers_delete, name='customers_delete'),
 
     # Vendor
     path('add_vendor/', views.add_vendor, name='add_vendor'),
