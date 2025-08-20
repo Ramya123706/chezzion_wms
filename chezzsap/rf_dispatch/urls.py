@@ -56,6 +56,7 @@ urlpatterns = [
     path('product/edit/<str:product_id>/', views.product_edit, name='product_edit'),
     path('product-list/', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
+    
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
 
@@ -94,6 +95,8 @@ urlpatterns = [
     path('purchase/<int:pk>/', views.purchase_detail, name='purchase_detail'),
     path('purchase/edit/<int:po_id>/', views.purchase_edit, name='purchase_edit'),
     path('purchase/<int:pk>/pdf/', views.download_po_pdf, name='purchase_pdf'),
+    path("purchases/", views.purchase_list_view, name="purchase_list"),
+
 
     # RF & Tasks
     path('rf_ptl/', views.rf_ptl, name="rf_plt"),
@@ -122,18 +125,40 @@ urlpatterns = [
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('pending_tasks/', views.putaway_pending, name='putaway_pending'),
     path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
+    path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
+    path('putaway/delete/<str:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
-    path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
-    path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
-    path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('customer/', views.customer, name='customer'),
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
 
+    path('add_picking/', views.add_picking, name='add_picking'),
+    path('pending_task/', views.pending_task, name='pending_task'),
+    path('picking/edit/<str:picking_id>/', views.edit_picking, name='edit_picking'),
+    path('customer/', views.customer, name='customer'),
+    path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
+    path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
+    path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
+    path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
+    path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
+    path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
+    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
+    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+
+
+    # Pallet Management
+    path('create_pallet/', views.creating_pallet, name='creating_pallet'),
+    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
+    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+    path('pallet/delete/<str:pallet_no>/', views.delete_pallet, name='delete_pallet'), 
+    path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
+    path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
+
+
+
+
     # Customer landing
     path('customer/', views.customer, name='customer'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+ ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
