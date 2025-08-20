@@ -359,7 +359,7 @@ def batch_product_view(request):
         description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
-        bin_ = request.POST.get('bin')
+        bin = request.POST.get('bin')
         pallet = request.POST.get('pallet')
         p_mat = request.POST.get('p_mat')
         inspection = request.POST.get('inspection')
@@ -369,17 +369,18 @@ def batch_product_view(request):
         pallet_status = request.POST.get('pallet_status')
 
         try:
-            product_instance = get_object_or_404(Product, id=product_id)
+            product_instance = get_object_or_404(Product, product_id__iexact=product_id)
+
             whs_key = request.POST.get('whs_no')
             warehouse = Warehouse.objects.get(whs_no=whs_key)
-
+            bin_instance = get_object_or_404(Bin, id=bin)
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
                 description=description,
                 quantity=int(quantity),
                 batch=batch,
-                bin=bin_,
+                bin=bin_instance,
                 pallet=pallet,
                 p_mat=p_mat,
                 inspection=inspection,
@@ -395,6 +396,7 @@ def batch_product_view(request):
             return render(request, 'stock_upload/batch_product.html', {
                 'products': products,
                 'warehouse': Warehouse.objects.all(),
+                'bins': Bin.objects.all(),
                 'success': True
             })
 
@@ -405,13 +407,16 @@ def batch_product_view(request):
             return render(request, 'stock_upload/batch_product.html', {
                 'products': products,
                 'warehouse': Warehouse.objects.all(),
-                'error': str(e)
+                'bins': Bin.objects.all(),
+                'error': str(e),
+                
             })
 
     # GET request
     products = Product.objects.all()
     warehouse = Warehouse.objects.all()
-    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse})
+    bins = Bin.objects.all()
+    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse, 'bins': bins})
 
 
 from django.http import JsonResponse
@@ -632,7 +637,7 @@ def product_detail_view(request, product_id):
         Product.objects.prefetch_related(
             "purchaseitem_set__purchase_order"  # prefetch purchase items + their orders
         ),
-        product_id=product_id
+        product_id__iexact=product_id
     )
     return render(request, "product/product_detail.html", {"product": product})
 

@@ -49,12 +49,14 @@ urlpatterns = [
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
 
     # Product Management
+# Product Management
     path('product/', views.product_view, name='add_product'),
     path('product/<str:product_id>/', views.product_detail_view, name='product_detail'),
     path('product/edit/<str:product_id>/', views.product_edit, name='product_edit'),
     path('product-list/', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
-    
+
+
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
 

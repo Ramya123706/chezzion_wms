@@ -165,7 +165,7 @@ class Bin(models.Model):
 import uuid
 
 class Product(models.Model):
-    product_id = models.CharField(max_length=50, unique=True)   # Your item_number
+    product_id = models.CharField(max_length=100, unique=True)   # Your item_number
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   # current stock
     pallet_no = models.CharField(max_length=50, blank=True, null=True)
@@ -268,19 +268,19 @@ from django.db.models import Sum
 
 class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
-    whs_no = models.CharField(max_length=20)
+    whs_no = models.CharField(max_length=100)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
-    batch = models.CharField(max_length=20)
+    batch = models.CharField(max_length=100)
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
-    pallet = models.CharField(max_length=20)
-    p_mat = models.CharField(max_length=20)
-    inspection = models.CharField(max_length=20)
-    stock_type = models.CharField(max_length=20)
-    wps = models.CharField(max_length=20)
-    doc_no = models.CharField(max_length=20)
-    pallet_status = models.CharField(max_length=20, default='Not planned')
+    pallet = models.CharField(max_length=100)
+    p_mat = models.CharField(max_length=100)
+    inspection = models.CharField(max_length=100)
+    stock_type = models.CharField(max_length=100)
+    wps = models.CharField(max_length=100)
+    doc_no = models.CharField(max_length=100)
+    pallet_status = models.CharField(max_length=100, default='Not planned')
 
     def __str__(self):
         return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
@@ -554,7 +554,7 @@ class InboundDeliveryproduct(models.Model):
    
 # Purchase Order Line Items
 class PurchaseItem(models.Model):
-    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="items")
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="purchase_items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)

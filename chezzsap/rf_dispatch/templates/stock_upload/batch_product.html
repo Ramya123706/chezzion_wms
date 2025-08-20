@@ -73,7 +73,12 @@
                     <!-- BIN -->
                     <div class="form-group">
                         <label for="bin">BIN</label>
-                        <input type="text" class="form-control" id="bin" name="bin" required>
+                        <select class="form-control" id="bin" name="bin" required>
+                            <option value="">-- Select BIN --</option>
+                            {% for b in bins %}
+                                <option value="{{ b.id }}">{{ b.bin_id }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <!-- Pallet -->
@@ -164,6 +169,7 @@ document.getElementById("product_input").addEventListener("keyup", function () {
                             document.getElementById("product_input").value = item.product_id;
                             document.getElementById("description").value = item.description || "";
                             document.getElementById("category").value = item.category || "";
+
                             suggestionBox.style.display = "none";
                         };
 
