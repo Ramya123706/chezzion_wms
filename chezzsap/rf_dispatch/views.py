@@ -772,7 +772,7 @@ from django.contrib import messages
 def add_customers(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        id= request.POST.get('id')
+        customer_id= request.POST.get('customer_id')
         customer_code = request.POST.get('customer_code')
         email = request.POST.get('email')
         phone_no = request.POST.get('phone_no')
@@ -782,28 +782,29 @@ def add_customers(request):
         try:
             customer = Customers.objects.create(
                 name=name,
-                id=id,
+                customer_id=customer_id,
                 customer_code=customer_code,
                 email=email,
                 phone_no=phone_no,
                 address=address,
                 location=location,
                 )
-            return redirect('customers_detail', customer_id=customer.id)
+            return redirect('customers_detail', customer_id=customer.customer_id)
         except Exception as e:
             return render(request, 'customers/add_customers.html', {'error': str(e)})
 
     return render(request, 'customers/add_customers.html')
 
 def customers_detail(request, customer_id):  
-    customer = get_object_or_404(Customers, id=customer_id)
+    customer = get_object_or_404(Customers, customer_id=customer_id)
     return render(request, 'customers/customers_detail.html', {'customer': customer})
 
 def customers_edit(request, customer_id):
-    customer = get_object_or_404(Customers, id=customer_id)
+    customer = get_object_or_404(Customers, customer_id=customer_id)
 
     if request.method == 'POST':
         customer.name = request.POST.get('name')
+        customer.customer_id = request.POST.get('customer_id')
         customer.customer_code = request.POST.get('customer_code')
         customer.email = request.POST.get('email')
         customer.phone_no = request.POST.get('phone_no')
@@ -816,23 +817,12 @@ def customers_edit(request, customer_id):
 
     return render(request, 'customers/customers_edit.html', {'customer': customer})
 
-
 def customers_list(request):
     customers = Customers.objects.all()
     return render(request, 'customers/customers_list.html', {'customer': customers})
 
-
-
-# from django.views.decorators.http import require_POST
-
-# @require_POST
-# def customers_delete(request, customer_id):
-#     customer = get_object_or_404(Customers, id=customer_id)
-#     customer.delete()
-#     return redirect('customers_edit')
-
-def customers_delete(request, pk):
-    customer = get_object_or_404(Customers, pk=pk)
+def customers_delete(request, customer_id):
+    customer = get_object_or_404(Customers, customer_id=customer_id)
     if request.method == 'POST':
         customer.delete()
         return redirect('customers_list') 
@@ -1330,46 +1320,82 @@ def add_category(request):
 from django.shortcuts import render, redirect
 from .models import Vendor
 
-def add_vendor(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        vendor_code = request.POST.get('vendor_code')
-        email = request.POST.get('email')
-        phone_no = request.POST.get('phone_no')
-        address = request.POST.get('address')
-        
-        profile_image = request.FILES.get('profile_image')
-
-        vendor = Vendor(
-            name=name,
-            vendor_code=vendor_code,
-            email=email,
-            phone_no=phone_no,
-            address=address,
-            
-            profile_image=profile_image
-        )
-        vendor.save()
-
-        return redirect('vendor_detail', vendor_id=vendor.vendor_id)  # or any success page
-    return render(request, 'vendor/add_vendor.html')
-
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Vendor
 
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Vendor
+
+# Add vendor
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Vendor
+from .forms import Vendorform
+
+# Add / Update Vendor
+def add_vendor(request, vendor_id=None):
+    vendor = None
+    if vendor_id:
+        vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+
+    form = Vendorform(request.POST or None, request.FILES or None, instance=vendor)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('add_vendor')
+
+    # Search
+    search_query = request.GET.get('search', '')
+    vendors = Vendor.objects.filter(vendor_id__icontains=search_query) if search_query else Vendor.objects.none()
+
+    context = {
+        'form': form,
+        'vendors': vendors,
+    }
+    return render(request, 'vendor/add_vendor.html', context)
+
+
+
+
+# Vendor list (for search table)
+def vendor_list(request):
+    search_query = request.GET.get('search')
+    if search_query:
+        vendors = Vendor.objects.filter(vendor_id__icontains=search_query)
+    else:
+        vendors = Vendor.objects.all()
+
+    return render(request, 'vendor/add_vendor.html', {'vendor': vendors})
+
+
+# Vendor details
 def vendor_detail(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
     return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Vendor
-from .forms import Vendorform  # Assuming you have a form named VendorForm
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Vendor
-
+# Edit vendor
 def vendor_edit(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+    if request.method == 'POST':
+        vendor.name = request.POST.get('name')
+        vendor.vendor_code = request.POST.get('vendor_code')
+        vendor.email = request.POST.get('email')
+        vendor.phone_no = request.POST.get('phone_no')
+        vendor.address = request.POST.get('address')
+        if request.FILES.get('profile_image'):
+            vendor.profile_image = request.FILES.get('profile_image')
+        vendor.save()
+        return redirect('vendor_list')
+    return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
+
+
+# Delete vendor
+def vendor_delete(request, vendor_id):
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+    vendor.delete()
+    return redirect('vendor_list')
+
+
     
 from django.shortcuts import render, get_object_or_404
 from .models import Putaway 
@@ -1382,40 +1408,41 @@ def putaway_task(request):
         putaway_id = request.POST.get('putaway_id')
         pallet = request.POST.get('pallet')
         location = request.POST.get('location')
+        putaway_task_type = request.POST.get('putaway_task_type')
         status = request.POST.get('status')
         putaway = Putaway(
             putaway_id=putaway_id,
             pallet=pallet,
             location=location,
-            status = status
+            status = status,
+            putaway_task_type=putaway_task_type
+            
         )
         putaway.save()
 
         return redirect('putaway_pending')  # adjust if needed
 
     return render(request, 'putaway/putaway_task.html')
-
     
 def putaway_pending(request):
     pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
     return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
 
-    if request.method == 'POST':
-        putaway.pallet = request.POST.get('pallet')
-        putaway.location = request.POST.get('location')
-        putaway.status = request.POST.get('status')
-        putaway.save()
-        return redirect('putaway_pending')  # or some other appropriate page
+    # if request.method == 'POST':
+    #     putaway.pallet = request.POST.get('pallet')
+    #     putaway.location = request.POST.get('location')
+    #     putaway.status = request.POST.get('status')
+    #     putaway.save()
+    #     return redirect('putaway_pending')  # or some other appropriate page
 
-    return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
+    # return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
 
-
-from .models import Putaway
 
 from .models import Putaway
+from .forms import PutawayForm
 
 def edit_putaway(request, putaway_id):
-    putaway = get_object_or_404(Putaway, putaway_id=putaway_id) # pyright: ignore[reportUndefinedVariable]
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
 
     if request.method == 'POST':
         putaway.name = request.POST.get('name')
@@ -1443,6 +1470,10 @@ def delete_putaway(request,putaway_id):
     task.delete()
     messages.success(request, "Task deleted successfully.")
     return redirect('putaway_pending')
+  
+  
+  
+  
   
 from django.shortcuts import render
 from .models import Vendor
