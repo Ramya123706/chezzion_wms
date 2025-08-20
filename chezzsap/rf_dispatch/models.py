@@ -386,7 +386,7 @@ class Putaway(models.Model):
     ]
     putaway_task_type = models.CharField(max_length=100, null=True, blank=True , choices= PUTAWAY_TASK_TYPE_CHOICES ) 
     created_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(null=True, blank=True)
+    confirmed_at = models.DateTimeField(auto_now_add=True)
    
 
     STATUS_CHOICES = [
