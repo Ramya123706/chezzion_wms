@@ -332,20 +332,21 @@ class Inventory(models.Model):
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
-    company_phone = models.CharField(max_length=15)
+    company_phone = models.CharField(max_length=15, null=True, blank=True)
+
     company_email = models.EmailField()
     company_website = models.URLField(blank=True, null=True)
 
-    po_date = models.DateField()
+    po_date = models.DateField(null=True, blank=True)
     po_number = models.CharField(max_length=50, unique=True)
-    customer_number = models.CharField(max_length=50)
+    customer_number = models.CharField(max_length=50, null=True, blank=True)
 
-    vendor_company_name = models.CharField(max_length=255)
-    vendor_contact_name = models.CharField(max_length=255)
-    vendor_phone = models.CharField(max_length=15)
-    vendor_address = models.TextField()
+    vendor_company_name = models.CharField(max_length=255, null=True, blank=True)
+    vendor_contact_name = models.CharField(max_length=255, null=True, blank=True)
+    vendor_phone = models.CharField(max_length=15, null=True, blank=True)
+    vendor_address = models.TextField(null=True, blank=True)
     vendor_website = models.URLField(blank=True, null=True)
-    vendor_email = models.EmailField()
+    vendor_email = models.EmailField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -513,7 +514,7 @@ class InboundDelivery(models.Model):
     document_date = models.DateField(blank=True, null=True)
     gr_date = models.DateField()
     supplier = models.ForeignKey(Vendor, on_delete=models.CASCADE)
-    purchase_order_number = models.ForeignKey(PurchaseOrder,on_delete=models.CASCADE,null=True,  blank=True)
+    purchase_order_number = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE,null=True,  blank=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
 
     

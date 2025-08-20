@@ -1323,21 +1323,20 @@ from .models import Vendor
 # Add vendor
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Vendor
-from .forms import Vendorform
+from .forms import VendorForm
 
-# Add / Update Vendor
 def add_vendor(request, vendor_id=None):
     vendor = None
     if vendor_id:
         vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
 
-    form = Vendorform(request.POST or None, request.FILES or None, instance=vendor)
+    form = VendorForm(request.POST or None, request.FILES or None, instance=vendor)
 
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        return redirect('add_vendor')
+        saved_vendor = form.save()
+        return redirect('vendor_detail', vendor_id=saved_vendor.vendor_id)  # pass vendor_id
 
-    # Search
+    # search logic (if you still want search on same page)
     search_query = request.GET.get('search', '')
     vendors = Vendor.objects.filter(vendor_id__icontains=search_query) if search_query else Vendor.objects.none()
 
@@ -1346,6 +1345,7 @@ def add_vendor(request, vendor_id=None):
         'vendors': vendors,
     }
     return render(request, 'vendor/add_vendor.html', context)
+
 
 
 
@@ -1778,6 +1778,25 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import InboundDelivery
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import InboundDelivery, InboundDeliveryproduct, Vendor, PurchaseOrder
+from django.http import JsonResponse
+from .models import PurchaseOrder, Product  # adjust import based on your models
+
+def get_po_products(request, po_id):
+    try:
+        po = PurchaseOrder.objects.get(pk=po_id)
+        # Assuming you have a relation between PO and Product (like M2M or FK)
+        products = po.product_set.all()  # change this based on your relation
+        data = []
+        for p in products:
+            data.append({
+                "code": p.id,
+                "description": p.description,
+                "uom": p.unit_of_measure,
+            })
+        return JsonResponse({"products": data})
+    except PurchaseOrder.DoesNotExist:
+        return JsonResponse({"products": []})
+
 
 def edit_inbound_delivery(request, inbound_delivery_number):
     delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)

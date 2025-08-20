@@ -137,6 +137,7 @@ urlpatterns = [
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
+    path("get-po-products/<int:po_id>/", views.get_po_products, name="get_po_products"),
     path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
