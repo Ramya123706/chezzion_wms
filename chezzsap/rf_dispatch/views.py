@@ -1436,19 +1436,20 @@ from .models import Putaway
 from .forms import PutawayForm
 
 def edit_putaway(request, putaway_id):
-    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)  # or use putaway_id=putaway_id if field is unique
 
     if request.method == 'POST':
-        putaway.name = request.POST.get('name')
-        putaway.vendor_code = request.POST.get('vendor_code')
-        putaway.email = request.POST.get('email')
-        putaway.phone_no = request.POST.get('phone_no')
-        putaway.address = request.POST.get('address')
-        
-        putaway.save()
-        return redirect('vendor_detail', vendor_id=putaway.putaway_id)
+        putaway.putaway_id = request.POST.get('putaway_id')
+        putaway.pallet = request.POST.get('pallet')
+        putaway.location = request.POST.get('location')
+        putaway.putaway_task_type = request.POST.get('putaway_task_type')
+        putaway.status = request.POST.get('status')
 
-    return render(request, 'vendor/vendor_edit.html', {'vendor': putaway})
+        putaway.save()
+        return redirect('putaway_pending')  # go back to pending list
+
+    return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
+
 
 
 

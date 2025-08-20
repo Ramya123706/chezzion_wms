@@ -108,11 +108,6 @@ urlpatterns = [
     path('ajax/truck-suggestions/', views.truck_suggestions, name='truck_suggestions'),
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
 
-    # Putaway
-   
-    path('putaway/edit/<int:putaway_id>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
 
     # Picking
     path('add_picking/', views.add_picking, name='add_picking'),
