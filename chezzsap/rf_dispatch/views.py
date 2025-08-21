@@ -1343,6 +1343,7 @@ def add_vendor(request, vendor_id=None):
     context = {
         'form': form,
         'vendors': vendors,
+        'vendor':vendor,
     }
     return render(request, 'vendor/add_vendor.html', context)
 
@@ -1383,11 +1384,12 @@ def vendor_edit(request, vendor_id):
     return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
 
 
-# Delete vendor
+
 def vendor_delete(request, vendor_id):
-    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
-    vendor.delete()
-    return redirect('vendor_list')
+    if request.method == 'POST':
+        vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+        vendor.delete()
+    return redirect('vendor_list') 
 
 
     

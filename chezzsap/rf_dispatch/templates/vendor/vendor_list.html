@@ -25,9 +25,10 @@
                     <a href="{% url 'vendor_detail' vendor.vendor_id %}" class="btn btn-sm btn-primary">View details</a>
                     <a href="{% url 'vendor_edit' vendor.vendor_id %}" class="btn btn-sm btn-warning">Edit</a>
                     <form method="POST" action="{% url 'vendor_delete' vendor.vendor_id %}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?');">Delete</button>
+</form>
+
                 </td>
             </tr>
             {% endfor %}
