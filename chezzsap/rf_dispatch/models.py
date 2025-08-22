@@ -177,7 +177,8 @@ class Product(models.Model):
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # Sync with inventory automatically
@@ -587,3 +588,52 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} ({self.quantity}) in {self.purchase_order.po_number}"
+
+# outbound delivery
+
+class OutboundDelivery(models.Model):
+    dlv_no = models.CharField(max_length=50, unique=True, default=True)  # Delivery number
+    so_no = models.CharField(max_length=50)  # Sales order number
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='outbound_deliveries', default=None, null=True, blank=True)
+    str_loc = models.CharField(max_length=100)  # Storage location
+    dlv_it_no = models.CharField(max_length=10)  # Delivery item no (10, 20, 30…)
+
+    sold_to = models.CharField(max_length=100, blank=True, null=True)
+    ship_to = models.CharField(max_length=100, blank=True, null=True)
+    cust_ref = models.CharField(max_length=100, blank=True, null=True)
+
+    ord_date = models.DateField(blank=True, null=True)
+    del_date = models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Delivery {self.dlv_no}"
+
+   
+
+    
+
+
+class OutboundDeliveryItem(models.Model):
+    delivery = models.ForeignKey(OutboundDelivery, on_delete=models.CASCADE, related_name='items')
+    dlv_it_no = models.CharField(max_length=10)  # Item number (10,20,30…)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    serial_no = models.CharField(max_length=50, blank=True, null=True)
+    batch_no = models.CharField(max_length=50, blank=True, null=True)
+
+    qty_order = models.DecimalField(max_digits=10, decimal_places=2)
+    qty_issued = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_unit_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    net_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    vol_per_item = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        unique_together = ('delivery', 'dlv_it_no')
+
+    def save(self, *args, **kwargs):
+        self.total_unit_price = self.qty_issued * self.unit_price
+        self.net_price = self.total_unit_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.product} - Item {self.dlv_it_no}"

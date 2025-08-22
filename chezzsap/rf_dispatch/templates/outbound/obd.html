@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Outbound Delivery</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Delivery Header -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="id_dlv_no" class="form-label">Delivery Number</label>
+                {{ form.dlv_no }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="id_so_no" class="form-label">Sales Order Number</label>
+                {{ form.so_no }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="id_whs_no" class="form-label">Warehouse</label>
+                {{ form.whs_no }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="id_str_loc" class="form-label">Storage Location</label>
+                {{ form.str_loc }}
+            </div>
+        </div>
+
+        <!-- Product / Item Table -->
+        <h4 class="mt-4">Delivery Items</h4>
+        {{ formset.management_form }}
+        <table class="table table-bordered table-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Item No</th>
+                    <th>Product</th>
+                    <th>Serial No</th>
+                    <th>Batch No</th>
+                    <th>Qty Ordered</th>
+                    <th>Qty Issued</th>
+                    <th>Unit Price</th>
+                    <th>Total Unit Price</th>
+                    <th>Net Price</th>
+                    <th>Volume/Item</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item_form in formset %}
+                <tr>
+                    <td>{{ item_form.dlv_it_no }}</td>
+                    <td>{{ item_form.product }}</td>
+                    <td>{{ item_form.serial_no }}</td>
+                    <td>{{ item_form.batch_no }}</td>
+                    <td>{{ item_form.qty_order }}</td>
+                    <td>{{ item_form.qty_issued }}</td>
+                    <td>{{ item_form.unit_price }}</td>
+                    <td>{{ item_form.total_unit_price }}</td>
+                    <td>{{ item_form.net_price }}</td>
+                    <td>{{ item_form.vol_per_item }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Customer Details -->
+        <h4 class="mt-4">Customer Details</h4>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="id_sold_to" class="form-label">Sold To</label>
+                {{ form.sold_to }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="id_ship_to" class="form-label">Ship To</label>
+                {{ form.ship_to }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="id_cust_ref" class="form-label">Customer Reference</label>
+                {{ form.cust_ref }}
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="id_ord_date" class="form-label">Order Date</label>
+                {{ form.ord_date }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="id_del_date" class="form-label">Delivery Date</label>
+                {{ form.del_date }}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Delivery</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

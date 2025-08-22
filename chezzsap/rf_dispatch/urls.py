@@ -49,7 +49,6 @@ urlpatterns = [
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
 
     # Product Management
-# Product Management
     path('product/', views.product_view, name='add_product'),
     path('product/<str:product_id>/', views.product_detail_view, name='product_detail'),
     path('product/edit/<str:product_id>/', views.product_edit, name='product_edit'),
@@ -161,4 +160,7 @@ urlpatterns = [
 
     # Customer landing
     path('customer/', views.customer, name='customer'),
+
+    # Outbound Delivery
+    path('outbound_delivery/', views.outbound_delivery, name='outbound_delivery'),
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

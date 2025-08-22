@@ -671,6 +671,7 @@ def add_product(request):
         unit_of_measure = request.POST.get('unit_of_measure')
         category = request.POST.get('category')
         re_order_level = request.POST.get('re_order_level')
+        unit_price = request.POST.get('unit_price')
         images = request.FILES.get('images')
 
         try:
@@ -684,6 +685,7 @@ def add_product(request):
                 unit_of_measure=unit_of_measure,
                 category=category,
                 re_order_level=re_order_level,
+                unit_price=unit_price,
                 images=images,
                 created_at=timezone.now(),
                 updated_at=timezone.now()
@@ -711,20 +713,52 @@ from django.contrib import messages
 from .models import Product
 from .forms import ProductForm
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Product
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Product, Category
+
 def product_edit(request, product_id):
-    # Get the existing product or return 404
+    # Fetch product or return 404 if not found
     product = get_object_or_404(Product, product_id=product_id)
+    categories = Category.objects.all()
 
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES, instance=product)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Product updated successfully.")
-            return redirect('product_list')
-    else:
-        form = ProductForm(instance=product)
+        product.name = request.POST.get('name')
+        product.quantity = request.POST.get('quantity')
+        product.unit_price = request.POST.get('unit_price')
+        product.pallet_no = request.POST.get('pallet_no')
+        product.sku = request.POST.get('sku')
+        product.description = request.POST.get('description')
+        product.unit_of_measure = request.POST.get('unit_of_measure')
+        product.re_order_level = request.POST.get('re_order_level')
 
-    return render(request, 'product/product_edit.html', {'form': form, 'product': product})
+        # Handle category (foreign key)
+        category_id = request.POST.get('category')
+        if category_id:
+            try:
+                product.category_id = int(category_id)
+            except ValueError:
+                pass  # ignore invalid value
+
+
+        # If image upload is enabled later
+        if request.FILES.get('images'):
+            product.images = request.FILES['images']
+
+        product.save()
+        messages.success(request, "✅ Product updated successfully.")
+        return redirect('product_detail', product_id=product.product_id)
+
+    return render(request, 'product/product_edit.html', {
+        'product': product,
+        'categories': categories
+    })
+
+
     
 def product_list(request):
     products = Product.objects.all()
@@ -1341,7 +1375,7 @@ def add_vendor(request, vendor_id=None):
 
     if request.method == 'POST' and form.is_valid():
         form.save()
-        return redirect('add_vendor')
+        return redirect('vendor_list')
 
     # Search
     search_query = request.GET.get('search', '')
@@ -1364,7 +1398,7 @@ def vendor_list(request):
     else:
         vendors = Vendor.objects.all()
 
-    return render(request, 'vendor/add_vendor.html', {'vendor': vendors})
+    return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
 
 
 # Vendor details
@@ -1717,19 +1751,19 @@ def inbound_delivery(request):
 
     warehouses = Warehouse.objects.all().order_by('whs_no')
     vendors = Vendor.objects.all()
-    Purchase_orders = PurchaseOrder.objects.all()
+    purchase_orders = PurchaseOrder.objects.all()
     products_list = Product.objects.all().order_by('name')  # renamed to avoid conflict
 
     if request.method == 'POST':
         inbound_delivery_number = generate_inbound_delivery_number()
-        supplier_id = request.POST.get('supplier')
-        supplier_obj = Vendor.objects.get(pk=supplier_id)
+        vendor_id = request.POST.get('vendor')
+        vendor_obj = Vendor.objects.get(pk=vendor_id)
         delivery = InboundDelivery.objects.create(
             inbound_delivery_number=inbound_delivery_number,
             delivery_date=request.POST.get('delivery_date'),
             document_date=request.POST.get('document_date'),
             gr_date=request.POST.get('gr_date'),
-            supplier=supplier_obj,
+            vendor=vendor_obj,
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
             storage_location=request.POST.get('storage_location'),
@@ -1764,7 +1798,7 @@ def inbound_delivery(request):
         'deliveries': deliveries,
         'warehouses': warehouses,
         'vendors': vendors,
-        'Purchase_orders': Purchase_orders,
+        'purchase_orders': purchase_orders,
         'products': products_list
     })
 
@@ -1789,11 +1823,11 @@ def edit_inbound_delivery(request, inbound_delivery_number):
     ibdproducts = InboundDeliveryproduct.objects.filter(delivery=delivery)
 
     if request.method == 'POST':
-        supplier_id = request.POST.get('supplier') 
+        vendor_id = request.POST.get('vendor') 
         po_number_id = request.POST.get('purchase_order_number')  
 
-        if supplier_id:
-            delivery.supplier = get_object_or_404(Vendor, vendor_id=supplier_id)  
+        if vendor_id:
+            delivery.vendor = get_object_or_404(Vendor, vendor_id=vendor_id)  
 
         if po_number_id:
             delivery.purchase_order_number = get_object_or_404(PurchaseOrder, po_number=po_number_id) 
@@ -1894,3 +1928,7 @@ def purchase_list_view(request):
         "search_query": search_query
     })
 
+# outbound delivery
+
+def outbound_delivery(request):
+    return render(request, "outbound/obd.html")
