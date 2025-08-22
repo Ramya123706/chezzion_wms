@@ -1909,4 +1909,184 @@ def purchase_list_view(request):
         "purchase_orders": purchase_orders_page,
         "search_query": search_query
     })
+    
+    
+from django.shortcuts import render, redirect
+from .models import SalesOrderCreation
+from .forms import SalesOrderCreationForm  
+from django.shortcuts import render, redirect, get_object_or_404
 
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from .models import SalesOrderCreation, SalesOrderItem
+
+def generate_so_no():
+    last_so = SalesOrderCreation.objects.order_by('id').last()
+    if not last_so:
+        return 'SO0001'
+    last_no = int(last_so.so_no[2:])
+    return f'SO{last_no + 1:04d}'
+
+
+
+
+
+
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.db import transaction
+from .models import SalesOrderCreation, SalesOrderItem, Warehouse
+
+def sales_order_creation(request):
+    warehouses = Warehouse.objects.all()
+    product_rows = []
+
+    if request.method == 'POST':
+        try:
+            # Warehouse selection
+            whs_no = request.POST.get('whs_no')
+            if not whs_no or whs_no == "":
+                raise ValueError("Warehouse is required")
+
+            try:
+                warehouse = Warehouse.objects.get(whs_no=whs_no)
+            except Warehouse.DoesNotExist:
+                raise ValueError("Selected warehouse does not exist")
+
+            # Product data
+            product_ids = request.POST.getlist('product_id[]')
+            product_names = request.POST.getlist('product_name[]')
+            quantities = request.POST.getlist('quantity[]')
+            unit_prices = request.POST.getlist('unit_price[]')
+
+            if not product_ids:
+                raise ValueError("At least one product must be added")
+
+            net_total = Decimal(0)
+
+            with transaction.atomic():
+                # Create Sales Order
+                so_no_obj = SalesOrderCreation.objects.create(
+                    whs_no=warehouse,
+                    customer_id=request.POST.get('customer_id'),
+                    customer_code=request.POST.get('customer_code'),
+                    order_date=request.POST.get('order_date'),
+                    delivery_date=request.POST.get('delivery_date'),
+                    net_total_price=0,
+                    status=request.POST.get('status', 'Draft'),
+                    remarks=request.POST.get('remarks', '')
+                )
+
+                # Create items
+                for i in range(len(product_ids)):
+                    if not product_ids[i].strip():
+                        continue
+                    quantity = int(quantities[i])
+                    unit_price = Decimal(unit_prices[i])
+                    unit_total_price = quantity * unit_price
+                    net_total += unit_total_price
+
+                    SalesOrderItem.objects.create(
+                        so_no=so_no_obj,
+                        product_id=product_ids[i].strip(),
+                        product_name=product_names[i].strip(),
+                        quantity=quantity,
+                        unit_price=unit_price,
+                        unit_total_price=unit_total_price
+                    )
+
+                    # Prepare product row for form re-render on error
+                    product_rows.append({
+                        'product_id': product_ids[i],
+                        'product_name': product_names[i],
+                        'quantity': quantities[i],
+                        'unit_price': unit_prices[i],
+                        'unit_total_price': str(unit_total_price)
+                    })
+
+                # Update net total
+                so_no_obj.net_total_price = net_total
+                so_no_obj.save()
+
+            return redirect('sales_order_list')
+
+        except Exception as e:
+            return render(request, 'sales/sales_order_creation.html', {
+                'error': str(e),
+                'data': request.POST,
+                'warehouses': warehouses,
+                'product_rows': product_rows
+            })
+
+    return render(request, 'sales/sales_order_creation.html', {
+        'warehouses': warehouses,
+        'product_rows': []
+    })
+
+
+
+
+
+
+
+def sales_order_edit(request, so_no):
+    so = get_object_or_404(SalesOrderCreation, so_no=so_no)
+
+    if request.method == 'POST':
+        so.whs_no = request.POST.get('whs_no')
+        so.customer_id = request.POST.get('customer_id')
+        so.customer_code = request.POST.get('customer_code')
+        so.order_date = request.POST.get('order_date')
+        so.delivery_date = request.POST.get('delivery_date')
+        so.status = request.POST.get('status')
+        so.remarks = request.POST.get('remarks')
+        so.net_total_price = Decimal(0)  
+
+        so.items.all().delete()
+
+        product_ids = request.POST.getlist('product_id[]')
+        product_name = request.POST.getlist('product_name[]')
+        quantities = request.POST.getlist('quantity[]')
+        unit_prices = request.POST.getlist('unit_price[]')
+
+        net_total = Decimal(0)
+
+        for i in range(len(product_ids)):
+            if not product_ids[i].strip():
+                continue
+
+            product_id = product_ids[i].strip()
+            product_name = product_name[i].strip()
+            quantity = int(quantities[i])
+            unit_price = Decimal(unit_prices[i])
+
+            unit_total_price = quantity * unit_price
+            net_total += unit_total_price
+
+            SalesOrderItem.objects.create(
+                so_no=so_no,
+                product_id=product_id,
+                product_name=product_name,
+                quantity=quantity,
+                unit_price=unit_price,
+                unit_total_price=unit_total_price
+            )
+
+        so_no.net_total_price = net_total
+        so_no.save()
+
+        return redirect('sales_order_creation')
+
+    return render(request, 'sales/sales_order_list.html', {'so_no': so_no})
+
+
+def sales_order_delete(request, so_no):
+    so = get_object_or_404(SalesOrderCreation, so_no=so_no)
+    if request.method == 'POST':
+        so.delete()
+        return render(request, 'sales/sales_order_list.html', {'sales_order': so})
+
+
+def sales_order_list(request):
+    sales_orders = SalesOrderCreation.objects.all().order_by('-order_date')
+    return render(request, 'sales/sales_order_list.html', {'sales_orders': sales_orders})

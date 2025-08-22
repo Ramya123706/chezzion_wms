@@ -588,3 +588,59 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} ({self.quantity}) in {self.purchase_order.po_number}"
+
+
+
+from django.db import models
+
+STATUS_CHOICES = [
+    ('Draft', 'Draft'),
+    ('Confirm', 'Confirm'),
+    ('Cancel', 'Cancel'),
+    ('Edit', 'Edit'),
+    ('Delivery', 'Delivery')
+]
+
+class SalesOrderCreation(models.Model):
+    so_no = models.CharField(max_length=20, editable=False, unique=True)
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
+    customer_id = models.CharField(max_length=30)
+    customer_code = models.CharField(max_length=50)
+    order_date = models.DateField()
+    delivery_date = models.DateField()
+    net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.so_no} - {self.status}"
+
+    def save(self, *args, **kwargs):
+        # Auto-generate SO Number if not exists
+        if not self.so_no:
+            last_so = SalesOrderCreation.objects.all().order_by('id').last()
+            if last_so:
+                last_no = int(last_so.so_no.split('SO')[-1])
+                self.so_no = f"SO{last_no + 1:05d}"
+            else:
+                self.so_no = "SO00001"
+        super().save(*args, **kwargs)
+        # Update net total after saving items
+        total = sum(item.unit_total_price for item in self.items.all())
+        if self.net_total_price != total:
+            self.net_total_price = total
+            super().save(update_fields=['net_total_price'])
+
+
+class SalesOrderItem(models.Model):
+    so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
+    product_id = models.CharField(max_length=50)
+    product_name = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate unit_total_price
+        self.unit_total_price = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
