@@ -81,7 +81,7 @@
                                         <td>{{ vendor.name }}</td>
                                         <td>{{ vendor.vendor_id }}</td>
                                         <td>
-                                            <a href="{% url 'add_vendor' vendor.vendor_id %}" class="btn btn-sm btn-info">View Details</a>
+                                            <a href="{% url 'vendor_detail' vendor.vendor_id %}" class="btn btn-sm btn-info">View Details</a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -96,7 +96,7 @@
                                 <div class="card-body">
                                     <h5 class="card-title">Vendor #{{ vendor.vendor_id }}</h5>
                                     <p class="card-text mb-1"><strong>Name:</strong> {{ vendor.name }}</p>
-                                    <a href="{% url 'add_vendor' vendor.vendor_id %}" class="btn btn-sm btn-info">View Details</a>
+                                    <a href="{% url 'vendor_detail' vendor.vendor_id %}" class="btn btn-sm btn-info">View Details</a>
                                 </div>
                             </div>
                             {% endfor %}

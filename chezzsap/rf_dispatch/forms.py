@@ -98,7 +98,7 @@ class CustomersForm(forms.ModelForm):
         model = Customers
         fields =  '__all__'
     
-class Vendorform(forms.ModelForm):
+class VendorForm(forms.ModelForm):
     class Meta:
         model=Vendor
         fields='__all__'
@@ -242,5 +242,12 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
-
-    
+from .models import SalesOrderCreation
+class SalesOrderCreationForm(forms.ModelForm):
+        class Meta:
+            model=SalesOrderCreation
+            fields = '__all__'
+            widgets = {
+            'order_date': forms.DateInput(attrs={'type': 'date'}),
+            'delivery_date': forms.DateInput(attrs={'type': 'date'}),
+        }

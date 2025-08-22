@@ -79,7 +79,7 @@ urlpatterns = [
     path('customers/', views.customers_list, name='customers_list'),
     path('customers/<str:customer_id>/', views.customers_detail, name='customers_detail'),
     path('customers/<str:customer_id>/edit/', views.customers_edit, name='customers_edit'),
-    path('customers/delete/<int:pk>/', views.customers_delete, name='customers_delete'),
+    path('customers/delete/<int:customer_id>/', views.customers_delete, name='customers_delete'),
 
     # Vendor
     path('add_vendor/', views.add_vendor, name='add_vendor'),
@@ -108,11 +108,6 @@ urlpatterns = [
     path('ajax/truck-suggestions/', views.truck_suggestions, name='truck_suggestions'),
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
 
-    # Putaway
-   
-    path('putaway/edit/<int:putaway_id>/', views.edit_putaway, name='edit_putaway'),
-    path('putaway/confirm/<int:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
-    path('putaway/delete/<int:putaway_id>/', views.delete_putaway, name='delete_putaway'),
 
     # Picking
     path('add_picking/', views.add_picking, name='add_picking'),
@@ -139,6 +134,7 @@ urlpatterns = [
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
+    path("get-po-products/<int:po_id>/", views.get_po_products, name="get_po_products"),
     path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
@@ -159,4 +155,10 @@ urlpatterns = [
 
     # Customer landing
     path('customer/', views.customer, name='customer'),
+
+    path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
+    path('sales/', views.sales_order_list, name='sales_order_list'),
+    path('sales/<str:so_no>/edit/', views.sales_order_edit, name='sales_order_edit'),
+    path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
+
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

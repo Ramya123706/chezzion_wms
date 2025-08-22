@@ -9,41 +9,39 @@
             </div>
             <div class="card-body">
                 <form method="post" class="form-group">
-                        {% csrf_token %}
+                    {% csrf_token %}
 
-                        {% if form.errors %}
-                            <div class="alert alert-danger">
-                                <ul>
-                                    {% for field in form %}
-                                        {% for error in field.errors %}
-                                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-                                        {% endfor %}
-                                    {% endfor %}
-                                    {% for error in form.non_field_errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label"><b>Putaway ID</b></label>
+                        <input type="text" name="putaway_id" value="{{ putaway.putaway_id }}" class="form-control">
+                    </div>
 
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label"><b>{{ field.label }}</b></label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <div class="form-text text-muted">{{ field.help_text }}</div>
-                                {% endif %}
-                            </div>
-                            <script>
-                                // Apply Bootstrap class to each field (in case it's not set in form class)
-                                document.addEventListener("DOMContentLoaded", function () {
-                                    const input = document.getElementById("{{ field.id_for_label }}");
-                                    if (input) {
-                                        input.classList.add("form-control");
-                                    }
-                                });
-                            </script>
-                        {% endfor %}
+                    <div class="mb-3">
+                        <label class="form-label"><b>Pallet</b></label>
+                        <input type="text" name="pallet" value="{{ putaway.pallet }}" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Location</b></label>
+                        <input type="text" name="location" value="{{ putaway.location }}" class="form-control">
+                    </div>
+
+                   <!-- Putaway Task Type Dropdown -->
+<div class="mb-3">
+    <label class="form-label"><b>Putaway Task Type</b></label>
+    <select name="putaway_task_type" id="taskType" class="form-control">
+        <option value="Putaway by HU" {% if putaway.putaway_task_type == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
+        <option value="Putaway by Warehouse" {% if putaway.putaway_task_type == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
+        <option value="Putaway by Product" {% if putaway.putaway_task_type == " Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
+        <option value="Putaway by Bin" {% if putaway.putaway_task_type == "Putaway by Bin" %}selected{% endif %}>Putaway by Bin</option>
+    </select>
+</div>
+
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Status</b></label>
+                        <input type="text" name="status" value="{{ putaway.status }}" class="form-control">
+                    </div>
 
                     <div class="text-center mt-3">
                         <button type="submit" class="btn btn-success">Update</button>

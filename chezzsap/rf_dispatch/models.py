@@ -332,20 +332,21 @@ class Inventory(models.Model):
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
-    company_phone = models.CharField(max_length=15)
+    company_phone = models.CharField(max_length=15, null=True, blank=True)
+
     company_email = models.EmailField()
     company_website = models.URLField(blank=True, null=True)
 
-    po_date = models.DateField()
+    po_date = models.DateField(null=True, blank=True)
     po_number = models.CharField(max_length=50, unique=True)
-    customer_number = models.CharField(max_length=50)
+    customer_number = models.CharField(max_length=50, null=True, blank=True)
 
-    vendor_company_name = models.CharField(max_length=255)
-    vendor_contact_name = models.CharField(max_length=255)
-    vendor_phone = models.CharField(max_length=15)
-    vendor_address = models.TextField()
+    vendor_company_name = models.CharField(max_length=255, null=True, blank=True)
+    vendor_contact_name = models.CharField(max_length=255, null=True, blank=True)
+    vendor_phone = models.CharField(max_length=15, null=True, blank=True)
+    vendor_address = models.TextField(null=True, blank=True)
     vendor_website = models.URLField(blank=True, null=True)
-    vendor_email = models.EmailField()
+    vendor_email = models.EmailField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -386,7 +387,7 @@ class Putaway(models.Model):
     ]
     putaway_task_type = models.CharField(max_length=100, null=True, blank=True , choices= PUTAWAY_TASK_TYPE_CHOICES ) 
     created_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(null=True, blank=True)
+    confirmed_at = models.DateTimeField(auto_now_add=True)
    
 
     STATUS_CHOICES = [
@@ -513,7 +514,7 @@ class InboundDelivery(models.Model):
     document_date = models.DateField(blank=True, null=True)
     gr_date = models.DateField()
     supplier = models.ForeignKey(Vendor, on_delete=models.CASCADE)
-    purchase_order_number = models.ForeignKey(PurchaseOrder,on_delete=models.CASCADE,null=True,  blank=True)
+    purchase_order_number = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE,null=True,  blank=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
 
     
@@ -587,3 +588,59 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} ({self.quantity}) in {self.purchase_order.po_number}"
+
+
+
+from django.db import models
+
+STATUS_CHOICES = [
+    ('Draft', 'Draft'),
+    ('Confirm', 'Confirm'),
+    ('Cancel', 'Cancel'),
+    ('Edit', 'Edit'),
+    ('Delivery', 'Delivery')
+]
+
+class SalesOrderCreation(models.Model):
+    so_no = models.CharField(max_length=20, editable=False, unique=True)
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
+    customer_id = models.CharField(max_length=30)
+    customer_code = models.CharField(max_length=50)
+    order_date = models.DateField()
+    delivery_date = models.DateField()
+    net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.so_no} - {self.status}"
+
+    def save(self, *args, **kwargs):
+        # Auto-generate SO Number if not exists
+        if not self.so_no:
+            last_so = SalesOrderCreation.objects.all().order_by('id').last()
+            if last_so:
+                last_no = int(last_so.so_no.split('SO')[-1])
+                self.so_no = f"SO{last_no + 1:05d}"
+            else:
+                self.so_no = "SO00001"
+        super().save(*args, **kwargs)
+        # Update net total after saving items
+        total = sum(item.unit_total_price for item in self.items.all())
+        if self.net_total_price != total:
+            self.net_total_price = total
+            super().save(update_fields=['net_total_price'])
+
+
+class SalesOrderItem(models.Model):
+    so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
+    product_id = models.CharField(max_length=50)
+    product_name = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate unit_total_price
+        self.unit_total_price = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
