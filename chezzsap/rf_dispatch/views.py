@@ -1921,17 +1921,13 @@ from decimal import Decimal
 from django.shortcuts import render, redirect
 from .models import SalesOrderCreation, SalesOrderItem
 
-def generate_so_no():
-    last_so = SalesOrderCreation.objects.order_by('id').last()
-    if not last_so:
-        return 'SO0001'
-    last_no = int(last_so.so_no[2:])
-    return f'SO{last_no + 1:04d}'
 
 
 
-
-
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.db import transaction
+from .models import SalesOrderCreation, SalesOrderItem, Warehouse
 
 from decimal import Decimal
 from django.shortcuts import render, redirect
@@ -1944,9 +1940,9 @@ def sales_order_creation(request):
 
     if request.method == 'POST':
         try:
-            # Warehouse selection
+            # Validate warehouse
             whs_no = request.POST.get('whs_no')
-            if not whs_no or whs_no == "":
+            if not whs_no:
                 raise ValueError("Warehouse is required")
 
             try:
@@ -1954,7 +1950,7 @@ def sales_order_creation(request):
             except Warehouse.DoesNotExist:
                 raise ValueError("Selected warehouse does not exist")
 
-            # Product data
+            # Validate product data
             product_ids = request.POST.getlist('product_id[]')
             product_names = request.POST.getlist('product_name[]')
             quantities = request.POST.getlist('quantity[]')
@@ -1973,17 +1969,21 @@ def sales_order_creation(request):
                     customer_code=request.POST.get('customer_code'),
                     order_date=request.POST.get('order_date'),
                     delivery_date=request.POST.get('delivery_date'),
-                    net_total_price=0,
                     status=request.POST.get('status', 'Draft'),
                     remarks=request.POST.get('remarks', '')
                 )
 
-                # Create items
+                # Create items and calculate net total
                 for i in range(len(product_ids)):
                     if not product_ids[i].strip():
                         continue
-                    quantity = int(quantities[i])
-                    unit_price = Decimal(unit_prices[i])
+
+                    try:
+                        quantity = int(quantities[i])
+                        unit_price = Decimal(unit_prices[i])
+                    except ValueError:
+                        raise ValueError(f"Invalid quantity or price for product {product_names[i]}")
+
                     unit_total_price = quantity * unit_price
                     net_total += unit_total_price
 
@@ -2005,7 +2005,7 @@ def sales_order_creation(request):
                         'unit_total_price': str(unit_total_price)
                     })
 
-                # Update net total
+                # Update net total price after items are saved
                 so_no_obj.net_total_price = net_total
                 so_no_obj.save()
 
@@ -2023,6 +2023,7 @@ def sales_order_creation(request):
         'warehouses': warehouses,
         'product_rows': []
     })
+
 
 def sales_order_detail(request, so_no):
     sales_order = get_object_or_404(SalesOrderCreation, so_no=so_no)
@@ -2183,3 +2184,69 @@ def sales_order_pdf(request, so_no):
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="SalesOrder_{so.so_no}.pdf"'
     return response
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Picking, Packing, PackedItem
+from django.utils import timezone
+
+
+def create_packing(request):
+
+    if request.method == "POST":
+        pallet = request.POST.get("pallet")
+        p_mat = request.POST.get("p_mat")
+        del_no = request.POST.get("del_no")
+        gross_wt = request.POST.get("gross_wt")
+        net_wt = request.POST.get("net_wt")
+        volume = request.POST.get("volume")
+
+       
+
+        return redirect("packing_list")
+
+    return render(request, "packing/create_packing.html")
+
+
+
+
+def packing_list(request,packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+    packings = Packing.objects.all()
+    return redirect("packing_detail", picking_id=packing.id)
+
+from django.shortcuts import render, get_object_or_404
+
+def packing_detail(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+    items = packing.items.all()  # assuming related_name='items' on ForeignKey
+    return render(request, "packing_detail.html", {"packing": packing, "items": items})
+
+def edit_packing(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+
+    if request.method == "POST":
+        packing.pallet = request.POST.get("pallet")
+        packing.p_mat = request.POST.get("p_mat")
+        packing.del_no = request.POST.get("del_no")
+        packing.gross_wt = request.POST.get("gross_wt")
+        packing.net_wt = request.POST.get("net_wt")
+        packing.volume = request.POST.get("volume")
+        packing.save()
+        return redirect("packing_detail", packing_id=packing.id)
+
+    return render(request, "edit_packing.html", {"packing": packing})
+
+
+def delete_packing(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+
+    if request.method == "POST":
+        packing.delete()
+        return redirect("packing_list")
+
+    return render(request, "delete_packing.html", {"packing": packing})
+
+
+
