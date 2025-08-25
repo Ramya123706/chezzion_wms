@@ -77,7 +77,7 @@ class CustomersForm(forms.ModelForm):
         model = Customers
         fields =  '__all__'
     
-class Vendorform(forms.ModelForm):
+class VendorForm(forms.ModelForm):
     class Meta:
         model=Vendor
         fields='__all__'
@@ -221,5 +221,80 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
+from .models import SalesOrderCreation
+class SalesOrderCreationForm(forms.ModelForm):
+        class Meta:
+            model=SalesOrderCreation
+            fields = '__all__'
+            widgets = {
+            'order_date': forms.DateInput(attrs={'type': 'date'}),
+            'delivery_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
-    
+from .models import OutboundDeliveryItem
+
+# forms.py
+from django import forms
+from .models import OutboundDelivery, OutboundDeliveryItem
+
+
+from django import forms
+from django.forms import inlineformset_factory
+from .models import OutboundDelivery, OutboundDeliveryItem
+
+class OutboundDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = OutboundDelivery
+        fields = [
+            'dlv_no', 'so_no', 'whs_no', 'str_loc',
+            'sold_to', 'ship_to', 'cust_ref',
+            'ord_date', 'del_date'
+        ]
+        widgets = {
+            'sold_to': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'ship_to': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'cust_ref': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'ord_date': forms.DateInput(attrs={'readonly': 'readonly', 'type': 'date'}),
+            'del_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class OutboundDeliveryItemForm(forms.ModelForm):
+    class Meta:
+        model = OutboundDeliveryItem
+        fields = [
+            'dlv_it_no', 'product', 'serial_no', 'batch_no',
+            'qty_order', 'qty_issued', 'unit_price', 'vol_per_item'
+        ]
+
+# Inline formset for multiple items
+OutboundDeliveryItemFormSet = inlineformset_factory(
+    OutboundDelivery,
+    OutboundDeliveryItem,
+    form=OutboundDeliveryItemForm,
+    extra=1,  # number of extra blank forms
+    can_delete=True
+)
+
+from django import forms
+from django.forms.models import inlineformset_factory
+from .models import OutboundDelivery, OutboundDeliveryItem
+
+class OutboundDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = OutboundDelivery
+        fields = ['dlv_no', 'so_no', 'whs_no', 'str_loc', 
+                  'sold_to', 'ship_to', 'cust_ref', 'ord_date', 'del_date']
+
+class OutboundDeliveryItemForm(forms.ModelForm):
+    class Meta:
+        model = OutboundDeliveryItem
+        fields = ['dlv_it_no', 'product', 'serial_no', 'batch_no', 
+                  'qty_order', 'qty_issued', 'unit_price', 'vol_per_item']
+
+# Inline formset: link Delivery with multiple Items
+OutboundDeliveryItemFormSet = inlineformset_factory(
+    OutboundDelivery, OutboundDeliveryItem,
+    form=OutboundDeliveryItemForm,
+    extra=1,          # number of empty rows shown by default
+    can_delete=True   # allow delete checkbox
+)
