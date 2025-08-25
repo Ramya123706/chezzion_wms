@@ -474,6 +474,12 @@ class Picking(models.Model):
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
+    
+    PICKING_TYPE_CHOICES=[
+        ('INBOUND', 'Inbound'),
+        ('OUTBOUND', 'Outbound'),
+    ]
+    picking_type=models.CharField(max_length=50,choices=PICKING_TYPE_CHOICES,default="Inbound")
 
     STATUS_CHOICES = [
        
@@ -592,6 +598,7 @@ class PurchaseItem(models.Model):
 
 
 from django.db import models
+from django.db import models
 
 STATUS_CHOICES = [
     ('Draft', 'Draft'),
@@ -616,7 +623,7 @@ class SalesOrderCreation(models.Model):
         return f"{self.so_no} - {self.status}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate SO Number if not exists
+        # Auto-generate SO number if not exists
         if not self.so_no:
             last_so = SalesOrderCreation.objects.all().order_by('id').last()
             if last_so:
@@ -625,11 +632,6 @@ class SalesOrderCreation(models.Model):
             else:
                 self.so_no = "SO00001"
         super().save(*args, **kwargs)
-        # Update net total after saving items
-        total = sum(item.unit_total_price for item in self.items.all())
-        if self.net_total_price != total:
-            self.net_total_price = total
-            super().save(update_fields=['net_total_price'])
 
 
 class SalesOrderItem(models.Model):
@@ -644,3 +646,29 @@ class SalesOrderItem(models.Model):
         # Auto-calculate unit_total_price
         self.unit_total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
+class Packing(models.Model):
+    picking = models.ForeignKey(Picking, on_delete=models.CASCADE, related_name="packings")
+    pallet = models.CharField(max_length=50)
+    p_mat = models.CharField(max_length=100)   # packing material
+    del_no = models.CharField(max_length=50)   # delivery number
+    gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
+    net_wt = models.DecimalField(max_digits=10, decimal_places=2)
+    volume = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Packing for {self.picking.picking_id} - Pallet {self.pallet}"
+
+
+class PackedItem(models.Model):
+    packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
+    pallet = models.CharField(max_length=50)
+    p_mat = models.CharField(max_length=100)
+    batch_no = models.CharField(max_length=50)
+    serial_no = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Item {self.serial_no} (Pallet {self.pallet})"

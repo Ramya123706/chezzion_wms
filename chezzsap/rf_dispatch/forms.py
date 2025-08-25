@@ -204,7 +204,7 @@ from .models import Picking, Customer
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        fields = ['id', 'pallet', 'location', 'product', 'quantity', 'status']
+        fields = ['id', 'pallet', 'location', 'product', 'quantity','picking_type','status']
         exclude = ['created_at']
 
 from .models import Customer
@@ -251,3 +251,10 @@ class SalesOrderCreationForm(forms.ModelForm):
             'order_date': forms.DateInput(attrs={'type': 'date'}),
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
         }
+            
+from .models import Packing, PackedItem
+class PackingForm(forms.ModelForm):
+    class Meta:
+        model = Packing
+        fields = '__all__'
+        
