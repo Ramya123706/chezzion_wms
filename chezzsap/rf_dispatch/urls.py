@@ -158,7 +158,9 @@ urlpatterns = [
 
     path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
     path('sales/', views.sales_order_list, name='sales_order_list'),
+    path('sales/<str:so_no>/', views.sales_order_detail, name='sales_order_detail'),
     path('sales/<str:so_no>/edit/', views.sales_order_edit, name='sales_order_edit'),
     path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
+    path("sales/<str:so_no>/pdf/", views.sales_order_pdf, name="sales_order_pdf"),
 
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

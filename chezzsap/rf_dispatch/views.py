@@ -2024,9 +2024,14 @@ def sales_order_creation(request):
         'product_rows': []
     })
 
+def sales_order_detail(request, so_no):
+    sales_order = get_object_or_404(SalesOrderCreation, so_no=so_no)
 
-
-
+    return render(
+        request,
+        "sales/sales_order_detail.html",
+        {"sales_order": sales_order, "warehouse": sales_order.whs_no},  # or .warehouse depending on field name
+    )
 
 
 
@@ -2076,18 +2081,105 @@ def sales_order_edit(request, so_no):
         so_no.net_total_price = net_total
         so_no.save()
 
-        return redirect('sales_order_creation')
+        return redirect('sales_order_detail')
 
     return render(request, 'sales/sales_order_list.html', {'so_no': so_no})
 
 
+
 def sales_order_delete(request, so_no):
-    so = get_object_or_404(SalesOrderCreation, so_no=so_no)
-    if request.method == 'POST':
-        so.delete()
-        return render(request, 'sales/sales_order_list.html', {'sales_order': so})
+    sales_order = get_object_or_404(SalesOrderCreation, so_no=so_no)
+    sales_order.delete()
+    return redirect('sales_order_list') 
 
 
 def sales_order_list(request):
     sales_orders = SalesOrderCreation.objects.all().order_by('-order_date')
     return render(request, 'sales/sales_order_list.html', {'sales_orders': sales_orders})
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from weasyprint import HTML
+from .models import SalesOrderCreation
+
+def sales_order_pdf(request, so_no):
+    so = get_object_or_404(SalesOrderCreation, so_no=so_no)
+
+    # Get warehouse name safely
+    whs_name = "-"
+    if hasattr(so, "whs") and so.whs:
+        whs_name = getattr(so.whs, "whs_name", str(so.whs))
+    elif hasattr(so, "warehouse") and so.warehouse:
+        whs_name = getattr(so.warehouse, "name", str(so.warehouse))
+
+    # Get line items if model has related `items`
+    items = []
+    if hasattr(so, "items") and hasattr(so.items, "all"):
+        items = list(so.items.all())
+
+    # Build rows HTML
+    if items:
+        rows_html = "".join(
+            f"""
+            <tr>
+                <td style="text-align:center">{idx+1}</td>
+                <td>{getattr(it, 'product_id', '')}</td>
+                <td>{getattr(it, 'product_name', '')}</td>
+                <td style="text-align:right">{getattr(it, 'quantity', '')}</td>
+                <td style="text-align:right">{getattr(it, 'unit_price', '')}</td>
+                <td style="text-align:right">{getattr(it, 'unit_total_price', '')}</td>
+            </tr>
+            """
+            for idx, it in enumerate(items)
+        )
+    else:
+        rows_html = "<tr><td colspan='6' style='text-align:center;color:#777'>No products in this order</td></tr>"
+
+    # Inline HTML + CSS
+    html_string = f"""
+    <html>
+    <head>
+      <style>
+        @page {{ size: A4; margin: 20mm; }}
+        body {{ font-family: Arial, sans-serif; font-size: 12px; }}
+        h1 {{ text-align: center; font-size: 18px; margin-bottom: 15px; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 12px; }}
+        th, td {{ border: 1px solid #444; padding: 6px; }}
+        th {{ background: #eee; }}
+        .right {{ text-align: right; }}
+      </style>
+    </head>
+    <body>
+      <h1>Sales Order {so.so_no}</h1>
+      <table>
+        <tr><th>SO Number</th><td>{so.so_no}</td></tr>
+        <tr><th>Warehouse</th><td>{whs_name}</td></tr>
+        <tr><th>Order Date</th><td>{getattr(so, 'order_date', '')}</td></tr>
+        <tr><th>Delivery Date</th><td>{getattr(so, 'delivery_date', '')}</td></tr>
+        <tr><th>Status</th><td>{getattr(so, 'status', '')}</td></tr>
+      </table>
+
+      <h3>Items</h3>
+      <table>
+        <tr>
+          <th>#</th>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total Price</th>
+        </tr>
+        {rows_html}
+      </table>
+
+      <table style="margin-top:12px;">
+        <tr><th>Net Total</th><td class="right">{getattr(so, 'net_total_price', '')}</td></tr>
+        <tr><th>Remarks</th><td>{getattr(so, 'remarks', '')}</td></tr>
+      </table>
+    </body>
+    </html>
+    """
+
+    pdf_bytes = HTML(string=html_string).write_pdf()
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="SalesOrder_{so.so_no}.pdf"'
+    return response

@@ -602,14 +602,14 @@ STATUS_CHOICES = [
 ]
 
 class SalesOrderCreation(models.Model):
-    so_no = models.CharField(max_length=20, editable=False, unique=True)
+    so_no = models.CharField(max_length=50, editable=False, unique=True)
     whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
-    customer_id = models.CharField(max_length=30)
+    customer_id = models.CharField(max_length=50)
     customer_code = models.CharField(max_length=50)
     order_date = models.DateField()
     delivery_date = models.DateField()
     net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Draft')
     remarks = models.TextField(blank=True, null=True)
 
     def __str__(self):
