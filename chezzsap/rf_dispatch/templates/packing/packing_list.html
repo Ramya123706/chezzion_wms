@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="mb-4">Packing List</h2>
+    <h2 class="mb-4 text-center text-white bg-primary">Packing List</h2>
 
     {% if packings %}
         <table class="table table-striped table-bordered shadow-sm">
@@ -12,10 +12,12 @@
                     <th><b>Pallet</b></th>
                     <th><b>Delivery No</b></th>
                     <th><b>Packing Material</b></th>
-                    <th><b>Gross Wt</b></th>
-                    <th><b>Net Wt</b></th>
-                    <th><b>Volume</b></th>
-                    <th><b>Picking ID</b></th>
+                    <th class="text-end"><b>Gross Wt</b></th>
+                    <th class="text-end"><b>Net Wt</b></th>
+                    <th class="text-end"><b>Volume</b></th>
+                    {% if packings.0.picking %}
+                        <th><b>Picking ID</b></th>
+                    {% endif %}
                     <th><b>Created At</b></th>
                     <th><b>Actions</b></th>
                 </tr>
@@ -30,13 +32,16 @@
                         <td class="text-end">{{ packing.gross_wt }}</td>
                         <td class="text-end">{{ packing.net_wt }}</td>
                         <td class="text-end">{{ packing.volume }}</td>
-                        <td>{{ packing.picking.picking_id }}</td>
-                        <td>{{ packing.created_at }}</td>
+
+                        {% if packing.picking %}
+                            <td>{{ packing.picking.picking_id }}</td>
+                        {% endif %}
+
+                        <td>{{ packing.created_at|date:"Y-m-d H:i" }}</td>
                         <td>
-                            <a href="{% url 'packing_detail' packing.picking_id %}" class="btn btn-sm btn-info">View</a>
-                          
-                            <a href="{% url 'edit_packing' packing.picking_id %}" class="btn btn-sm btn-warning">Edit</a>
-                            <a href="{% url 'delete_packing' packing.picking_id %}" 
+                            <a href="{% url 'packing_detail' packing.id %}" class="btn btn-sm btn-info">View Details</a>
+                            <a href="{% url 'edit_packing' packing.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url 'delete_packing' packing.id %}" 
                                class="btn btn-sm btn-danger"
                                onclick="return confirm('Are you sure you want to delete this packing?');">
                                Delete

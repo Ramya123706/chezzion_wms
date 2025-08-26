@@ -252,9 +252,20 @@ class SalesOrderCreationForm(forms.ModelForm):
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
         }
             
-from .models import Packing, PackedItem
+from django import forms
+from django.forms import modelformset_factory
+from .models import PackedItem, Packing
+
 class PackingForm(forms.ModelForm):
     class Meta:
         model = Packing
-        fields = '__all__'
+        fields = ["pallet", "p_mat", "del_no", "gross_wt", "net_wt", "volume"]
+
+class PackedItemForm(forms.ModelForm):
+    class Meta:
+        model = PackedItem
+        fields = ["pallet", "p_mat", "batch_no", "serial_no", "quantity", "unit_price"]
+
+PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)
+
         
