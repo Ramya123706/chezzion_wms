@@ -164,12 +164,12 @@ urlpatterns = [
     path("sales/<str:so_no>/pdf/", views.sales_order_pdf, name="sales_order_pdf"),
 
 
-    path('packing/create', views.create_packing, name='create_packing'),
-    path("packing/detail/<str:picking_id>/", views.packing_detail, name="packing_detail"),
-    path('packing/<str:packing_id>/', views.packing_list, name='packing_list'),
-    # path('packing/<int:packing_id>/add_item/', views.add_packed_item, name='add_packed_item'),
-    path('packing/<int:packing_id>/edit/', views.edit_packing, name='edit_packing'),
-    path('packing/<int:packing_id>/delete/', views.delete_packing, name='delete_packing'),
-
+    path("packing/create/", views.create_packing, name="create_packing"),
+    path("packing/", views.packing_list, name="packing_list"),  
+    path("packing/detail/<int:packing_id>/", views.packing_detail, name="packing_detail"),
+    # path("packing/<int:packing_id>/add_item/", views.add_packed_item, name="add_packed_item"),
+    path("packing/<int:packing_id>/edit/", views.edit_packing, name="edit_packing"),
+    path("packing/<int:packing_id>/delete/", views.delete_packing, name="delete_packing"),
+    path("packing/<int:packing_id>/add-item/", views.add_packed_item, name="add_packed_item"),
     
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

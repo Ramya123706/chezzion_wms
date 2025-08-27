@@ -646,8 +646,10 @@ class SalesOrderItem(models.Model):
         # Auto-calculate unit_total_price
         self.unit_total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
+from django.db import models
+
+
 class Packing(models.Model):
-    picking = models.ForeignKey(Picking, on_delete=models.CASCADE, related_name="packings")
     pallet = models.CharField(max_length=50)
     p_mat = models.CharField(max_length=100)   # packing material
     del_no = models.CharField(max_length=50)   # delivery number
@@ -657,7 +659,7 @@ class Packing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Packing for {self.picking.picking_id} - Pallet {self.pallet}"
+        return f"Pallet {self.pallet} - Delivery {self.del_no}"
 
 
 class PackedItem(models.Model):

@@ -2191,62 +2191,96 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Picking, Packing, PackedItem
 from django.utils import timezone
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Packing   # make sure you import your model
+
+
+from .forms import PackingForm, PackedItemFormSet
 
 def create_packing(request):
-
     if request.method == "POST":
-        pallet = request.POST.get("pallet")
-        p_mat = request.POST.get("p_mat")
-        del_no = request.POST.get("del_no")
-        gross_wt = request.POST.get("gross_wt")
-        net_wt = request.POST.get("net_wt")
-        volume = request.POST.get("volume")
+        packing_form = PackingForm(request.POST)
+        item_formset = PackedItemFormSet(request.POST, queryset=PackedItem.objects.none())
 
-       
+        if packing_form.is_valid() and item_formset.is_valid():
+            packing = packing_form.save()
+            for form in item_formset:
+                if form.cleaned_data and not form.cleaned_data.get("DELETE", False):
+                    item = form.save(commit=False)
+                    item.packing = packing
+                    item.save()
+            return redirect("packing_list")
+    else:
+        packing_form = PackingForm()
+        item_formset = PackedItemFormSet(queryset=PackedItem.objects.none())
 
-        return redirect("packing_list")
+    return render(request, "packing/create_packing.html", {
+        "packing_form": packing_form,
+        "item_formset": item_formset,
+    })
 
-    return render(request, "packing/create_packing.html")
 
 
-
-
-def packing_list(request,packing_id):
-    packing = get_object_or_404(Packing, id=packing_id)
+def packing_list(request):
     packings = Packing.objects.all()
-    return redirect("packing_detail", picking_id=packing.id)
+    return render(request, "packing/packing_list.html", {"packings": packings})
 
-from django.shortcuts import render, get_object_or_404
 
 def packing_detail(request, packing_id):
     packing = get_object_or_404(Packing, id=packing_id)
     items = packing.items.all()  # assuming related_name='items' on ForeignKey
-    return render(request, "packing_detail.html", {"packing": packing, "items": items})
+    return render(request, "packing/packing_detail.html", {"packing": packing, "items": items})
+
+from .forms import PackingForm, PackedItemFormSet
 
 def edit_packing(request, packing_id):
     packing = get_object_or_404(Packing, id=packing_id)
 
     if request.method == "POST":
-        packing.pallet = request.POST.get("pallet")
-        packing.p_mat = request.POST.get("p_mat")
-        packing.del_no = request.POST.get("del_no")
-        packing.gross_wt = request.POST.get("gross_wt")
-        packing.net_wt = request.POST.get("net_wt")
-        packing.volume = request.POST.get("volume")
-        packing.save()
-        return redirect("packing_detail", packing_id=packing.id)
+        packing_form = PackingForm(request.POST, instance=packing)
+        item_formset = PackedItemFormSet(request.POST, queryset=packing.items.all())
 
-    return render(request, "edit_packing.html", {"packing": packing})
+        if packing_form.is_valid() and item_formset.is_valid():
+            packing_form.save()
+            for form in item_formset:
+                if form.cleaned_data:
+                    if form.cleaned_data.get("DELETE"):
+                        if form.instance.pk:  # only delete if it exists
+                            form.instance.delete()
+                    else:
+                        item = form.save(commit=False)
+                        item.packing = packing
+                        item.save()
+            return redirect("packing_detail", packing_id=packing.id)
+    else:
+        packing_form = PackingForm(instance=packing)
+        item_formset = PackedItemFormSet(queryset=packing.items.all())
+
+    return render(request, "packing/edit_packing.html", {
+        "packing_form": packing_form,
+        "item_formset": item_formset,
+        "packing": packing,
+    })
 
 
 def delete_packing(request, packing_id):
     packing = get_object_or_404(Packing, id=packing_id)
+    packing.delete()
+    return redirect("packing_list")
+
+from .forms import PackedItemForm
+
+def add_packed_item(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
 
     if request.method == "POST":
-        packing.delete()
-        return redirect("packing_list")
+        form = PackedItemForm(request.POST)
+        if form.is_valid():
+            packed_item = form.save(commit=False)
+            packed_item.packing = packing  # link to parent Packing
+            packed_item.save()
+            return redirect("packing_detail", packing_id=packing.id)
+    else:
+        form = PackedItemForm()
 
-    return render(request, "delete_packing.html", {"packing": packing})
-
-
-
+    return render(request, "packing/add_packed_item.html", {"form": form, "packing": packing})
