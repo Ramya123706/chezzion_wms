@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="col-md-8 col-sm-12 mx-auto">
+        <div class="card shadow-lg">
+            <div class="card-header text-center text-white bg-primary">
+                <h3>Create Sales Order</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>SO No.</b></label>
+                        <input type="text" name="so_no" value="Auto-generated" class="form-control" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="whs_no"><b>Warehouse</b></label>
+                        <select name="whs_no" id="whs_no" class="form-select" required>
+                            <option value="">Select Warehouse</option>
+                            {% for warehouse in warehouses %}
+                                <option value="{{ warehouse.whs_no }}"
+                                    {% if data.whs_no == warehouse.whs_no|stringformat:"s" %}selected{% endif %}>
+                                    {{ warehouse.whs_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <h5 class="text-primary  mt-4 mb-3"><b>Customer Details</b></h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><b>Customer ID</b></label>
+                            <input type="text" name="customer_id" class="form-control"
+                                   value="{{ data.customer_id }}" required>
+                                   <small class="form-text text-muted">
+                        Can't find your Customer?
+                        <a href="{% url 'add_customers' %}" class="btn btn-sm btn-link">Add New Customer</a>
+                    </small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><b>Customer Code</b></label>
+                            <input type="text" name="customer_code" class="form-control"
+                                   value="{{ data.customer_code }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><b>Order Date</b></label>
+                            <input type="date" name="order_date" class="form-control"
+                                   value="{{ data.order_date }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><b>Delivery Date</b></label>
+                            <input type="date" name="delivery_date" class="form-control"
+                                   value="{{ data.delivery_date }}" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center col-md-12 mb-3">
+                        <h5 class="text-primary  m-0"><b>Product Details</b></h5>
+                        <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle" id="productTable">
+                            <thead class="table-light">
+                                <tr class="text-center">
+                                    <th>Product ID</th>
+                                    <th>Product Name</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Unit Total Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if product_rows %}
+                                    {% for row in product_rows %}
+                                        <tr>
+                                            <td><input type="text" name="product_id[]" class="form-control"
+                                                       value="{{ row.product_id }}" required></td>
+                                            <td><input type="text" name="product_name[]" class="form-control"
+                                                       value="{{ row.product_name }}" required></td>
+                                            <td><input type="number" name="quantity[]" class="form-control text-end"
+                                                       min="1" oninput="calculateRowTotal(this)"
+                                                       value="{{ row.quantity }}" required></td>
+                                            <td><input type="number" step="0.01" name="unit_price[]"
+                                                       class="form-control text-end" oninput="calculateRowTotal(this)"
+                                                       value="{{ row.unit_price }}" required></td>
+                                            <td><input type="number" step="0.01" name="unit_total_price[]"
+                                                       class="form-control text-end" readonly
+                                                       value="{{ row.unit_total_price }}"></td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td><input type="text" name="product_id[]" class="form-control" required></td>
+                                        <td><input type="text" name="product_name[]" class="form-control" required></td>
+                                        <td><input type="number" name="quantity[]" class="form-control text-end" min="1"
+                                                   oninput="calculateRowTotal(this)" required></td>
+                                        <td><input type="number" step="0.01" name="unit_price[]" class="form-control text-end"
+                                                   oninput="calculateRowTotal(this)" required></td>
+                                        <td><input type="number" step="0.01" name="unit_total_price[]"
+                                                   class="form-control text-end" readonly placeholder="Auto-calculated"></td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Net Total Price</b></label>
+                        <input type="text" id="net_total_price" name="net_total_price" class="form-control"
+                               readonly value="{{ data.net_total_price }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Remarks</b></label>
+                        <textarea name="remarks" class="form-control" rows="3">{{ data.remarks }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <input type="hidden" name="status" id="statusInput" value="Draft">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addRow() {
+    const tableBody = document.querySelector('#productTable tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td><input type="text" name="product_id[]" class="form-control" required></td>
+        <td><input type="text" name="product_name[]" class="form-control" required></td>
+        <td><input type="number" name="quantity[]" class="form-control text-end" min="1" oninput="calculateRowTotal(this)" required></td>
+        <td><input type="number" step="0.01" name="unit_price[]" class="form-control text-end" oninput="calculateRowTotal(this)" required></td>
+        <td><input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly placeholder="Auto-calculated"></td>
+    `;
+    tableBody.appendChild(newRow);
+}
+
+function calculateRowTotal(element) {
+    const row = element.closest('tr');
+    const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+    const unitPrice = parseFloat(row.querySelector('input[name="unit_price[]"]').value) || 0;
+    row.querySelector('input[name="unit_total_price[]"]').value = (quantity * unitPrice).toFixed(2);
+    calculateNetTotal();
+}
+
+function calculateNetTotal() {
+    let total = 0;
+    document.querySelectorAll('input[name="unit_total_price[]"]').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    document.getElementById('net_total_price').value = total.toFixed(2);
+}
+</script>
+{% endblock %}

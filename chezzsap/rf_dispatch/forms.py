@@ -98,7 +98,7 @@ class CustomersForm(forms.ModelForm):
         model = Customers
         fields =  '__all__'
     
-class Vendorform(forms.ModelForm):
+class VendorForm(forms.ModelForm):
     class Meta:
         model=Vendor
         fields='__all__'
@@ -204,7 +204,7 @@ from .models import Picking, Customer
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        fields = ['id', 'pallet', 'location', 'product', 'quantity', 'status']
+        fields = ['id', 'pallet', 'location', 'product', 'quantity','picking_type','status']
         exclude = ['created_at']
 
 from .models import Customer
@@ -242,5 +242,30 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
+from .models import SalesOrderCreation
+class SalesOrderCreationForm(forms.ModelForm):
+        class Meta:
+            model=SalesOrderCreation
+            fields = '__all__'
+            widgets = {
+            'order_date': forms.DateInput(attrs={'type': 'date'}),
+            'delivery_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+            
+from django import forms
+from django.forms import modelformset_factory
+from .models import PackedItem, Packing
 
-    
+class PackingForm(forms.ModelForm):
+    class Meta:
+        model = Packing
+        fields = ["pallet", "p_mat", "del_no", "gross_wt", "net_wt", "volume"]
+
+class PackedItemForm(forms.ModelForm):
+    class Meta:
+        model = PackedItem
+        fields = ["pallet", "p_mat", "batch_no", "serial_no", "quantity", "unit_price"]
+
+PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)
+
+        

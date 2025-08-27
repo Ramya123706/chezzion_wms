@@ -199,5 +199,32 @@
         }
     });
 </script>
+<script>
+document.getElementById("purchase_order").addEventListener("change", function() {
+    const poId = this.value;
+    const tableBody = document.querySelector('#deliveryTable tbody');
+    tableBody.innerHTML = "";  // clear previous rows
+
+    if (poId) {
+        fetch(`/get-po-products/${poId}/`)
+            .then(response => response.json())
+            .then(data => {
+                data.products.forEach(p => {
+                    const newRow = document.createElement("tr");
+                    newRow.innerHTML = `
+                        <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
+                        <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
+                        <td><input type="text" class="form-control" name="quantity_delivered[]"></td>
+                        <td><input type="text" class="form-control" name="quantity_received[]"></td>
+                        <td><input type="text" class="form-control" name="unit_of_measure[]" value="${p.uom}" readonly></td>
+                        <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto generated" readonly></td>
+                    `;
+                    tableBody.appendChild(newRow);
+                });
+            });
+    }
+});
+</script>
+
 
 {% endblock %}

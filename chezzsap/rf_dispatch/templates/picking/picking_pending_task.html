@@ -19,6 +19,7 @@
                             <th>Product</th>
                             <th>Quantity</th>
                             <th>Status</th>
+                            <th>Picking Type</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -35,6 +36,7 @@
                                 <td>
                                     <span class="badge bg-warning text-dark">{{ task.status }}</span>
                                 </td>
+                                  <td>{{task.picking_type}}</td>
                                 <td>
                                     <a href="{% url 'edit_picking' task.picking_id %}" class="btn btn-sm btn-primary">Edit</a> 
 
