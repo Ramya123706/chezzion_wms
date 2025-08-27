@@ -103,6 +103,10 @@ class Warehouse(models.Model):
         return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
 
 
+class Inventory(models.Model):
+    product = models.CharField(max_length=50, unique=True)
+    total_quantity = models.IntegerField(default=0)
+
 class Category(models.Model):
     
     category = models.CharField(max_length=100, unique=True)
@@ -162,7 +166,6 @@ class Bin(models.Model):
 #         return self.name
 
 
-import uuid
 
 class Product(models.Model):
     product_id = models.CharField(max_length=100, unique=True)   # Your item_number
@@ -284,6 +287,7 @@ class StockUpload(models.Model):
     pallet_status = models.CharField(max_length=100, default='Not planned')
 
     def __str__(self):
+        return self.name
         return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
 
     def save(self, *args, **kwargs):
@@ -475,6 +479,12 @@ class Picking(models.Model):
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
+    
+    PICKING_TYPE_CHOICES=[
+        ('INBOUND', 'Inbound'),
+        ('OUTBOUND', 'Outbound'),
+    ]
+    picking_type=models.CharField(max_length=50,choices=PICKING_TYPE_CHOICES,default="Inbound")
 
     STATUS_CHOICES = [
        
@@ -514,8 +524,8 @@ class InboundDelivery(models.Model):
     delivery_date = models.DateField()
     document_date = models.DateField(blank=True, null=True)
     gr_date = models.DateField()
-    supplier = models.ForeignKey(Vendor, on_delete=models.CASCADE)
-    purchase_order_number = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE,null=True,  blank=True)
+    supplier = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="inbounddeliveries")
+    purchase_order_number = models.ForeignKey(PurchaseOrder,on_delete=models.CASCADE,null=True,  blank=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
 
     
@@ -593,6 +603,7 @@ class PurchaseItem(models.Model):
 
 
 from django.db import models
+from django.db import models
 
 STATUS_CHOICES = [
     ('Draft', 'Draft'),
@@ -618,7 +629,7 @@ class SalesOrderCreation(models.Model):
         return f"{self.so_no} - {self.status}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate SO Number if not exists
+        # Auto-generate SO number if not exists
         if not self.so_no:
             last_so = SalesOrderCreation.objects.all().order_by('id').last()
             if last_so:
@@ -627,11 +638,6 @@ class SalesOrderCreation(models.Model):
             else:
                 self.so_no = "SO00001"
         super().save(*args, **kwargs)
-        # Update net total after saving items
-        total = sum(item.unit_total_price for item in self.items.all())
-        if self.net_total_price != total:
-            self.net_total_price = total
-            super().save(update_fields=['net_total_price'])
 
 
 class SalesOrderItem(models.Model):
@@ -690,5 +696,31 @@ class OutboundDeliveryItem(models.Model):
     def __str__(self):
         return f"{self.product} - Item {self.dlv_it_no}"
 
+from django.db import models
 
 
+class Packing(models.Model):
+    pallet = models.CharField(max_length=50)
+    p_mat = models.CharField(max_length=100)   # packing material
+    del_no = models.CharField(max_length=50)   # delivery number
+    gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
+    net_wt = models.DecimalField(max_digits=10, decimal_places=2)
+    volume = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pallet {self.pallet} - Delivery {self.del_no}"
+
+
+class PackedItem(models.Model):
+    packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
+    pallet = models.CharField(max_length=50)
+    p_mat = models.CharField(max_length=100)
+    batch_no = models.CharField(max_length=50)
+    serial_no = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Item {self.serial_no} (Pallet {self.pallet})"

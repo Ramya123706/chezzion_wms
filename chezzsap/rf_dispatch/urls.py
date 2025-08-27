@@ -156,7 +156,7 @@ urlpatterns = [
 
     # Customer landing
     path('customer/', views.customer, name='customer'),
-
+    path('get-po-products/<int:po_id>/', views.get_po_products, name='get_po_products'),
     path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
     path('sales/', views.sales_order_list, name='sales_order_list'),
     path("get-warehouse-address/<int:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
@@ -170,7 +170,12 @@ urlpatterns = [
     # Outbound Delivery
     path('outbound/', views.outbound, name='outbound'),
     path('get-so-products/<int:so_id>/', views.get_so_products, name='get_so_products'),
+    path("packing/create/", views.create_packing, name="create_packing"),
+    path("packing/", views.packing_list, name="packing_list"),  
+    path("packing/detail/<int:packing_id>/", views.packing_detail, name="packing_detail"),
+    # path("packing/<int:packing_id>/add_item/", views.add_packed_item, name="add_packed_item"),
+    path("packing/<int:packing_id>/edit/", views.edit_packing, name="edit_packing"),
+    path("packing/<int:packing_id>/delete/", views.delete_packing, name="delete_packing"),
+    path("packing/<int:packing_id>/add-item/", views.add_packed_item, name="add_packed_item"),
     
-
-
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
