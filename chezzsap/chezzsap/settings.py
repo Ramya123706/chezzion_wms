@@ -90,11 +90,11 @@ WSGI_APPLICATION = 'chezzsap.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'magicbox_db'),
-        'USER': os.environ.get('POSTGRES_USER', 'magicbox_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'Chezzion@2025'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'magicboxpostgres'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        'NAME': 'chezz',
+        'USER': 'postgres',
+        'PASSWORD': 'chezz@2025',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
