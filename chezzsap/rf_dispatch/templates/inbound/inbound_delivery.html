@@ -25,12 +25,13 @@
 
                     <div class="col-md-6 mb-3">
     <label for="vendor" class="form-label"><b>Supplier (Vendor)</b></label>
-    <select name="supplier" id="vendor" class="form-select">
+    <select name="vendor" id="vendor" class="form-select">
         <option value=""> Select Supplier </option>
         {% for vendor in vendors %}
             <option value="{{ vendor.vendor_id }}">{{ vendor.vendor_id }}-{{ vendor.name }}</option>
         {% endfor %}
     </select>
+
     
 </div>
 
@@ -40,7 +41,7 @@
     <label for="purchase_order" class="form-label"><b>PO No</b></label>
     <select name="po_number" id="purchase_order" class="form-select">
     <option value="">Select PO No </option>
-    {% for po in Purchase_orders %}
+    {% for po in purchase_orders %}
         <option value="{{ po.id }}">{{ po.po_number }}</option>
     {% endfor %}
 </select>
@@ -214,8 +215,8 @@ document.getElementById("purchase_order").addEventListener("change", function() 
                     newRow.innerHTML = `
                         <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
                         <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
-                        <td><input type="text" class="form-control" name="quantity_delivered[]"></td>
-                        <td><input type="text" class="form-control" name="quantity_received[]"></td>
+                        <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
+                        <td><input type="text" class="form-control" name="quantity_received[]" ></td>
                         <td><input type="text" class="form-control" name="unit_of_measure[]" value="${p.uom}" readonly></td>
                         <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto generated" readonly></td>
                     `;
@@ -225,6 +226,5 @@ document.getElementById("purchase_order").addEventListener("change", function() 
     }
 });
 </script>
-
 
 {% endblock %}

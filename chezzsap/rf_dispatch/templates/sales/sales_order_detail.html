@@ -18,10 +18,10 @@
                     <tr>
                         <th>Warehouse</th>
                         <td> <ul class="list-group" >
-                            <li class="list-group-item list-group-item-action"><strong>Name :</strong>{{ warehouse.whs_name }} ({{ warehouse.whs_no }} )</li>
-                            <li class="list-group-item list-group-item-action"><strong>Address:</strong> {{ warehouse.address }}</li>
-                            <li class="list-group-item list-group-item-action" ><strong>Phone: </strong>{{ warehouse.phn_no }}</li>
-                            <li class="list-group-item list-group-item-action"><strong>Email :</strong>{{ warehouse.email }}</li>
+                            <li class="list-group-item list-group-item-action"><strong>Name :</strong> {{ sales_order.whs_no.whs_name }} ({{ sales_order.whs_no.whs_no }})</li>
+<li class="list-group-item list-group-item-action"><strong>Address:</strong> {{ sales_order.whs_no.address }}</li>
+<li class="list-group-item list-group-item-action"><strong>Phone:</strong> {{ sales_order.whs_no.phn_no }}</li>
+<li class="list-group-item list-group-item-action"><strong>Email:</strong> {{ sales_order.whs_no.email }}</li>
                         </ul></td>
 
                     </tr>
@@ -78,20 +78,21 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in sales_order.items.all %}
-                                <tr class="text-center">
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>{{ item.product_id }}</td>
-                                    <td>{{ item.product_name }}</td>
-                                    <td>{{ item.quantity }}</td>
-                                    <td>{{ item.unit_price }}</td>
-                                    <td>{{ item.unit_total_price }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted">No products in this order</td>
-                                </tr>
-                            {% endfor %}
+                        {% for item in so_items %}
+                        <tr class="text-center">
+<td>{{ forloop.counter }}</td>
+<td>{{ item.product.id }}</td>          <!-- Product ID -->
+<td>{{ item.product_name }}</td>        <!-- Product Name -->
+<td>{{ item.quantity }}</td>
+<td>{{ item.unit_price }}</td>
+<td>{{ item.unit_total_price }}</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center text-muted">No products in this order</td>
+</tr>
+{% endfor %}
+
                         </tbody>
                     </table>
                 </div>

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Create Inbound Delivery</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Supplier -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Supplier</label>
+                <select class="form-select" name="supplier" required>
+                    <option value="">-- Select Supplier --</option>
+                    {% for vendor in vendors %}
+                        <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Purchase Order -->
+            <div class="col-md-4">
+                <label class="form-label">Purchase Order</label>
+                <select id="purchase_order" class="form-select" name="po_number" required>
+                    <option value="">-- Select PO --</option>
+                    {% for po in Purchase_orders %}
+                        <option value="{{ po.id }}">{{ po.po_number }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Warehouse -->
+            <div class="col-md-4">
+                <label class="form-label">Warehouse</label>
+                <select class="form-select" name="whs_no" required>
+                    <option value="">-- Select Warehouse --</option>
+                    {% for whs in warehouses %}
+                        <option value="{{ whs.id }}">{{ whs.whs_no }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Delivery Date</label>
+                <input type="date" class="form-control" name="delivery_date" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Document Date</label>
+                <input type="date" class="form-control" name="document_date" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">GR Date</label>
+                <input type="date" class="form-control" name="gr_date" required>
+            </div>
+        </div>
+
+        <!-- Extra Info -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Storage Location</label>
+                <input type="text" class="form-control" name="storage_location">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Delivery Status</label>
+                <input type="text" class="form-control" name="delivery_status">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Carrier Info</label>
+                <input type="text" class="form-control" name="carrier_info">
+            </div>
+        </div>
+
+        <!-- Remarks -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <label class="form-label">Remarks</label>
+                <textarea class="form-control" name="remarks" rows="2"></textarea>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <h5>Products</h5>
+        <table class="table table-bordered" id="deliveryTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Description</th>
+                    <th>Qty Delivered</th>
+                    <th>Qty Received</th>
+                    <th>UoM</th>
+                    <th>Batch Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be inserted dynamically -->
+            </tbody>
+        </table>
+
+        <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addRow()">+ Add Row</button>
+        <br>
+        <button type="submit" class="btn btn-primary">Save Inbound Delivery</button>
+    </form>
+</div>
+
+<!-- JS -->
+<script>
+document.getElementById("purchase_order").addEventListener("change", function () {
+    const poId = this.value;
+    const tableBody = document.querySelector('#deliveryTable tbody');
+    tableBody.innerHTML = ""; // clear existing rows
+
+    if (poId) {
+        fetch(`/get-po-products/${poId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.products.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No products found for this PO</td></tr>`;
+                } else {
+                    data.products.forEach(prod => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>
+                                <input type="hidden" name="product[]" value="${prod.id}">
+                                <input type="text" class="form-control" value="${prod.name}" readonly>
+                            </td>
+                            <td><input type="text" class="form-control" name="product_description[]" value="${prod.description}" readonly></td>
+                            <td><input type="number" class="form-control" name="quantity_delivered[]" value="${prod.qty}" required></td>
+                            <td><input type="number" class="form-control" name="quantity_received[]" required></td>
+                            <td><input type="text" class="form-control" name="unit_of_measure[]" value="${prod.uom}" readonly></td>
+                            <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            })
+            .catch(err => {
+                console.error("Error fetching products:", err);
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error loading products</td></tr>`;
+            });
+    }
+});
+
+function addRow() {
+    const tableBody = document.querySelector('#deliveryTable tbody');
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>
+            <input type="hidden" name="product[]" value="">
+            <input type="text" class="form-control" placeholder="Manual Product">
+        </td>
+        <td><input type="text" class="form-control" name="product_description[]" placeholder="Description"></td>
+        <td><input type="number" class="form-control" name="quantity_delivered[]" placeholder="0"></td>
+        <td><input type="number" class="form-control" name="quantity_received[]" placeholder="0"></td>
+        <td><input type="text" class="form-control" name="unit_of_measure[]" placeholder="UoM"></td>
+        <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
+    `;
+    tableBody.appendChild(row);
+}
+</script>
+{% endblock %}
