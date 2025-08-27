@@ -64,7 +64,7 @@
                         </div>
                     </form>
 
-                    {% if vendor %} 
+                    {% if vendors %} 
                         <!-- Desktop Table View -->
                         <div class="d-none d-md-block px-3 pb-3">
                             <table class="table table-bordered text-center align-middle">
@@ -76,7 +76,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for vendor in vendor %}
+                                    {% for vendor in vendors %}
                                     <tr>
                                         <td>{{ vendor.name }}</td>
                                         <td>{{ vendor.vendor_id }}</td>
@@ -91,12 +91,12 @@
 
                         <!-- Mobile Card View -->
                         <div class="d-md-none px-3 pb-3">
-                            {% for vendor in vendor %}
+                            {% for vendor in vendors %}
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <h5 class="card-title">Vendor #{{ vendor.vendor_id }}</h5>
                                     <p class="card-text mb-1"><strong>Name:</strong> {{ vendor.name }}</p>
-                                    <a href="{% url 'add_vendor' %}" class="btn btn-sm btn-info">View Details</a>
+                                    <a href="{% url 'add_vendor' vendor.vendor_id %}" class="btn btn-sm btn-info">View Details</a>
                                 </div>
                             </div>
                             {% endfor %}

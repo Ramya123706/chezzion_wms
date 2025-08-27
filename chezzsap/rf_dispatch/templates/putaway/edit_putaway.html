@@ -1,15 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-6 mb-4 mx-auto">
-            <div class="card">
-                <div class="card-header bg-primary text-white text-center">
-                    <h5>Edit Picking</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post" class="form-group">
+<div class="container mt-5">
+    <div class="col-md-6 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header text-center text-white bg-primary">
+                <h3>Edit Putaway Task</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" class="form-group">
                         {% csrf_token %}
 
                         {% if form.errors %}
@@ -29,7 +28,7 @@
 
                         {% for field in form %}
                             <div class="mb-3">
-                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                <label for="{{ field.id_for_label }}" class="form-label"><b>{{ field.label }}</b></label>
                                 {{ field }}
                                 {% if field.help_text %}
                                     <div class="form-text text-muted">{{ field.help_text }}</div>
@@ -46,12 +45,11 @@
                             </script>
                         {% endfor %}
 
-                        <div class="d-flex justify-content-between mt-3">
-                            <button type="submit" class="btn btn-success">Update</button>
-                            <a href="{% url 'pending_task' %}" class="btn btn-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <a href="{% url 'putaway_pending' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

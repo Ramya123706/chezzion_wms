@@ -7,32 +7,42 @@
             <h4>Pending Putaway Tasks</h4>
         </div>
         <div class="card-body">
-            {% if tasks %}
+            {% if pending_tasks %}
                 <table class="table table-bordered table-striped text-center">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
+                            <th>Putaway ID</th>
                             <th>Pallet</th>
-                            <th>Created By</th>
                             <th>Location</th>
+                            <th>Putaway Task Type</th> 
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for task in tasks %}
+                        {% for task in pending_tasks %}
                             <tr>
-                                <td>{{ task.id }}</td>
+                                <td>{{ task.putaway_id }}</td>
                                 <td>{{ task.pallet }}</td>
-                                <td>{{ task.created_by }}</td>
                                 <td>{{ task.location }}</td>
                                 <td>
-                                    <span class="badge bg-warning text-dark">{{ task.status }}</span>
+    {{ task.putaway_task_type }}
+
+</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if task.status == 'Completed' %}bg-success
+                                        {% elif task.status == 'In Progress' %}bg-warning text-dark
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ task.status }}
+                                    </span>
                                 </td>
                                 <td>
-                                    <a href="{% url 'edit_putaway' task.id %}" class="btn btn-sm btn-primary">Edit</a>
-                                    <a href="{% url 'confirm_putaway' task.id %}" class="btn btn-sm btn-success" title="Mark as Completed" onclick="return confirm('Are you sure to confirm this task?');">Confirm</a>
-                                    <a href="{% url 'delete_putaway' task.id %}" class="btn btn-sm btn-danger" title="Delete this task" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a>
+                                    <a href="{% url 'edit_putaway' task.putaway_id %}" class="btn btn-sm btn-primary">Edit</a>
+                                    <a href="{% url 'confirm_putaway' task.putaway_id %}" class="btn btn-sm btn-success" 
+                                       title="Mark as Completed" onclick="return confirm('Are you sure to confirm this task?');">Confirm</a>
+                                    <a href="{% url 'delete_putaway' task.putaway_id %}" class="btn btn-sm btn-danger" 
+                                       title="Delete this task" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a>
                                 </td>
                             </tr>
                         {% endfor %}

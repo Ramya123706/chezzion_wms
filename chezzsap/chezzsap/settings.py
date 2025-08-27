@@ -100,6 +100,19 @@ DATABASES = {
 
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('POSTGRES_DB', 'magicbox_db'),
+#         'USER': os.environ.get('POSTGRES_USER', 'magicbox_user'),
+#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'Chezzion@2025'),
+#         'HOST': os.environ.get('POSTGRES_HOST', 'magicboxpostgres'),
+#         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+#     }
+# }
+
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 

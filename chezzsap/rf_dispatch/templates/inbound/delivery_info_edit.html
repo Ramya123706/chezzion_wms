@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="col-md-8 col-sm-12 mx-auto">
+        <div class="card">
+            <div class="card-header text-center text-white bg-primary">
+                <h5>Inbound Delivery Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group mb-3">
+                        <label><b>Inbound Delivery Number</b></label>
+                        <input type="text" class="form-control" 
+                               value="{{ delivery.inbound_delivery_number }}" readonly>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label><b>Inbound Delivery date</b></label>
+                        <input type="text" class="form-control" 
+                               value="{{ delivery.delivery_date }}" readonly>
+                    </div>
+
+                    <!-- Supplier -->
+                    <div class="form-group mb-3">
+                        <label><b>Supplier</b></label>
+                        <!-- Display for user -->
+                        <input type="text" class="form-control" 
+                               value="{{ delivery.supplier_id }} - {{ delivery.supplier.name }}" readonly>
+                        <!-- Hidden field to actually POST the supplier_id -->
+                        <input type="hidden" name="supplier" value="{{ delivery.supplier_id }}">
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label><b>Warehouse number</b></label>
+                        <input type="text" class="form-control" 
+                               value="{{ delivery.whs_no }}" readonly>
+                    </div>
+
+                    <!-- Purchase Order -->
+                    <div class="form-group mb-3">
+                        <label><b>PO Order Number</b></label>
+                        <!-- Display for user -->
+                        <input type="text" class="form-control" 
+                               value="{{ delivery.purchase_order_number.po_number }}" readonly>
+                        <!-- Hidden field to actually POST the po_number -->
+                        <input type="hidden" name="purchase_order_number" value="{{ delivery.purchase_order_number.po_number }}">
+                    </div>
+
+                    {% for ibdproduct in ibdproducts %}
+                        <div class="form-group mb-3">
+                            <label><b>Product</b></label>
+                            <input type="text" class="form-control" value="{{ ibdproduct.product }}" readonly>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><b>Product Description</b></label>
+                            <input type="text" name="product_{{ ibdproduct.id }}_product_description" 
+                                   class="form-control" value="{{ ibdproduct.product_description }}">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><b>Quantity Delivered</b></label>
+                            <input type="text" name="product_{{ ibdproduct.id }}_quantity_delivered" 
+                                   class="form-control" value="{{ ibdproduct.quantity_delivered }}">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><b>Quantity Received</b></label>
+                            <input type="text" name="product_{{ ibdproduct.id }}_quantity_received" 
+                                   class="form-control" value="{{ ibdproduct.quantity_received }}">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><b>Unit of Measure</b></label>
+                            <input type="text" name="product_{{ ibdproduct.id }}_unit_of_measure" 
+                                   class="form-control" value="{{ ibdproduct.unit_of_measure }}">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label><b>Batch Number</b></label>
+                            <input type="text" class="form-control" 
+                                   value="{{ ibdproduct.batch_number }}" readonly>
+                        </div>
+                    {% empty %}
+                        <p>No products found for this delivery.</p>
+                    {% endfor %}
+
+                    <div class="form-group mb-3">
+                        <label><b>Delivery Status</b></label>
+                        <input type="text" name="delivery_status" 
+                               class="form-control" 
+                               value="{{ delivery.delivery_status }}">
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success px-4">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

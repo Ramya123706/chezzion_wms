@@ -96,7 +96,7 @@ class WarehouseForm(forms.ModelForm):
 class CustomersForm(forms.ModelForm):
     class Meta:
         model = Customers
-        exclude = ['customer_id'] 
+        fields =  '__all__'
     
 class Vendorform(forms.ModelForm):
     class Meta:
@@ -107,18 +107,47 @@ from django.utils import timezone
 from django import forms
 from .models import Pallet
 
+from django import forms
+from .models import Pallet
+
+from django import forms
+from .models import Pallet
+
 class PalletForm(forms.ModelForm):
+    has_child_pallets = forms.BooleanField(
+        required=False,
+        label="Does this pallet have child pallets?",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    number_of_children = forms.IntegerField(
+        required=False,
+        min_value=1,
+        label="Number of child pallets",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Pallet
-        exclude = ['created_by', 'updated_by']  
+        fields = '__all__'
+        exclude = ['scanned_at', 'created_by', 'updated_by', 'parent_pallet','created_at']
+
+    def __init__(self, *args, **kwargs):
+        super(PalletForm, self).__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            # Skip boolean field so it uses 'form-check-input'
+            if name != 'has_child_pallets':
+                field.widget.attrs.update({'class': 'form-control'})
+
+class PalletEditForm(forms.ModelForm):
+    class Meta:
+        model = Pallet
+        # include only the fields you want to edit
+        fields = ['product', 'p_mat', 'quantity', 'weight']
         widgets = {
-            'pallet_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'product': forms.Select(attrs={'class': 'form-select'}),  
-            'capacity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'p_mat': forms.TextInput(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
             'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'is_scanned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'scanned_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
 
 from django import forms
@@ -164,12 +193,13 @@ class PutawayForm(forms.ModelForm):
     class Meta:
         model = Putaway
         exclude = ['created_at', 'confirmed_at']
+        fields = '__all__'
 
-from .models import Picking
 
 # forms.py
+
 from django import forms
-from .models import Picking
+from .models import Picking, Customer
 
 class PickingForm(forms.ModelForm):
     class Meta:
@@ -182,4 +212,35 @@ from .models import Customer
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
+        exclude = ['created_by']  
+        fields='__all__'
+        
+from django import forms
+from .models import InboundDelivery
+
+class InboundDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = InboundDelivery
         fields = '__all__'
+        exclude = ['inbound_delivery_number', 'batch_number']
+        widgets = {
+            'inbound_delivery_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'document_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'gr_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'supplier': forms.TextInput(attrs={'class': 'form-control'}),
+            'purchase_order_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'warehouse_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'material_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'product_description': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity_delivered': forms.NumberInput(attrs={'class': 'form-control'}),
+            'quantity_received': forms.NumberInput(attrs={'class': 'form-control'}),
+            'unit_of_measure': forms.TextInput(attrs={'class': 'form-control'}),
+            'batch_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_status': forms.Select(attrs={'class': 'form-control'}),
+            'storage_location': forms.TextInput(attrs={'class': 'form-control'}),
+            'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control'}),
+        }
+
+    
