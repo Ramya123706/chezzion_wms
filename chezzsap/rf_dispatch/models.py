@@ -603,15 +603,16 @@ STATUS_CHOICES = [
 ]
 
 class SalesOrderCreation(models.Model):
-    so_no = models.CharField(max_length=20, editable=False, unique=True)
+    so_no = models.CharField(max_length=50, editable=False, unique=True)
     whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
-    customer_id = models.CharField(max_length=30)
+    whs_address = models.CharField(max_length=100, default="Unknown")
+    customer_id = models.CharField(max_length=50)
     customer_code = models.CharField(max_length=50)
     order_date = models.DateField()
     delivery_date = models.DateField()
-    net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Draft')
     remarks = models.TextField(blank=True, null=True)
+    net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.so_no} - {self.status}"
@@ -635,12 +636,12 @@ class SalesOrderCreation(models.Model):
 
 class SalesOrderItem(models.Model):
     so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
-    product_id = models.CharField(max_length=50)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, default=None)  # ForeignKey instead of product_id/product_name
     product_name = models.CharField(max_length=50)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-
+    
     def save(self, *args, **kwargs):
         # Auto-calculate unit_total_price
         self.unit_total_price = self.quantity * self.unit_price
@@ -652,8 +653,8 @@ class OutboundDelivery(models.Model):
     dlv_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
     so_no = models.ForeignKey(SalesOrderCreation, on_delete=models.CASCADE, related_name='outbound_deliveries')  
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='outbound_deliveries', default=None, null=True, blank=True)
-    str_loc = models.CharField(max_length=100)  
-    dlv_it_no = models.CharField(max_length=10)  
+    whs_address = models.CharField(max_length=100, blank=True, null=True)
+
     sold_to = models.CharField(max_length=100, blank=True, null=True)
     ship_to = models.CharField(max_length=100, blank=True, null=True)
     cust_ref = models.CharField(max_length=100, blank=True, null=True)
@@ -666,15 +667,16 @@ class OutboundDelivery(models.Model):
 class OutboundDeliveryItem(models.Model):
     delivery = models.ForeignKey(OutboundDelivery, on_delete=models.CASCADE, related_name='items')
     dlv_it_no = models.CharField(max_length=10)  # Item number (10,20,30…)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_id = models.CharField(max_length=50, blank=True, null=True)
+    product_name = models.CharField(max_length=100, default="Unknown")
     serial_no = models.CharField(max_length=50, blank=True, null=True)
     batch_no = models.CharField(max_length=50, blank=True, null=True)
 
     qty_order = models.DecimalField(max_digits=10, decimal_places=2)
     qty_issued = models.DecimalField(max_digits=10, decimal_places=2)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    total_unit_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
-    net_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    unit_total_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+    net_total_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
     vol_per_item = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:

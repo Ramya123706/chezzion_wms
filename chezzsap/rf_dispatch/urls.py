@@ -135,7 +135,7 @@ urlpatterns = [
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
-    path("get-po-products/<int:po_id>/", views.get_po_products, name="get_po_products"),
+    path('get-po-products/<int:po_id>/', views.get_po_products, name='get_po_products'),
     path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
@@ -159,11 +159,18 @@ urlpatterns = [
 
     path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
     path('sales/', views.sales_order_list, name='sales_order_list'),
-    path('sales/<str:so_no>/edit/', views.sales_order_edit, name='sales_order_edit'),
-    path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
-    path('outbound/new/', views.outbound_delivery_create, name='outbound_create'),
-    path('outbound/<int:pk>/edit/', views.outbound_delivery_edit, name='outbound_edit'),
+    path("get-warehouse-address/<int:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
+    path('product-autocomplete/', views.product_autocomplete, name='product-autocomplete'),
 
-  
+    path('sales/<str:so_no>/', views.sales_order_detail, name='sales_order_detail'),
+    path('sales-order/edit/<str:so_no>/', views.sales_order_edit, name='sales_order_edit'),
+    path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
+    path("sales/<str:so_no>/pdf/", views.sales_order_pdf, name="sales_order_pdf"),
+
+    # Outbound Delivery
+    path('outbound/', views.outbound, name='outbound'),
+    path('get-so-products/<int:so_id>/', views.get_so_products, name='get_so_products'),
+    
+
 
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
