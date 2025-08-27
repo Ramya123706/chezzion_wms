@@ -336,20 +336,21 @@ class Inventory(models.Model):
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
-    company_phone = models.CharField(max_length=15)
+    company_phone = models.CharField(max_length=15, null=True, blank=True)
+
     company_email = models.EmailField()
     company_website = models.URLField(blank=True, null=True)
 
-    po_date = models.DateField()
+    po_date = models.DateField(null=True, blank=True)
     po_number = models.CharField(max_length=50, unique=True)
-    customer_number = models.CharField(max_length=50)
+    customer_number = models.CharField(max_length=50, null=True, blank=True)
 
-    vendor_company_name = models.CharField(max_length=255)
-    vendor_contact_name = models.CharField(max_length=255)
-    vendor_phone = models.CharField(max_length=15)
-    vendor_address = models.TextField()
+    vendor_company_name = models.CharField(max_length=255, null=True, blank=True)
+    vendor_contact_name = models.CharField(max_length=255, null=True, blank=True)
+    vendor_phone = models.CharField(max_length=15, null=True, blank=True)
+    vendor_address = models.TextField(null=True, blank=True)
     vendor_website = models.URLField(blank=True, null=True)
-    vendor_email = models.EmailField()
+    vendor_email = models.EmailField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -390,7 +391,7 @@ class Putaway(models.Model):
     ]
     putaway_task_type = models.CharField(max_length=100, null=True, blank=True , choices= PUTAWAY_TASK_TYPE_CHOICES ) 
     created_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(null=True, blank=True)
+    confirmed_at = models.DateTimeField(auto_now_add=True)
    
 
     STATUS_CHOICES = [
@@ -477,6 +478,12 @@ class Picking(models.Model):
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
+    
+    PICKING_TYPE_CHOICES=[
+        ('INBOUND', 'Inbound'),
+        ('OUTBOUND', 'Outbound'),
+    ]
+    picking_type=models.CharField(max_length=50,choices=PICKING_TYPE_CHOICES,default="Inbound")
 
     STATUS_CHOICES = [
        
@@ -591,3 +598,83 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} ({self.quantity}) in {self.purchase_order.po_number}"
+
+
+
+from django.db import models
+from django.db import models
+
+STATUS_CHOICES = [
+    ('Draft', 'Draft'),
+    ('Confirm', 'Confirm'),
+    ('Cancel', 'Cancel'),
+    ('Edit', 'Edit'),
+    ('Delivery', 'Delivery')
+]
+
+class SalesOrderCreation(models.Model):
+    so_no = models.CharField(max_length=50, editable=False, unique=True)
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
+    customer_id = models.CharField(max_length=50)
+    customer_code = models.CharField(max_length=50)
+    order_date = models.DateField()
+    delivery_date = models.DateField()
+    net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Draft')
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.so_no} - {self.status}"
+
+    def save(self, *args, **kwargs):
+        # Auto-generate SO number if not exists
+        if not self.so_no:
+            last_so = SalesOrderCreation.objects.all().order_by('id').last()
+            if last_so:
+                last_no = int(last_so.so_no.split('SO')[-1])
+                self.so_no = f"SO{last_no + 1:05d}"
+            else:
+                self.so_no = "SO00001"
+        super().save(*args, **kwargs)
+
+
+class SalesOrderItem(models.Model):
+    so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
+    product_id = models.CharField(max_length=50)
+    product_name = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate unit_total_price
+        self.unit_total_price = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+from django.db import models
+
+
+class Packing(models.Model):
+    pallet = models.CharField(max_length=50)
+    p_mat = models.CharField(max_length=100)   # packing material
+    del_no = models.CharField(max_length=50)   # delivery number
+    gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
+    net_wt = models.DecimalField(max_digits=10, decimal_places=2)
+    volume = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pallet {self.pallet} - Delivery {self.del_no}"
+
+
+class PackedItem(models.Model):
+    packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
+    pallet = models.CharField(max_length=50)
+    p_mat = models.CharField(max_length=100)
+    batch_no = models.CharField(max_length=50)
+    serial_no = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Item {self.serial_no} (Pallet {self.pallet})"

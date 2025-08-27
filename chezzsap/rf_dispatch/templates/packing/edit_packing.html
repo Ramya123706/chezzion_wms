@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-start" style="min-height: 100vh;">
+    <div class="col-md-12">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">Edit Packing</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Read-only fields -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Pallet</b></label>
+                            <input type="text" class="form-control" value="{{ packing.pallet }}" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Packing Material</b></label>
+                            <input type="text" class="form-control" value="{{ packing.p_mat }}" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Delivery No</b></label>
+                            <input type="text" class="form-control" value="{{ packing.del_no }}" readonly>
+                        </div>
+                    
+
+                    <!-- Editable fields -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Gross Weight</b></label>
+                            <input type="number" step="0.01" name="gross_wt" class="form-control" value="{{ packing.gross_wt }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Net Weight</b></label>
+                            <input type="number" step="0.01" name="net_wt" class="form-control" value="{{ packing.net_wt }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><b>Volume</b></label>
+                            <input type="number" step="0.01" name="volume" class="form-control" value="{{ packing.volume }}" required>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Editable Items Table -->
+                    <div class="card shadow mt-4">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Packed Items</h5>
+                            <a href="{% url 'add_packed_item' packing.id %}" class="btn btn-light btn-sm">+ Add Item</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-bordered mb-0 table-striped">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Pallet</th>
+                                        <th>Packing Material</th>
+                                        <th>Batch No</th>
+                                        <th>Serial No</th>
+                                        <th class="text-end">Quantity</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th>Delete?</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>{{ item.pallet }}</td>
+                                        <td>{{ item.p_mat }}</td>
+                                        <td>{{ item.batch_no }}</td>
+                                        <td>{{ item.serial_no }}</td>
+                                        <td class="text-end">
+                                            <input type="number" step="1" name="quantity_{{ item.id }}" class="form-control text-end" value="{{ item.quantity }}">
+                                        </td>
+                                        <td class="text-end">
+                                            <input type="number" step="0.01" name="unit_price_{{ item.id }}" class="form-control text-end" value="{{ item.unit_price }}">
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="checkbox" name="delete_{{ item.id }}">
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">No packed items yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <a href="{% url 'packing_detail' packing.id %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

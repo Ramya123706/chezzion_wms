@@ -1,0 +1,72 @@
+ {% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0">Create Packing</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if packing_form.errors or item_formset.errors %}
+                        <div class="alert alert-danger">
+                            Please fix the errors below.
+                        </div>
+                        {% endif %}
+
+                        <!-- Packing Form -->
+                        {{ packing_form.as_p }}
+
+                        <!-- Packed Items Formset -->
+                        <div class="card shadow mt-4">
+                            <div class="card-header bg-secondary text-white text-center">
+                                <h3 class="mb-0">Packed Items</h3>
+                            </div>
+                            <div class="card-body">
+                                {{ item_formset.management_form }}
+                                <table class="table table-bordered table-hover align-middle">
+                                    <thead class="table-light text-center">
+                                        <tr>
+                                            <th>Pallet</th>
+                                            <th>Packing Material</th>
+                                            <th>Batch No</th>
+                                            <th>Serial No</th>
+                                            <th>Quantity</th>
+                                            <th>Unit Price</th>
+                                            <th>Delete?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for form in item_formset %}
+                                        <tr>
+                                            <td>{{ form.pallet }}</td>
+                                            <td>{{ form.p_mat }}</td>
+                                            <td>{{ form.batch_no }}</td>
+                                            <td>{{ form.serial_no }}</td>
+                                            <td>{{ form.quantity }}</td>
+                                            <td>{{ form.unit_price }}</td>
+                                            <td class="text-center">{{ form.DELETE }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center mt-3 mb-4">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
