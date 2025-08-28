@@ -29,9 +29,45 @@ def new3(request):
     return render(request, 'new3.html')
 def new4(request):
     return render(request, 'new4.html')
-# def one(request):
-#     return render(request, 'truck_screen/one.html')
-# rf_dispatch/views.py
+def three(request):
+    return render(request, 'truck_screen/three.html')
+def four(request):  
+    return render(request, 'truck_screen/four.html')
+def five1(request):
+    return render(request, 'truck_screen/five1.html')
+def six1(request):
+    return render(request, 'truck_screen/six.html')
+def seven1(request):
+    return render(request, 'truck_screen/seven.html')
+def eight1(request):    
+    return render(request, 'truck_screen/eight.html')
+def nine1(request):
+    return render(request, 'truck_screen/nine.html')
+def outbound1(request):
+    return render(request, 'outbound1.html')
+def outbound2(request):
+    return render(request, 'outbound2.html')
+def outbound3(request):
+    return render(request, 'outbound3.html')
+def outbound4(request):
+    return render(request, 'outbound4.html')
+def outbound5(request):
+    return render(request, 'outbound5.html')
+def outbound6(request):
+    return render(request, 'outbound6.html')
+def outbound7(request):
+    return render(request, 'outbound7.html')
+def stock_upload_login(request):
+    return render(request, 'stock_upload/login_in_RFUI.html')
+def stock_menu(request):
+    return render(request, 'stock_upload/stock_menu.html')
+def task(request):
+    return render(request, 'rf_pick_to_light/task_solving.html')
+
+# -------------------------------------
+# TRUCK CHECKIN/CHECKOUT AND INSPECTION
+# -------------------------------------
+
 from django.shortcuts import render, redirect
 from .forms import YardHdrForm
 from .models import Truck
@@ -71,10 +107,8 @@ def yard_checkin_view(request):
                             driver_phn_no=driver_phn_no
                         )
                 except YardHdr.DoesNotExist:
-                    # This should never happen since YardHdr was just saved
                     print(f"YardHdr with truck_no {truck_no} does not exist.")
 
-            # ✅ Redirect to truck_inspection_view with truck_no
             return redirect('truck_inspection', truck_no=instance.truck_no)
 
     else:
@@ -82,31 +116,6 @@ def yard_checkin_view(request):
     warehouses = Warehouse.objects.all()
     
     return render(request, 'truck_screen/one.html', {'form': form, 'warehouses': warehouses, 'truck': Truck.objects.all()})
-
-
-
-
-# def two(request):
-#     return render(request, 'truck_screen/two.html')
-
-# from django.shortcuts import render, redirect
-# from .forms import TruckInspectionForm
-
-# def truck_inspection_view(request):
-#     truck= request.GET.objects.all()
-#     if truck:
-#         truck_no = truck[0].truck_no
-#     else:
-#         truck_no = None
-#     if request.method == 'POST':
-#         form = TruckInspectionForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('two')  
-#     else:
-#         form = TruckInspectionForm()
-#     return render(request, 'truck_screen/two.html', {'form': form})
-
 
 from django.http import JsonResponse
 from .models import Truck
@@ -130,7 +139,7 @@ def get_truck_details(request):
 from django.shortcuts import render, redirect
 from .forms import TruckInspectionForm
 from .models import Pallet, YardHdr, TruckLog
-from .utils import log_truck_status  # create this helper
+from .utils import log_truck_status 
 
 def truck_inspection_view(request, truck_no):
     try:
@@ -146,7 +155,6 @@ def truck_inspection_view(request, truck_no):
         if form.is_valid():
             instance = form.save(commit=False)
 
-            # 🔍 Capture previous status before saving
             old_status = existing_truck.truck_status if existing_truck else None
 
             instance.truck_no = truck_no
@@ -179,41 +187,8 @@ def inspection_summary_view(request):
     inspections = YardHdr.objects.all().order_by('-truck_date', '-truck_time')  # latest first
     return render(request, 'truck_screen/summary.html', {'inspections': inspections})
 
-
-def three(request):
-    return render(request, 'truck_screen/three.html')
-def four(request):  
-    return render(request, 'truck_screen/four.html')
-def five1(request):
-    return render(request, 'truck_screen/five1.html')
-def six1(request):
-    return render(request, 'truck_screen/six.html')
-def seven1(request):
-    return render(request, 'truck_screen/seven.html')
-def eight1(request):    
-    return render(request, 'truck_screen/eight.html')
-def nine1(request):
-    return render(request, 'truck_screen/nine.html')
-def outbound1(request):
-    return render(request, 'outbound1.html')
-def outbound2(request):
-    return render(request, 'outbound2.html')
-def outbound3(request):
-    return render(request, 'outbound3.html')
-def outbound4(request):
-    return render(request, 'outbound4.html')
-def outbound5(request):
-    return render(request, 'outbound5.html')
-def outbound6(request):
-    return render(request, 'outbound6.html')
-def outbound7(request):
-    return render(request, 'outbound7.html')
-
-
 def truck_landing(request):
     return render(request, 'truck_screen/truck_landing_page.html')
-
-
 
 def status_log_view(request, truck_no):
     logs = TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time')
@@ -247,7 +222,6 @@ def truck_log_view(request):
 from .models import YardHdr
 from .forms import Trucksearchform
 
-# View 1: Truck Status (Search by exact truck number using POST)
 def truck_status_view(request, truck_no):
     truck = None
     not_found = False
@@ -270,7 +244,7 @@ def truck_status_view(request, truck_no):
         'trucklog':TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time') if truck else None
     })
 
-# View 2: Truck List (Search using GET, shows list)
+
 def truck_list(request):
     query = request.GET.get('search')
     if query:
@@ -280,12 +254,9 @@ def truck_list(request):
 
     return render(request, 'truck_screen/truck_list.html', {'trucks': trucks, 'query': query})
 
-# View 3: Truck Detail (View single truck by whs_no)
-from .models import YardHdr, TruckLog
-from .utils import log_truck_status  # Assuming your log function is in utils.py
 
 from .models import YardHdr, TruckLog
-from .utils import log_truck_status  # Assuming your log function is in utils.py
+from .utils import log_truck_status  
 
 def truck_detail(request, truck_no):
     try:
@@ -305,19 +276,13 @@ def truck_detail(request, truck_no):
             'logs': logs
         })
 
-
     except YardHdr.DoesNotExist:
         return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
-
-
-
-
-# views.py
 
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import YardHdr
-from .utils import log_truck_status  # Ensure this utility function is defined
+from .utils import log_truck_status  
 
 def update_truck_status(request, truck_no):
     if request.method == 'POST':
@@ -335,27 +300,16 @@ def update_truck_status(request, truck_no):
 
         return redirect('truck_detail', truck_no=truck_no)  
 
-def stock_upload_login(request):
-    return render(request, 'stock_upload/login_in_RFUI.html')
-
-def stock_menu(request):
-    return render(request, 'stock_upload/stock_menu.html')
-
-# views.py
-from django.shortcuts import render, redirect
-from .models import StockUpload
-
-# views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import StockUpload
-
+# ------------
+# STOCK UPLOAD
+# -------------
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, StockUpload
 
 def batch_product_view(request):
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
-        product_id = request.POST.get('product')  # Product ID
+        product_id = request.POST.get('product')  
         description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
@@ -390,7 +344,6 @@ def batch_product_view(request):
                 pallet_status=pallet_status
             )
 
-            # Render with success flag
             products = Product.objects.all()
             
             return render(request, 'stock_upload/batch_product.html', {
@@ -412,7 +365,6 @@ def batch_product_view(request):
                 
             })
 
-    # GET request
     products = Product.objects.all()
     warehouse = Warehouse.objects.all()
     bins = Bin.objects.all()
@@ -434,54 +386,20 @@ def stock_detail_view(request, pallet):
     stock = get_object_or_404(StockUpload, pallet=pallet)
     return render(request, 'stock_upload/stock_detail.html', {'stock': stock})
 
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Warehouse
-from .forms import WarehouseForm
-
-# Create or update a warehouse
-# def warehouse_view(request):
-#     if request.method == 'POST':
-#         form = WarehouseForm(request.POST)
-#         if form.is_valid():
-#             warehouse = form.save()
-#             # ✅ Correct redirect to the detail view using the proper URL name
-#             return redirect('warehouse_detail', whs_no=warehouse.whs_no)
-#     else:
-#         form = WarehouseForm()
-#     return render(request, 'warehouse/warehouse.html', {'form': form})
-
-
-# # Display warehouse details
-# def warehouse_detail_view(request, whs_no):
-#     warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
-#     return render(request, 'warehouse/warehouse_details.html', {'warehouse': warehouse})
-
-
-# def warehouse_list(request):
-#     query = request.GET.get('search')
-#     if query:
-#         warehouses = Warehouse.objects.filter(whs_no__icontains=query)
-#     else:
-#         warehouses = Warehouse.objects.all()
-#     return render(request, 'warehouse/warehouse.html', {'warehouses': warehouses})
-
-
-# def warehouse_search_view(request, whs_no):
-#     return render(request, 'warehouse/warehouse_search_details.html', {'whs_no': whs_no})
-
-
+# -----------
+# WAREHOUSE
+# -----------
 
 from django.shortcuts import render, redirect
 from .models import Warehouse
 from .forms import WarehouseForm
 
 def warehouse_view(request):
-    # === FORM HANDLING (Left Side) ===
     if request.method == 'POST':
         form = WarehouseForm(request.POST, request.FILES)
         if form.is_valid():
             warehouse = form.save()
-            return redirect('warehouse_detail', whs_no=warehouse.whs_no)  # Replace with your URL name
+            return redirect('warehouse_detail', whs_no=warehouse.whs_no) 
     else:
         form = WarehouseForm()
 
@@ -490,15 +408,13 @@ def warehouse_view(request):
     if query:
         warehouses = Warehouse.objects.filter(whs_no__icontains=query)
     else:
-        warehouses = Warehouse.objects.all()  # Show all if no search
+        warehouses = Warehouse.objects.all() 
 
     return render(request, 'warehouse/warehouse.html', {
         'form': form,
         'warehouses': warehouses,
         'query': query
     })
-
-
 
 def warehouse_detail_view(request, whs_no):
     warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
@@ -508,10 +424,6 @@ def warehouse_search_view(request, whs_no):
     warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
     return render(request, 'warehouse/warehouse_search_details.html', {'warehouse': warehouse})
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Warehouse
-from .forms import WarehouseForm
-
 def edit_warehouse(request, whs_no):
     warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
 
@@ -519,7 +431,7 @@ def edit_warehouse(request, whs_no):
         form = WarehouseForm(request.POST, request.FILES, instance=warehouse)
         if form.is_valid():
             form.save()
-            return redirect('warehouse_view')  # or 'warehouse_search_details', whs_no=warehouse.whs_no
+            return redirect('warehouse_view')  
     else:
         form = WarehouseForm(instance=warehouse)
 
@@ -536,75 +448,6 @@ from .models import Product
 from django.utils import timezone
 from .forms import ProductForm
 
-# def add_product(request):
-#     if request.method == 'POST':
-#         name = request.POST.get('name')
-#         product_id = request.POST.get('id')
-#         quantity = request.POST.get('quantity')
-#         pallet_no = request.POST.get('pallet_no')
-#         sku = request.POST.get('sku')
-#         description = request.POST.get('description')
-#         unit_of_measure = request.POST.get('unit_of_measure')
-#         category = request.POST.get('category')
-#         re_order_level = request.POST.get('re_order_level')
-#         images = request.FILES.get('images')
-
-#         try:
-#             product = Product.objects.create(
-#                 product_id=product_id,
-#                 name=name,
-#                 quantity=quantity,
-#                 pallet_no=pallet_no,
-#                 sku=sku,
-#                 description=description,
-#                 unit_of_measure=unit_of_measure,
-#                 category=category,
-#                 re_order_level=re_order_level,
-#                 images=images,
-#                 created_at=timezone.now(),
-#                 updated_at=timezone.now()
-#             )
-#             return redirect('product_detail', product_id=product.product_id)
-#         except Exception as e:
-#             return render(request, 'product/add_product.html', {'error': str(e)})
-
-#     return render(request, 'product/add_product.html')
-
-# from django.shortcuts import get_object_or_404, render, redirect
-# from .models import Product
-
-# def product_edit(request, product_id):
-#     product = get_object_or_404(Product, product_id=product_id)
-
-#     if request.method == "POST":
-#         product.name = request.POST.get('name')
-#         product.quantity = request.POST.get('quantity')
-#         product.pallet_no = request.POST.get('pallet_no')
-#         product.sku = request.POST.get('sku')
-#         product.description = request.POST.get('description')
-#         product.unit_of_measure = request.POST.get('unit_of_measure')
-#         product.category = request.POST.get('category')
-#         product.re_order_level = request.POST.get('re_order_level')
-#         if request.FILES.get('images'):
-#             product.images = request.FILES['images']
-
-#         try:
-#             product.save()
-#             return redirect('product_list')  
-#         except Exception as e:
-#             print("Save failed:", e)  
-#             return render(request, 'product/product_edit.html', {'product': product, 'error': str(e)})
-
-#     return render(request, 'product/product_edit.html', {'product': product})
-
-
-
-
-# def product_list(request):
-#     products = Product.objects.all()
-#     return render(request, 'product/product_list.html', {'products': products})
-
-
 def product_view(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -612,7 +455,7 @@ def product_view(request):
             product = form.save()
             return redirect('product_detail', product_id=product.product_id)
         else:
-            print("❌ Form errors:", form.errors)  # Debug print (optional)
+            print("❌ Form errors:", form.errors) 
     else:
         form = ProductForm()
 
@@ -629,32 +472,14 @@ def product_view(request):
         'categories': Category.objects.all(),
     })
 
-
-
-
 def product_detail_view(request, product_id):
     product = get_object_or_404(
         Product.objects.prefetch_related(
-            "purchaseitem_set__purchase_order"  # prefetch purchase items + their orders
+            "purchaseitem_set__purchase_order"  
         ),
         product_id__iexact=product_id
     )
     return render(request, "product/product_detail.html", {"product": product})
-
-
-
-# def get_category(request):
-#     category = request.GET.get('category')
-#     try:
-#         product = Product.objects.get(name=category)
-#         data = {
-#             'category': product.category
-#         }
-#     except Product.DoesNotExist:
-#         data = {
-#             'category': '',
-#         }
-#     return JsonResponse(data)
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
@@ -697,32 +522,13 @@ def add_product(request):
     return render(request, 'product/add_product.html')
 
 
-
-# from django.shortcuts import render, get_object_or_404, redirect
-# from .models import Product
-# from .forms import  ProductForm
-# from django.contrib import messages
-
-# def product_detail(request, product_id):
-#    product= get_object_or_404(Product, product_id=product_id)
-#    return render(request, 'product/product_detail.html', {'product': product})
-
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from .models import Product
 from .forms import ProductForm
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
 from .models import Product
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Product, Category
+from .models import Category
 
 def product_edit(request, product_id):
-    # Fetch product or return 404 if not found
     product = get_object_or_404(Product, product_id=product_id)
     categories = Category.objects.all()
 
@@ -736,16 +542,13 @@ def product_edit(request, product_id):
         product.unit_of_measure = request.POST.get('unit_of_measure')
         product.re_order_level = request.POST.get('re_order_level')
 
-        # Handle category (foreign key)
         category_id = request.POST.get('category')
         if category_id:
             try:
                 product.category_id = int(category_id)
             except ValueError:
-                pass  # ignore invalid value
+                pass  
 
-
-        # If image upload is enabled later
         if request.FILES.get('images'):
             product.images = request.FILES['images']
 
@@ -778,31 +581,31 @@ def get_product_description(request, product_id):
         return JsonResponse({'error': 'Product not found'}, status=404)
 
 
-  
-# views.py
+def product_delete(request, product_id):
+
+    product = get_object_or_404(Product, product_id=product_id)
+    product.delete()
+    return redirect('product_list') 
+
+# --------
+# INVENTORY
+# --------
 from .models import Inventory
 
 def inventory_view(request):
     inventory = Inventory.objects.select_related('product').all()
     return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
 
-  
-
-def product_delete(request, product_id):
-
-    product = get_object_or_404(Product, product_id=product_id)
-    product.delete()
-    return redirect('product_list')  
-
-
-# .......................
-# customers.views.py
-# .......................
+   
+# .........
+# CUSTOMERS
+# .........
 from .forms import CustomerForm
 from .models import Customers
 from.models import Vendor
 from django.utils import timezone
 from django.contrib import messages
+
 def add_customers(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -867,49 +670,40 @@ def whs_no_dropdown_view(request):
     warehouses = Warehouse.objects.all()
     return render(request, 'stock_upload/batch_product.html', {'warehouses': warehouses})
 
-
-from .forms import PalletForm
-
+# -----
+# PALLET
+# ------
 from django.shortcuts import render, redirect
-from .forms import PalletForm
-from .models import Pallet
 from django.contrib.auth.models import User
-
-
-from django.shortcuts import render, redirect
 from django.db import transaction
 from .forms import PalletForm
 from .models import Pallet
-
-from django.db import transaction
+from django.shortcuts import render, get_object_or_404
 
 def creating_pallet(request):
     if request.method == 'POST':
         form = PalletForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
-                # Create the main pallet
+                
                 pallet = form.save(commit=False)
                 pallet.created_by = str(request.user)
                 pallet.updated_by = str(request.user)
                 pallet.created_at = timezone.now()
                 pallet.save()
 
-                # Handle creating child pallets if requested
+                
                 has_children = form.cleaned_data.get('has_child_pallets')
                 num_children = form.cleaned_data.get('number_of_children') or 0
 
-                # Only create children if:
-                # - checkbox is ticked
-                # - no parent pallet selected (so it's a true parent)
-                # - number of children > 0
+               
                 if has_children and not pallet.parent_pallet and num_children > 0:
                     for _ in range(num_children):
                         child = Pallet(
                             parent_pallet=pallet,
                             product=pallet.product,
                             p_mat=pallet.p_mat,
-                            quantity=0,  # or split from parent if you want
+                            quantity=0, 
                             weight=None,
                             created_at=pallet.created_at,
                             created_by=pallet.created_by,
@@ -933,12 +727,6 @@ def creating_pallet(request):
         'query': query
     })
 
-from django.shortcuts import render, get_object_or_404
-from .models import Pallet
-
-from django.shortcuts import render, get_object_or_404
-from .models import Pallet
-
 def pallet_detail(request, pallet_no):
     pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
     # Get children pallets (if any)
@@ -948,17 +736,9 @@ def pallet_detail(request, pallet_no):
         'child_pallets': child_pallets
     })
 
-
-
-
-
 def pallet_search(request, pallet_no):
     pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
     return render(request, 'pallet/pallet_search_details.html', {'pallet': pallet})
-
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Pallet
-from .forms import PalletForm
 
 def edit_pallet(request, pallet_no):
     pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
@@ -979,64 +759,19 @@ def delete_pallet(request, pallet_no):
     messages.success(request, "Pallet deleted successfully.")
     return redirect('creating_pallet')
 
-# from django.shortcuts import render, redirect
-
-
-from django.shortcuts import render, redirect
-from .models import Vendor  # make sure you import the model
-
-
-# def add_vendor(request):
-#     if request.method == 'POST':
-#         name = request.POST.get('name')
-#         vendor_code = request.POST.get('vendor_code') 
-#         email = request.POST.get('email')
-#         phone_no = request.POST.get('phone_no')
-#         address = request.POST.get('address')
-#         location = request.POST.get('location')
-#         profile_image = request.FILES.get('profile_image')  
-
-#         new_vendor = Vendor(
-#             name=name,
-#             vendor_code=vendor_code,
-#             email=email,
-#             phone_no=phone_no,
-#             address=address,
-#             location=location,
-#             profile_image=profile_image
-#         )
-#         new_vendor.save()
-
-#         return redirect('vendor_detail', vendor_id=new_vendor.id)
-
-#     return render(request, 'vendor/add_vendor.html')
-  
-
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PurchaseOrderForm
-from .models import PurchaseOrder
+from .models import PurchaseOrder, PurchaseItem
 from decimal import Decimal
 
-from django.shortcuts import render, redirect, get_object_or_404
-from decimal import Decimal
-from .models import PurchaseOrder
-from django.urls import reverse
-from decimal import Decimal
-from django.shortcuts import render, redirect
-from .models import PurchaseOrder
-
-from django.shortcuts import render, redirect
-from decimal import Decimal, InvalidOperation
-from .models import PurchaseOrder
-
-from django.shortcuts import render, redirect
-from decimal import Decimal
-from .models import PurchaseOrder, Product, PurchaseItem
+# --------------------
+# PURCHASE ORDER
+# -------------------
 
 def add_purchase(request):
     if request.method == 'POST':
         try:
-            # 1️⃣ Save Purchase Order first
+           
             po = PurchaseOrder.objects.create(
             company_name=request.POST.get('company_name'),
             company_address=request.POST.get('company_address'),
@@ -1055,7 +790,7 @@ def add_purchase(request):
         )
 
 
-            # 2️⃣ Loop through multiple products
+            
             item_numbers = request.POST.getlist('item_number[]')
             product_names = request.POST.getlist('product_name[]')
             quantities = request.POST.getlist('quantity[]')
@@ -1067,25 +802,25 @@ def add_purchase(request):
                 quantity = int(quantities[i])
                 unit_price = Decimal(unit_prices[i])
 
-                # 3️⃣ Check if product already exists
+                
                 product, created = Product.objects.get_or_create(
                     product_id=item_number,
                     defaults={
                         'name': product_name,
-                        'quantity': 0,   # will update below
+                        'quantity': 0,  
                         'pallet_no': f"PALLET-{item_number}",
                         'sku': f"SKU-{item_number}",
                         'description': product_name,
                         'unit_of_measure': "pcs",
-                        're_order_level': 10,   # or set your default
+                        're_order_level': 10,   
                     }
                 )
 
-                # 4️⃣ Update stock quantity
+               
                 product.quantity += quantity
-                product.save()   # this automatically updates Inventory too ✅
+                product.save()   
 
-                # 5️⃣ Save Purchase Item (line item of the PO)
+                
                 PurchaseItem.objects.create(
                     purchase_order=po,
                     product=product,
@@ -1105,42 +840,16 @@ def add_purchase(request):
 
     return render(request, 'purchase_order/add_purchase.html')
 
-
-
-# from django.shortcuts import render, redirect
-# from .forms import PurchaseOrderForm
-# from models import PurchaseOrder
-
-
-# def add_purchase(request):
-#     if request.method == 'POST':
-#         form = PurchaseOrderForm(request.POST)
-#         if form.is_valid():
-#             purchase_order = form.save()
-#             return redirect('add_purchase', pk=purchase_order.pk)  # Redirect to PDF view
-#     else:
-#         form = PurchaseOrderForm()
-#     return render(request, 'purchase_order/add_purchase.html', {'form': form})
-
-
-from django.shortcuts import render, get_object_or_404
-from .models import PurchaseOrder
-
-
-
 def purchase_detail(request, pk):
     po = PurchaseOrder.objects.get(pk=pk)
     return render(request, "purchase_order/purchase_detail.html", {"po": po})
 
-    
-# views.py
-from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from weasyprint import HTML
 from django.template.loader import render_to_string
-from .models import PurchaseOrder  # Replace with your actual model
 
-def download_po_pdf(request, pk):  # <-- Accept `pk` here
+
+def download_po_pdf(request, pk): 
     po = get_object_or_404(PurchaseOrder, pk=pk)
     html_string = render_to_string('purchase_order/purchase_order_pdf.html', {'po': po})
 
@@ -1156,35 +865,12 @@ def download_po_pdf(request, pk):  # <-- Accept `pk` here
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder
-from .forms import PurchaseOrderForm
-
-# def purchase_edit(request, po_id):
-#     # Get the existing PurchaseOrder or return 404
-#     po = get_object_or_404(PurchaseOrder, id=po_id)
-
-#     if request.method == 'POST':
-#         form = PurchaseOrderForm(request.POST, request.FILES, instance=po)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, "Purchase order updated successfully.")
-#             return redirect('purchase_detail')  # Change this if needed
-#     else:
-#         form = PurchaseOrderForm(instance=po) 
-
-#     return render(request, 'purchase_order/purchase_edit.html', {
-#         'form': form, 
-#         'po': po,
-#     })
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import PurchaseOrder
 
 def purchase_edit(request, po_number):
     po = get_object_or_404(PurchaseOrder, po_number=po_number)
 
     if request.method == 'POST':
-        # Update all fields manually 
+        
         po.company_name = request.POST.get('company_name')
         po.company_address = request.POST.get('company_address')
         po.company_phone = request.POST.get('company_phone')
@@ -1202,13 +888,6 @@ def purchase_edit(request, po_number):
         po.vendor_email = request.POST.get('vendor_email')
         po.vendor_website = request.POST.get('vendor_website')
 
-        # po.ship_to_name = request.POST.get('ship_to_name')
-        # po.ship_to_company_name = request.POST.get('ship_to_company_name')
-        # po.ship_to_address = request.POST.get('ship_to_address')
-        # po.ship_to_phone = request.POST.get('ship_to_phone')
-        # po.ship_to_email = request.POST.get('ship_to_email')
-        # po.ship_to_website = request.POST.get('ship_to_website')
-
         po.item_number = request.POST.get('item_number')
         po.product_name = request.POST.get('product_name')
         po.product_quantity = request.POST.get('product_quantity')
@@ -1225,55 +904,15 @@ def purchase_edit(request, po_number):
 def rf_ptl(request):
     return render(request, 'rf_pick_to_light/dashboard.html')
 
-from django.shortcuts import render, redirect
-from .models import Bin
-
-from django.shortcuts import render, redirect
-from .models import Bin, Warehouse
-
-# def create_bin(request):
-#     if request.method == 'POST':
-#         try:
-#             whs_no_input = request.POST.get('whs_no')
-#             bin_id = request.POST.get('bin_id')
-#             capacity = request.POST.get('capacity')
-#             category = request.POST.get('category')
-#             product = request.POST.get('product')
-#             existing_quantity = request.POST.get('existing_quantity')
-#             updated_by = request.POST.get('updated_by')
-#             created_by = request.POST.get('created_by')
-
-#             # Validate and get Warehouse object
-#             try:
-#                 warehouse = Warehouse.objects.get(whs_no=whs_no_input)
-#             except Warehouse.DoesNotExist:
-#                 return render(request, 'bin/create_bin.html', {'error': f"Warehouse {whs_no_input} does not exist."})
-
-#             # Save Bin
-#             Bin.objects.create(
-#                 whs_no=warehouse,
-#                 bin_id=bin_id,
-#                 capacity=int(capacity),
-#                 category=category,
-#                 products=product,
-#                 existing_quantity=int(existing_quantity),
-#                 updated_by=updated_by,
-#                 created_by=created_by
-#             )
-
-#             return redirect('create_bin')  # Replace with your actual success URL name
-
-#         except Exception as e:
-#             return render(request, 'bin/create_bin.html', {'error': str(e)})
-
-#     return render(request, 'bin/create_bin.html')
-
-# from .models import Warehouse
-
-
+# -----------------
+# BIN
+# -----------------
 
 from django.shortcuts import render, redirect
 from .models import Bin, Warehouse, Category
+from django.http import JsonResponse
+from .forms import CategoryForm
+
 
 def create_bin(request):
     if request.method == 'POST':
@@ -1301,35 +940,21 @@ def create_bin(request):
                 'error': str(e),
                 'warehouse': Warehouse.objects.all(),
                 'bins': Bin.objects.all(),
-                'categories': Category.objects.all(),  # ✅ add this line
+                'categories': Category.objects.all(), 
             })
 
-    # For GET request
     return render(request, 'bin/create_bin.html', {
         'warehouse': Warehouse.objects.all(),
         'bins': Bin.objects.all(),
-        'categories': Category.objects.all(),  # ✅ add this line
+        'categories': Category.objects.all(), 
     })
-
-
-def task(request):
-    return render(request, 'rf_pick_to_light/task_solving.html')
-
-
-from django.http import JsonResponse
-from .models import Category
-import json
-
-from django.shortcuts import render, redirect
-from .forms import CategoryForm
-from .models import Category
 
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('create_bin')  # Redirect to the main form page
+            return redirect('create_bin')  
     else:
         form = CategoryForm()
     categories = Category.objects.all()
@@ -1338,31 +963,13 @@ def add_category(request):
         'category_form': form,
     })
 
-
-# def vendor_detail(request, vendor_id):  
-#     vendor = get_object_or_404(Vendor, id=vendor_id)
-#     return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
-
-# def vendor_edit(request, vendor_id):
-#     Vendor = get_object_or_404(Vendor, id=vendor_id)
-
-# def vendor_list(request):
-#     vendors = Vendor.objects.all()
-#     return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
-
+# -----------------
+# VENDOR
+# -----------------
 
 from django.shortcuts import render, redirect
 from .models import Vendor
-
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vendor
-
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Vendor
-
-# Add vendor
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Vendor
 from .forms import VendorForm
 
 def add_vendor(request, vendor_id=None):
@@ -1374,9 +981,9 @@ def add_vendor(request, vendor_id=None):
 
     if request.method == 'POST' and form.is_valid():
         saved_vendor = form.save()
-        return redirect('vendor_detail', vendor_id=saved_vendor.vendor_id)  # pass vendor_id
+        return redirect('vendor_detail', vendor_id=saved_vendor.vendor_id)
 
-    # search logic (if you still want search on same page)
+    
     search_query = request.GET.get('search', '')
     vendors = Vendor.objects.filter(vendor_id__icontains=search_query) if search_query else Vendor.objects.none()
 
@@ -1387,11 +994,6 @@ def add_vendor(request, vendor_id=None):
     }
     return render(request, 'vendor/add_vendor.html', context)
 
-
-
-
-
-# Vendor list (for search table)
 def vendor_list(request):
     search_query = request.GET.get('search')
     if search_query:
@@ -1401,14 +1003,10 @@ def vendor_list(request):
 
     return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
 
-
-# Vendor details
 def vendor_detail(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
     return render(request, 'vendor/vendor_detail.html', {'vendor': vendor})
 
-
-# Edit vendor
 def vendor_edit(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
     if request.method == 'POST':
@@ -1423,16 +1021,33 @@ def vendor_edit(request, vendor_id):
         return redirect('vendor_list')
     return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
 
-
-
 def vendor_delete(request, vendor_id):
     if request.method == 'POST':
         vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
         vendor.delete()
     return redirect('vendor_list') 
 
+from django.shortcuts import render
+from .models import Vendor
 
-    
+def vendor_list(request):
+    vendors = Vendor.objects.all()
+    return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
+
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import Vendor
+
+def vendor_delete(request, vendor_id):
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    vendor.delete()
+    return redirect('vendor_list')
+
+
+# ----------------
+# PUTAWAY
+# ----------------
+
 from django.shortcuts import render, get_object_or_404
 from .models import Putaway 
 from django.shortcuts import render, redirect
@@ -1456,26 +1071,13 @@ def putaway_task(request):
         )
         putaway.save()
 
-        return redirect('putaway_pending')  # adjust if needed
+        return redirect('putaway_pending')
 
     return render(request, 'putaway/putaway_task.html')
     
 def putaway_pending(request):
     pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
     return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
-
-    # if request.method == 'POST':
-    #     putaway.pallet = request.POST.get('pallet')
-    #     putaway.location = request.POST.get('location')
-    #     putaway.status = request.POST.get('status')
-    #     putaway.save()
-    #     return redirect('putaway_pending')  # or some other appropriate page
-
-    # return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
-
-
-from .models import Putaway
-from .forms import PutawayForm
 
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)  # or use putaway_id=putaway_id if field is unique
@@ -1492,9 +1094,6 @@ def edit_putaway(request, putaway_id):
 
     return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
 
-
-
-
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
     putaway.status = "Completed"
@@ -1507,29 +1106,9 @@ def delete_putaway(request,putaway_id):
     task.delete()
     messages.success(request, "Task deleted successfully.")
     return redirect('putaway_pending')
-  
-  
-  
-  
-  
-from django.shortcuts import render
-from .models import Vendor
-
-def vendor_list(request):
-    vendors = Vendor.objects.all()
-    return render(request, 'vendor/vendor_list.html', {'vendors': vendors})
 
 
-from django.shortcuts import get_object_or_404, redirect
-from .models import Vendor
-
-def vendor_delete(request, vendor_id):
-    vendor = get_object_or_404(Vendor, id=vendor_id)
-    vendor.delete()
-    return redirect('vendor_list')
-
-
-from .models import Warehouse  # replace with your warehouse model name
+from .models import Warehouse 
 
 def whs_suggestions(request):
     query = request.GET.get('q', '')
@@ -1542,7 +1121,7 @@ def whs_suggestions(request):
     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
-from .models import Truck  # or your truck model
+from .models import Truck 
 
 def truck_suggestions(request):
     query = request.GET.get('q', '')
@@ -1555,9 +1134,6 @@ def truck_suggestions(request):
     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
-from .models import Product  # Adjust import to match your app
-
-from django.http import JsonResponse
 from .models import Product
 
 def product_suggestions(request):
@@ -1566,37 +1142,17 @@ def product_suggestions(request):
     if not query:
         return JsonResponse({'results': []})
 
-    # Fetch matching products
     products = Product.objects.filter(
         name__icontains=query
     ).values(
-        'product_id',   # must exist in your Product model
+        'product_id',   
         'name',
         'description',
         'category'
-    )[:10]  # Limit to 10 suggestions
+    )[:10]  
 
     return JsonResponse({'results': list(products)})
 
-
-# def product_suggestions(request):
-#     query = request.GET.get('q', '')
-#     results = []
-
-#     if query:
-#         products = Product.objects.filter(
-#             product_id__icontains=query
-#         )[:10]  # Limit to top 10 matches
-
-#         for p in products:
-#             results.append({
-#                 'product_id': p.product_id,
-#                 'name': p.name,
-#                 'description': p.description,
-#                 'category': p.category,
-#             })
-
-#     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
 from .models import Warehouse  # Replace with your actual model
@@ -1612,7 +1168,7 @@ def whs_suggestions(request):
     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
-from .models import Category  # Adjust based on your model
+from .models import Category  
 
 def category_suggestions(request):
     query = request.GET.get('q', '')
@@ -1624,6 +1180,10 @@ def category_suggestions(request):
 
     return JsonResponse({'results': results})
 
+# ------------------
+# PICKING
+# -----------------
+
 from django.shortcuts import render, redirect
 from .models import Picking
 from .forms import PickingForm
@@ -1633,7 +1193,6 @@ def add_picking(request):
        
         picking_id = request.POST.get('picking_id')
         pallet = request.POST.get('pallet')
-        # created_by = request.POST.get('created_by')
         location = request.POST.get('location')
         product = request.POST.get('product')
         quantity = request.POST.get('quantity')
@@ -1643,7 +1202,6 @@ def add_picking(request):
         Picking.objects.create(
             picking_id=picking_id,
             pallet=pallet,
-            # created_by=created_by,
             location=location,
             product=product,
             quantity=quantity,
@@ -1656,21 +1214,7 @@ def add_picking(request):
     
 def pending_task(request):
     pending_picking = Picking.objects.filter(status__iexact='In Progress').order_by('picking_id')
-    # pending_picking=Picking.objects.all()
     return render(request, 'picking/picking_pending_task.html', {'pending_picking': pending_picking})
-
-
-# def edit_picking(request, picking_id): 
-#     picking = get_object_or_404(Picking, picking_id=picking_id)
-#     if request.method == 'POST':
-#         form = PickingForm(request.POST, instance=picking)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('pending_task')  
-#     else:
-#         form = PickingForm(instance=picking)
-
-#     return render(request, 'picking/add_picking.html', {'form': form})
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Picking
@@ -1682,7 +1226,6 @@ def edit_picking(request, picking_id):
         form = PickingForm(request.POST, instance=picking)
         if form.is_valid():
             form.save()
-            return redirect('pending_task')  # or your listing page
     else:
         form = PickingForm(instance=picking)
 
@@ -1712,38 +1255,23 @@ def customer(request):
         form = CustomerForm()
     return render(request, 'picking/customer.html', {'form': form, 'products': products})
 
-    
-from django.shortcuts import render, get_object_or_404
-from .models import InboundDelivery
-from .forms import InboundDeliveryForm
+# -------------
+# INBOUND DELIVERY
+# -------------
 
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from .models import InboundDelivery
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .forms import InboundDeliveryForm
-from .models import InboundDelivery
-
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render,get_object_or_404, redirect
 from django.contrib import messages
 from .models import InboundDelivery, InboundDeliveryproduct, Warehouse , Vendor , PurchaseOrder
-from django.shortcuts import render, redirect
-from .models import InboundDelivery, InboundDeliveryproduct
 import random
 
 def generate_inbound_delivery_number():
     return f"IBD{random.randint(1000, 9999)}"
-import random
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import InboundDelivery, InboundDeliveryproduct, Vendor, Warehouse, PurchaseOrder
 
 def generate_inbound_delivery_number():
     return f"IBD{random.randint(1000, 9999)}"
 
 def inbound_delivery(request):
-    # GET-related queries (always executed)
+    
     search_term = request.GET.get('inbound_delivery_number')
     if search_term:
         deliveries = InboundDelivery.objects.filter(
@@ -1755,7 +1283,7 @@ def inbound_delivery(request):
     warehouses = Warehouse.objects.all().order_by('whs_no')
     vendors = Vendor.objects.all()
     purchase_orders = PurchaseOrder.objects.all()
-    products_list = Product.objects.all().order_by('name')  # renamed to avoid conflict
+    products_list = Product.objects.all().order_by('name')  
 
     if request.method == 'POST':
         inbound_delivery_number = generate_inbound_delivery_number()
@@ -1775,7 +1303,7 @@ def inbound_delivery(request):
             remarks=request.POST.get('remarks')
         )
 
-        product_ids = request.POST.getlist('product[]')  # renamed
+        product_ids = request.POST.getlist('product[]') 
         descriptions = request.POST.getlist('product_description[]')
         qty_delivered = request.POST.getlist('quantity_delivered[]')
         qty_received = request.POST.getlist('quantity_received[]')
@@ -1806,7 +1334,8 @@ def inbound_delivery(request):
     })
 
 from django.shortcuts import render, get_object_or_404
-from .models import InboundDelivery, InboundDeliveryproduct
+from .models import InboundDelivery, InboundDeliveryproduct,  PurchaseOrder, Product
+from django.http import JsonResponse
 
 def delivery_detail(request, inbound_delivery_number):
     delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)
@@ -1816,18 +1345,11 @@ def delivery_detail(request, inbound_delivery_number):
         'ibdproducts': ibdproducts,
     })
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import InboundDelivery
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import InboundDelivery, InboundDeliveryproduct, Vendor, PurchaseOrder
-from django.http import JsonResponse
-from .models import PurchaseOrder, Product  # adjust import based on your models
-
 def get_po_products(request, po_id):
     try:
         po = PurchaseOrder.objects.get(pk=po_id)
-        # Assuming you have a relation between PO and Product (like M2M or FK)
-        products = po.purchase_items.all()  # change this based on your relation
+        
+        products = po.purchase_items.all() 
         data = []
         for item in products:
             data.append({
@@ -1895,14 +1417,11 @@ def edit_pallet(request, pallet_no):
         form = PalletEditForm(request.POST, instance=pallet)
         if form.is_valid():
             form.save()
-            return redirect('creating_pallet')  # redirect back to main pallet page
+            return redirect('creating_pallet')  
     else:
         form = PalletEditForm(instance=pallet)
 
     return render(request, 'pallet/edit_pallet.html', {'form': form, 'pallet': pallet})
-
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
 
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
@@ -1919,12 +1438,12 @@ def add_child_pallet(request):
                 parent_pallet=parent,
                 product=parent.product,
                 p_mat=parent.p_mat,
-                quantity=0,  # or copy from parent
-                weight=0,    # or copy from parent
+                quantity=0, 
+                weight=0,    
             )
         
         messages.success(request, f"{num_children} child pallet(s) created for {parent_no}")
-        return redirect('creating_pallet')  # replace with your view name
+        return redirect('creating_pallet')  
 
 from django.shortcuts import render
 from .models import PurchaseOrder
@@ -1933,7 +1452,7 @@ from django.shortcuts import render
 from .models import PurchaseOrder
 
 def purchase_list_view(request):
-    search_query = request.GET.get("q", "")  # Get search keyword from query params
+    search_query = request.GET.get("q", "")
     purchase_orders = PurchaseOrder.objects.all().order_by("-po_date")
 
     if search_query:
@@ -1941,7 +1460,6 @@ def purchase_list_view(request):
             po_number__icontains=search_query
         )
 
-    # Pagination (5 per page, you can change)
     paginator = Paginator(purchase_orders, 5)
     page_number = request.GET.get("page")
     purchase_orders_page = paginator.get_page(page_number)
@@ -1949,28 +1467,25 @@ def purchase_list_view(request):
     return render(request, "purchase_order/purchase_list.html", {
         "purchase_orders": purchase_orders_page,
         "search_query": search_query
-    })
-    
-    
-from django.shortcuts import render, redirect
-from .models import SalesOrderCreation
-from .forms import SalesOrderCreationForm  
-from django.shortcuts import render, redirect, get_object_or_404
+    }) 
+ 
+# ----------------
+# SALES ORDER
+# ---------------
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import SalesOrderCreation, SalesOrderItem, Warehouse, Product
 from django.utils.crypto import get_random_string
 
-# helper function to generate SO number
+
 def generate_so_no():
     last_so = SalesOrderCreation.objects.order_by('-id').first()
     if last_so:
-        # Example: SO0005 → take number part and increment
         last_number = int(last_so.so_no.replace("SO", ""))
         new_number = last_number + 1
     else:
         new_number = 1
-    return f"SO{new_number:04d}"   # SO0001, SO0002, etc.
+    return f"SO{new_number:04d}"  
 
 from django.http import JsonResponse
 from .models import Warehouse
@@ -1982,13 +1497,13 @@ def get_warehouse_address(request, whs_id):
     except Warehouse.DoesNotExist:
         return JsonResponse({"error": "Warehouse not found"}, status=404)
     
-# views.py
+
 from django.http import JsonResponse
 from .models import Product
 
 def product_autocomplete(request):
-    term = request.GET.get('term', '')  # what user typed
-    products = Product.objects.filter(name__icontains=term)[:10]  # limit 10 suggestions
+    term = request.GET.get('term', '')  
+    products = Product.objects.filter(name__icontains=term)[:10]  
     suggestions = []
     for p in products:
         suggestions.append({
@@ -2004,7 +1519,7 @@ def sales_order_creation(request):
 
     if request.method == 'POST':
         try:
-            # Validate warehouse
+           
             whs_no = request.POST.get('whs_no')
             if not whs_no:
                 raise ValueError("Warehouse is required")
@@ -2014,7 +1529,6 @@ def sales_order_creation(request):
             except Warehouse.DoesNotExist:
                 raise ValueError("Selected warehouse does not exist")
 
-            # Validate product data
             product_ids = request.POST.getlist('product_id[]')
             product_names = request.POST.getlist('product_name[]')
             quantities = request.POST.getlist('quantity[]')
@@ -2027,7 +1541,6 @@ def sales_order_creation(request):
             net_total = Decimal(0)
 
             with transaction.atomic():
-                # Create Sales Order
                 so_no_obj = SalesOrderCreation.objects.create(
                     whs_no=warehouse,
                     whs_address=warehouse.address,
@@ -2039,7 +1552,6 @@ def sales_order_creation(request):
                     remarks=request.POST.get('remarks', '')
                 )
 
-                # Create items and calculate net total
                 for i in range(len(product_ids)):
                     if not product_ids[i].strip():
                         continue
@@ -2061,8 +1573,6 @@ def sales_order_creation(request):
                         unit_price=unit_price,
                         unit_total_price=unit_total_price
                     )
-
-                    # Prepare product row for form re-render on error
                     product_rows.append({
                         'product': product_ids[i],
                         'product_name': product_names[i],
@@ -2071,7 +1581,6 @@ def sales_order_creation(request):
                         'unit_total_price': str(unit_total_price)
                     })
 
-                # Update net total price after items are saved
                 so_no_obj.net_total_price = net_total
                 so_no_obj.save()
 
@@ -2085,7 +1594,7 @@ def sales_order_creation(request):
                 'product_rows': product_rows
             })
         
-    # Ensure so_no is always defined before rendering
+    
     so_no = generate_so_no()
     return render(request, 'sales/sales_order_creation.html', {
         'warehouses': warehouses,
@@ -2098,73 +1607,19 @@ def sales_order_detail(request, so_no):
     sales_order = get_object_or_404(SalesOrderCreation, so_no=so_no)
     so=SalesOrderItem.objects.filter(so_no=sales_order)
 
-    so_items = SalesOrderItem.objects.filter(so_no=sales_order)  # fetch related items
+    so_items = SalesOrderItem.objects.filter(so_no=sales_order)
     return render(request, "sales/sales_order_detail.html", {"sales_order": sales_order, "so_items": so_items, "so": so})
-
-
-
-
-# def sales_order_edit(request, so_no):
-#     so = get_object_or_404(SalesOrderCreation, so_no=so_no)
-
-#     if request.method == 'POST':
-#         so.whs_no = request.POST.get('whs_no')
-#         so.customer_id = request.POST.get('customer_id')
-#         so.customer_code = request.POST.get('customer_code')
-#         so.order_date = request.POST.get('order_date')
-#         so.delivery_date = request.POST.get('delivery_date')
-#         so.status = request.POST.get('status')
-#         so.remarks = request.POST.get('remarks')
-#         so.net_total_price = Decimal(0)  
-
-#         so.items.all().delete()
-
-#         product_ids = request.POST.getlist('product_id[]')
-#         product_names = request.POST.getlist('product_name[]')
-#         quantities = request.POST.getlist('quantity[]')
-#         unit_prices = request.POST.getlist('unit_price[]')
-
-#         net_total = Decimal(0)
-
-#         for i in range(len(product_ids)):
-#             if not product_ids[i].strip():
-#                 continue
-#             quantity = int(quantities[i])
-#             unit_price = Decimal(unit_prices[i])
-#             unit_total_price = quantity * unit_price
-#             net_total += unit_total_price
-
-#             product_obj = Product.objects.get(id=product_ids[i])
-#             SalesOrderItem.objects.create(
-#                 so_no=so,        # use the SalesOrderCreation object
-#                 product=product_obj, # use actual Product object
-#                 product_name=product_names[i],
-#                 quantity=quantity,
-#                 unit_price=unit_price,
-#                 unit_total_price=unit_total_price
-#             )
-
-
-#         so.net_total_price = net_total
-#         so.save()
-
-
-#         return redirect('sales_order_detail')
-
-#     return render(request, 'sales/sales_order_list.html', {'so_no': so_no})
-
-from django.shortcuts import render, get_object_or_404, redirect
 
 def sales_order_edit(request, so_no):
     warehouses = Warehouse.objects.all()
     products = Product.objects.all()
 
-    # Get Sales Order + its items
+    
     so_obj = get_object_or_404(SalesOrderCreation, so_no=so_no)
     so_items = SalesOrderItem.objects.filter(so_no=so_obj)
 
     if request.method == 'POST':
-        # Update SO header
+        
         so_obj.so_no = request.POST.get("so_no")
         whs_id = request.POST.get("whs_no")
         so_obj.whs_no = get_object_or_404(Warehouse, id=whs_id)
@@ -2177,8 +1632,7 @@ def sales_order_edit(request, so_no):
         so_obj.status = request.POST.get("status") or "Draft"
         so_obj.save()
 
-        # --- Handle Items ---
-        # Clear old items (or update logic if you prefer)
+
         SalesOrderItem.objects.filter(so_no=so_obj).delete()
 
         product_ids = request.POST.getlist("product_id[]")
@@ -2247,19 +1701,16 @@ from .models import SalesOrderCreation
 def sales_order_pdf(request, so_no):
     so = get_object_or_404(SalesOrderCreation, so_no=so_no)
 
-    # Get warehouse name safely
     whs_name = "-"
     if hasattr(so, "whs") and so.whs:
         whs_name = getattr(so.whs, "whs_name", str(so.whs))
     elif hasattr(so, "warehouse") and so.warehouse:
         whs_name = getattr(so.warehouse, "name", str(so.warehouse))
 
-    # Get line items if model has related `items`
     items = []
     if hasattr(so, "items") and hasattr(so.items, "all"):
         items = list(so.items.all())
 
-    # Build rows HTML
     if items:
         rows_html = "".join(
             f"""
@@ -2277,7 +1728,6 @@ def sales_order_pdf(request, so_no):
     else:
         rows_html = "<tr><td colspan='6' style='text-align:center;color:#777'>No products in this order</td></tr>"
 
-    # Inline HTML + CSS
     html_string = f"""
     <html>
     <head>
@@ -2327,7 +1777,10 @@ def sales_order_pdf(request, so_no):
     response["Content-Disposition"] = f'attachment; filename="SalesOrder_{so.so_no}.pdf"'
     return response
 
-# outbound_delivery
+# ----------------
+# OUTBOUND DELIVERY
+# ----------------
+
 def generate_outbound_delivery_number():
     return f"OBD{random.randint(1000, 9999)}"
 
@@ -2336,13 +1789,12 @@ def outbound_delivery_item_number():
     last_item = OutboundDeliveryItem.objects.order_by("id").last()
 
     if last_item and last_item.dlv_it_no and last_item.dlv_it_no.startswith(prefix):
-        # Extract numeric part from last number
         last_number = int(last_item.dlv_it_no.replace(prefix, ""))
         new_number = last_number + 1
     else:
         new_number = 1
 
-    return f"{prefix}{new_number:05d}"   # → OBDIN00001, OBDIN00002 ...
+    return f"{prefix}{new_number:05d}" 
 
 
 from .models import OutboundDeliveryItem, OutboundDelivery
@@ -2368,7 +1820,7 @@ def outbound(request):
             cust_ref=request.POST.get("cust_ref"),
         )
 
-        # Loop through delivery items
+        
         product_ids = request.POST.getlist("product_id[]")
         product_names = request.POST.getlist("product_name[]")
         dlv_it_no = request.POST.getlist("dlv_it_no[]")
@@ -2384,7 +1836,7 @@ def outbound(request):
             OutboundDeliveryItem.objects.create(
                 delivery=outbound_delivery,
                 dlv_it_no=dlv_it_no,
-                product_id=product_ids[i],  # FK → Product
+                product_id=product_ids[i],  
                 product_name=product_names[i],
                 qty_order=qty_orders[i] or 0,
                 qty_issued=qty_issueds[i] or 0,
@@ -2393,40 +1845,25 @@ def outbound(request):
                 net_total_price=net_prices[i] or 0,
                 vol_per_item=vols[i] or 0,
             )
-        return redirect("outbound") 
-    
-     # redirect after save
-
+        return redirect("outbound")
     return render(request, "outbound/obd.html", {"sales_orders": sales_orders, "delivery_no": delivery_no})
 
 
 
 
 from django.http import JsonResponse
-from .models import SalesOrderCreation, SalesOrderItem, Product  # adjust imports to your models
+from .models import SalesOrderCreation, SalesOrderItem, Product  
 
 
 def get_so_products(request, so_id):
     try:
         so = SalesOrderCreation.objects.get(pk=so_id)
         salesorder = so.items.all()
-
-         # Build header-level (master SO data)
-        # so_data = {
-        #     "so_no": so.so_no,
-        #     "whs_no": so.whs_no.whs_no if so.whs_no else None,
-        #     "str_loc": so.str_loc,
-        #     "customer_id": so.customer_id.customer_id if hasattr(so, 'customer_id') and so.customer_id else None,
-        #     "status": so.status,
-        #     "order_date": so.order_date.strftime("%Y-%m-%d") if so.order_date else None,
-        #     "delivery_date": so.delivery_date.strftime("%Y-%m-%d") if so.delivery_date else None,
-        # }
-
         data = []
         for index, item in enumerate(salesorder, start=1):
-            net_price = item.unit_total_price  # since you don’t have a separate field
+            net_price = item.unit_total_price  
             data.append({
-                "dlv_it_no": outbound_delivery_item_number(),  # 👈 generate item number
+                "dlv_it_no": outbound_delivery_item_number(),  
                 "product_id": item.product_id,
                 "product_name": item.product_name,
                 "qty_order": item.quantity,
@@ -2435,7 +1872,6 @@ def get_so_products(request, so_id):
                 "net_price": float(net_price),
             })
 
-             # Build header-level (master SO data)
         so_data = {
             "so_no": so.so_no,
             "whs_no": so.whs_no.whs_no if so.whs_no else None,
