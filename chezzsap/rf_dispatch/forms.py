@@ -183,7 +183,7 @@ from .models import Picking, Customer
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        fields = ['id', 'pallet', 'location', 'product', 'quantity', 'status']
+        fields = ['id', 'pallet', 'location', 'product', 'quantity','picking_type','status']
         exclude = ['created_at']
 
 from .models import Customer
@@ -251,3 +251,19 @@ class OutboundDeliveryItemForm(forms.ModelForm):
     class Meta:
         model = OutboundDeliveryItem
         fields = '__all__'  # include fields you have in model
+            
+from django import forms
+from django.forms import modelformset_factory
+from .models import PackedItem, Packing
+
+class PackingForm(forms.ModelForm):
+    class Meta:
+        model = Packing
+        fields = ["pallet", "p_mat", "del_no", "gross_wt", "net_wt", "volume"]
+
+class PackedItemForm(forms.ModelForm):
+    class Meta:
+        model = PackedItem
+        fields = ["pallet", "p_mat", "batch_no", "serial_no", "quantity", "unit_price"]
+
+PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)

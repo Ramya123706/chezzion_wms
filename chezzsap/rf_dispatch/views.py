@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render
 
 def index(request):
@@ -438,8 +439,6 @@ def edit_warehouse(request, whs_no):
     return render(request, 'warehouse/warehouse_edit.html', {'form': form, 'warehouse': warehouse})
 
 
-
-
 # ...................
 # product_detail
 # ..................
@@ -496,7 +495,6 @@ def add_product(request):
         unit_of_measure = request.POST.get('unit_of_measure')
         category = request.POST.get('category')
         re_order_level = request.POST.get('re_order_level')
-        unit_price = request.POST.get('unit_price')
         images = request.FILES.get('images')
 
         try:
@@ -663,7 +661,7 @@ def customers_delete(request, customer_id):
     if request.method == 'POST':
         customer.delete()
         return redirect('customers_list') 
-    
+
 from .models import Warehouse
 
 def whs_no_dropdown_view(request):
@@ -773,22 +771,21 @@ def add_purchase(request):
         try:
            
             po = PurchaseOrder.objects.create(
-            company_name=request.POST.get('company_name'),
-            company_address=request.POST.get('company_address'),
-            company_phone=request.POST.get('company_phone'),   
-            company_email=request.POST.get('email_address'),
-            company_website=request.POST.get('company_website'),  
-            po_date=request.POST.get('po_date'),  
-            po_number=request.POST.get('po_number'),
-            customer_number=request.POST.get('customer_number'),
-            vendor_company_name=request.POST.get('vendor_company_name'),
-            vendor_contact_name=request.POST.get('vendor_contact_name'),
-            vendor_phone=request.POST.get('vendor_phone'),  
-            vendor_address=request.POST.get('vendor_address'),
-            vendor_website=request.POST.get('vendor_website'),
-            vendor_email=request.POST.get('vendor_email'),
-        )
-
+                company_name=request.POST.get('company_name'),
+                company_address=request.POST.get('company_address'),
+                company_phone=request.POST.get('company_phone'),
+                company_email=request.POST.get('company_email'),
+                company_website=request.POST.get('company_website'),
+                po_date=request.POST.get('po_date'),
+                po_number=request.POST.get('po_number'),
+                customer_number=request.POST.get('customer_number'),
+                vendor_company_name=request.POST.get('vendor_company_name'),
+                vendor_contact_name=request.POST.get('vendor_contact_name'),
+                vendor_phone=request.POST.get('vendor_phone'),
+                vendor_address=request.POST.get('vendor_address'),
+                vendor_website=request.POST.get('vendor_website'),
+                vendor_email=request.POST.get('vendor_email'),
+            )
 
             
             item_numbers = request.POST.getlist('item_number[]')
@@ -797,10 +794,20 @@ def add_purchase(request):
             unit_prices = request.POST.getlist('unit_price[]')
 
             for i in range(len(item_numbers)):
-                item_number = item_numbers[i].strip()
-                product_name = product_names[i].strip()
-                quantity = int(quantities[i])
-                unit_price = Decimal(unit_prices[i])
+                item_number = (item_numbers[i] or '').strip()
+                product_name = (product_names[i] or '').strip()
+                quantity_raw = (quantities[i] or '').strip()
+                unit_price_raw = (unit_prices[i] or '').strip()
+
+                # ⚠️ Skip if row is incomplete
+                if not item_number or not product_name or not quantity_raw or not unit_price_raw:
+                    continue
+
+                try:
+                    quantity = int(quantity_raw)
+                    unit_price = Decimal(unit_price_raw)
+                except (ValueError, TypeError):
+                    continue  # skip invalid rows
 
                 
                 product, created = Product.objects.get_or_create(
@@ -831,8 +838,7 @@ def add_purchase(request):
 
             return redirect('purchase_detail', pk=po.pk)
 
-
-        except Exception as e:  
+        except Exception as e:
             return render(request, 'purchase_order/add_purchase.html', {
                 'error': str(e),
                 'data': request.POST
@@ -927,7 +933,6 @@ def create_bin(request):
                 bin_id=request.POST.get('bin_id'),
                 capacity=int(request.POST.get('capacity')),
                 category=category,
-                
                 shelves=request.POST.get('shelves'),
                 updated_by=request.POST.get('updated_by'),
                 created_by=request.POST.get('created_by')
@@ -1022,10 +1027,10 @@ def vendor_edit(request, vendor_id):
     return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
 
 def vendor_delete(request, vendor_id):
-    if request.method == 'POST':
-        vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
-        vendor.delete()
-    return redirect('vendor_list') 
+    vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
+    vendor.delete()
+    messages.success(request, f"Vendor {vendor.name} deleted successfully.")
+    return redirect('vendor_list')
 
 from django.shortcuts import render
 from .models import Vendor
@@ -1316,11 +1321,10 @@ def inbound_delivery(request):
                 InboundDeliveryproduct.objects.create(
                     delivery=delivery,
                     product=product_obj,
-                    product_description=descriptions[i],
-                    quantity_delivered=qty_delivered[i],
-                    quantity_received=qty_received[i],
+                    quantity_delivered=int(qty_delivered[i]) if qty_delivered[i] else 0,
+                    quantity_received=int(qty_received[i]) if qty_received[i] else 0,
                     unit_of_measure=unit_of_measure[i],
-                    batch_number=batch_number[i]
+                    batch_number=batch_number[i] if batch_number[i] else str(uuid.uuid4())[:8]
                 )
 
         return redirect('inbound_delivery')
@@ -1332,6 +1336,7 @@ def inbound_delivery(request):
         'purchase_orders': purchase_orders,
         'products': products_list
     })
+
 
 from django.shortcuts import render, get_object_or_404
 from .models import InboundDelivery, InboundDeliveryproduct,  PurchaseOrder, Product
@@ -1511,6 +1516,12 @@ def product_autocomplete(request):
             'name': p.name,
         })
     return JsonResponse(suggestions, safe=False)
+
+  
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.db import transaction
+from .models import SalesOrderCreation, SalesOrderItem, Warehouse
 
 
 def sales_order_creation(request):
@@ -1885,4 +1896,100 @@ def get_so_products(request, so_id):
     except SalesOrderCreation.DoesNotExist:
         return JsonResponse({"salesorder": [], "so_data": {}})
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Picking, Packing, PackedItem
+from django.utils import timezone
 
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Packing   # make sure you import your model
+
+
+from .forms import PackingForm, PackedItemFormSet
+
+def create_packing(request):
+    if request.method == "POST":
+        packing_form = PackingForm(request.POST)
+        item_formset = PackedItemFormSet(request.POST, queryset=PackedItem.objects.none())
+
+        if packing_form.is_valid() and item_formset.is_valid():
+            packing = packing_form.save()
+            for form in item_formset:
+                if form.cleaned_data and not form.cleaned_data.get("DELETE", False):
+                    item = form.save(commit=False)
+                    item.packing = packing
+                    item.save()
+            return redirect("packing_list")
+    else:
+        packing_form = PackingForm()
+        item_formset = PackedItemFormSet(queryset=PackedItem.objects.none())
+
+    return render(request, "packing/create_packing.html", {
+        "packing_form": packing_form,
+        "item_formset": item_formset,
+    })
+
+
+
+def packing_list(request):
+    packings = Packing.objects.all()
+    return render(request, "packing/packing_list.html", {"packings": packings})
+
+
+def packing_detail(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+    items = packing.items.all()  # assuming related_name='items' on ForeignKey
+    return render(request, "packing/packing_detail.html", {"packing": packing, "items": items})
+
+from .forms import PackingForm, PackedItemFormSet
+
+def edit_packing(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+
+    if request.method == "POST":
+        packing_form = PackingForm(request.POST, instance=packing)
+        item_formset = PackedItemFormSet(request.POST, queryset=packing.items.all())
+
+        if packing_form.is_valid() and item_formset.is_valid():
+            packing_form.save()
+            for form in item_formset:
+                if form.cleaned_data:
+                    if form.cleaned_data.get("DELETE"):
+                        if form.instance.pk:  # only delete if it exists
+                            form.instance.delete()
+                    else:
+                        item = form.save(commit=False)
+                        item.packing = packing
+                        item.save()
+            return redirect("packing_detail", packing_id=packing.id)
+    else:
+        packing_form = PackingForm(instance=packing)
+        item_formset = PackedItemFormSet(queryset=packing.items.all())
+
+    return render(request, "packing/edit_packing.html", {
+        "packing_form": packing_form,
+        "item_formset": item_formset,
+        "packing": packing,
+    })
+
+
+def delete_packing(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+    packing.delete()
+    return redirect("packing_list")
+
+from .forms import PackedItemForm
+
+def add_packed_item(request, packing_id):
+    packing = get_object_or_404(Packing, id=packing_id)
+
+    if request.method == "POST":
+        form = PackedItemForm(request.POST)
+        if form.is_valid():
+            packed_item = form.save(commit=False)
+            packed_item.packing = packing  # link to parent Packing
+            packed_item.save()
+            return redirect("packing_detail", packing_id=packing.id)
+    else:
+        form = PackedItemForm()
+
+    return render(request, "packing/add_packed_item.html", {"form": form, "packing": packing})

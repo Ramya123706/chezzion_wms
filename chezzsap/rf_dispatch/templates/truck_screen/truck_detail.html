@@ -1,12 +1,11 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-
     <div class="card-header text-dark text-center">
         <h2>Truck Entry Summary</h2>
         <div class="card-body">
             <div class="row">
-
+                <!-- Truck Details -->
                 <div class="col-md-6 col-sm-12">
                     <table class="table text-start table-responsive table-striped p-2">
                         <tbody>
@@ -20,7 +19,7 @@
                             <tr><th>Truck date</th><td>{{ truck.truck_date }}</td></tr>
                             <tr><th>Truck time</th><td>{{ truck.truck_time }}</td></tr>
                             <tr><th>Seal No</th><td>{{ truck.seal_no }}</td></tr>
-                            <tr><th>yard scan</th><td>{{ truck.yard_scan }}</td></tr>
+                            <tr><th>Yard scan</th><td>{{ truck.yard_scan }}</td></tr>
                             <tr>
                                 <th>Truck Status</th>
                                 <td>
@@ -35,7 +34,6 @@
                                                 <option value="Checkin" {% if truck.truck_status == 'Checkin' %}selected{% endif %}>Check-in</option>
                                                 <option value="checkout" {% if truck.truck_status == 'checkout' %}selected{% endif %}>Checkout</option>
                                             </select>
-
                                             <input type="text" name="comment" placeholder="Optional comment" class="form-control mt-2" />
                                             <button type="submit" class="btn btn-sm btn-success mt-2">Update</button>
                                         </form>
@@ -47,7 +45,6 @@
                         </tbody>
                     </table>
                 </div>
-                
                 <div class="container col-md-6 col-sm-12">
                     <table class="table text-start table-responsive table-striped p-2">
                         <tbody>
@@ -63,44 +60,44 @@
                         </tbody>
                     </table>
                 </div>
-
             </div>
 
+            <!-- Back Button -->
             <div class="text-center mt-4">
                 <a href="{% url 'truck_list' %}" class="btn btn-primary">Back to List</a>
             </div>
+
+            <!-- Truck Log -->
+            <div class="container col-md-6 col-sm-12 mt-4">
+                <h5 class="text-center">Truck Log</h5>
+                {% if logs %}
+                    <table class="table text-start table-bordered table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Comment</th>
+                                <th>Updated By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.truck_date }}</td>
+                                    <td>{{ log.truck_time }}</td>
+                                    <td>{{ log.status }}</td>
+                                    <td>{{ log.comment|default:"-" }}</td>
+                                    <td>{{ log.status_changed_by|default:"System" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted text-center">No status updates found for this truck.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
-
-    <div class="container col-md-6 col-sm-12 mt-4">
-        <h5 class="text-center">Truck Log</h5>
-        {% if logs %}
-            <table class="table text-start table-bordered table-hover table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                        <th>Comment</th>
-                        <th>Updated By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in logs %}
-                        <tr>
-                            <td>{{ log.truck_date }}</td>
-                            <td>{{ log.truck_time }}</td>
-                            <td>{{ log.status }}</td>
-                            <td>{{ log.comment|default:"-" }}</td>
-                            <td>{{ log.status_changed_by|default:"System" }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="text-muted text-center">No status updates found for this truck.</p>
-        {% endif %}
-    </div>
-
 </div>
 {% endblock %}
