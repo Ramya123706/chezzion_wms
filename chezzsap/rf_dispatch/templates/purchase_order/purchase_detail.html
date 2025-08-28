@@ -11,14 +11,38 @@
         <!-- PO Header Info -->
         <table class="table table-bordered mb-4">
             <tbody>
-                <tr><th>Company Name</th><td>{{ po.company_name }}</td></tr>
-                <tr><th>Company Address</th><td>{{ po.company_address }}</td></tr>
-                <tr><th>Company Phone</th><td>{{ po.company_phone }}</td></tr>
-                <tr><th>Company Email</th><td>{{ po.company_email }}</td></tr>
-                <tr><th>Company Website</th><td>{{ po.company_website }}</td></tr>
-                <tr><th>PO Date</th><td>{{ po.po_date }}</td></tr>
-                <tr><th>PO Number</th><td>{{ po.po_number }}</td></tr>
-                <tr><th>Customer Number</th><td>{{ po.customer_number }}</td></tr>
+                <tr>
+                    <th>Company Name</th>
+                    <td>{{ po.company_name }}</td>
+                </tr>
+                <tr>
+                    <th>Company Address</th>
+                    <td>{{ po.company_address }}</td>
+                </tr>
+                <tr>
+                    <th>Company Phone</th>
+                    <td>{{ po.company_phone }}</td>
+                </tr>
+                <tr>
+                    <th>Company Email</th>
+                    <td>{{ po.company_email }}</td>
+                </tr>
+                <tr>
+                    <th>Company Website</th>
+                    <td>{{ po.company_website }}</td>
+                </tr>
+                <tr>
+                    <th>PO Date</th>
+                    <td>{{ po.po_date }}</td>
+                </tr>
+                <tr>
+                    <th>PO Number</th>
+                    <td>{{ po.po_number }}</td>
+                </tr>
+                <tr>
+                    <th>Customer Number</th>
+                    <td>{{ po.customer_number }}</td>
+                </tr>
             </tbody>
         </table>
 
@@ -26,12 +50,30 @@
         <h6 class="mt-3">Vendor Details</h6>
         <table class="table table-bordered mb-4">
             <tbody>
-                <tr><th>Vendor Company</th><td>{{ po.vendor_company_name }}</td></tr>
-                <tr><th>Contact Person</th><td>{{ po.vendor_contact_name }}</td></tr>
-                <tr><th>Phone</th><td>{{ po.vendor_phone }}</td></tr>
-                <tr><th>Email</th><td>{{ po.vendor_email }}</td></tr>
-                <tr><th>Address</th><td>{{ po.vendor_address }}</td></tr>
-                <tr><th>Website</th><td>{{ po.vendor_website }}</td></tr>
+                <tr>
+                    <th>Vendor Company</th>
+                    <td>{{ po.vendor_company_name }}</td>
+                </tr>
+                <tr>
+                    <th>Contact Person</th>
+                    <td>{{ po.vendor_contact_name }}</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>{{ po.vendor_phone }}</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>{{ po.vendor_email }}</td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>{{ po.vendor_address }}</td>
+                </tr>
+                <tr>
+                    <th>Website</th>
+                    <td>{{ po.vendor_website }}</td>
+                </tr>
             </tbody>
         </table>
 
@@ -48,16 +90,20 @@
                 </tr>
             </thead>
             <tbody>
-                {% for item in po.items.all %}
+                {% for item in po.purchase_items.all %}
                 <tr>
                     <td>{{ item.product.product_id }}</td>
                     <td>{{ item.product.name }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ item.unit_price }}</td>
                     <td>{{ item.total_price }}</td>
+                    <th>{{ po.grand_total|floatformat:2 }}</th>
+
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="text-center">No items found for this Purchase Order</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center">No items found for this Purchase Order</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

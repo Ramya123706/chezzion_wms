@@ -37,11 +37,16 @@
                             <input type="text" id="existing_quantity" name="existing_quantity" class="form-control">
                         </div>
                         <div class="form-group">
-                            <label for="category"><b>Category</b></label>
-                            <input type="text" id="category" name="category" class="form-control" autocomplete="off" required>
-                            <div id="category_suggestions" class="list-group position-absolute" style="z-index:1000;"></div>
-                            <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Add New Category</button>
-                        </div>
+    <label for="category"><b>Category</b></label>
+    <select id="category" name="category" class="form-control" required>
+        <option value="">-- Select Category --</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.category }}</option>
+        {% endfor %}
+    </select>
+    <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Add New Category</button>
+</div>
+
 
                         
                         <div class="form-group">

@@ -65,27 +65,6 @@ class ProductForm(forms.ModelForm):
 
 
 
-class StockUploadForm(forms.ModelForm):
-    class Meta:
-        model = StockUpload
-        fields = [
-            'whs_no', 'product', 'quantity', 'batch', 'bin', 'pallet',
-            'p_mat', 'inspection', 'stock_type', 'wps', 'doc_no', 'pallet_status'
-        ] 
-        widgets = {
-            'whs_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'product': forms.TextInput(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'batch': forms.TextInput(attrs={'class': 'form-control'}),
-            'bin': forms.TextInput(attrs={'class': 'form-control'}),
-            'pallet': forms.TextInput(attrs={'class': 'form-control'}),
-            'p_mat': forms.TextInput(attrs={'class': 'form-control'}),
-            'inspection': forms.TextInput(attrs={'class': 'form-control'}),
-            'stock_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'wps': forms.TextInput(attrs={'class': 'form-control'}),
-            'doc_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'pallet_status': forms.TextInput(attrs={'class': 'form-control'})
-        }
 
 class WarehouseForm(forms.ModelForm):
     class Meta:
@@ -242,6 +221,7 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
+        
 from .models import SalesOrderCreation
 class SalesOrderCreationForm(forms.ModelForm):
         class Meta:
@@ -251,6 +231,26 @@ class SalesOrderCreationForm(forms.ModelForm):
             'order_date': forms.DateInput(attrs={'type': 'date'}),
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+from django import forms
+from .models import OutboundDelivery, OutboundDeliveryItem, Product
+
+
+class OutboundDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = OutboundDelivery
+        fields = '__all__'   # add other fields if required
+
+
+class OutboundDeliveryItemForm(forms.ModelForm):
+    product_id = forms.ModelChoiceField(
+        queryset=Product.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = OutboundDeliveryItem
+        fields = '__all__'  # include fields you have in model
             
 from django import forms
 from django.forms import modelformset_factory
@@ -267,5 +267,3 @@ class PackedItemForm(forms.ModelForm):
         fields = ["pallet", "p_mat", "batch_no", "serial_no", "quantity", "unit_price"]
 
 PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)
-
-        
