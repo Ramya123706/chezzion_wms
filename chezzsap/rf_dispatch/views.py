@@ -496,6 +496,7 @@ def add_product(request):
         category = request.POST.get('category')
         re_order_level = request.POST.get('re_order_level')
         images = request.FILES.get('images')
+        unit_price = request.POST.get('unit_price')
 
         try:
             product = Product.objects.create(
