@@ -25,11 +25,12 @@ SECRET_KEY = 'django-insecure-126g3a)3(-*k((e7pfz#0$-0fvp)@kx_jd5!vh5p+#wks*hou$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['demo.chezzion.com']
-CSRF_TRUSTED_ORIGINS = [
-     'https://demo.chezzion.com',
-     'http://localhost:3000',
-]
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['demo.chezzion.com']
+# CSRF_TRUSTED_ORIGINS = [
+#      'https://demo.chezzion.com',
+#      'http://localhost:3000',
+# ]
 
 # Application definition
 
@@ -92,7 +93,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chezz',
         'USER': 'postgres',
-        'PASSWORD': 'chezzion@2025',
+        'PASSWORD': 'chezz@2025',
         'HOST': 'localhost',
         'PORT': '5432',
     }

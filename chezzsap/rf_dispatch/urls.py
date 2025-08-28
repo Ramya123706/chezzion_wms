@@ -141,8 +141,6 @@ urlpatterns = [
     path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
-    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
-    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
 
 
     # Pallet Management
