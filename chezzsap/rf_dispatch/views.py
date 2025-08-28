@@ -33,6 +33,7 @@ def new4(request):
 # def one(request):
 #     return render(request, 'truck_screen/one.html')
 # rf_dispatch/views.py
+
 from django.shortcuts import render, redirect
 from .forms import YardHdrForm
 from .models import Truck
@@ -43,7 +44,6 @@ def yard_checkin_view(request):
         form = YardHdrForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
-
             scan = instance.yard_scan.lower()   
             if 'door' in scan:
                 instance.truck_status = 'door'
@@ -353,7 +353,7 @@ from .models import StockUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, StockUpload
 
-def batch_product_view(request):
+def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
         product_id = request.POST.get('product')  # Product ID
@@ -708,7 +708,7 @@ def add_product(request):
         category = request.POST.get('category')
         re_order_level = request.POST.get('re_order_level')
         images = request.FILES.get('images')
-
+        unit_price = float(request.POST.get('unit_price', 0))
         try:
             product = Product.objects.create(
                 product_id=product_id,
@@ -756,34 +756,33 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import Product, Category
 
+import contextlib
+
+def update_product_from_post(product, post_data, files_data):
+    product.name = post_data.get('name')
+    product.quantity = post_data.get('quantity')
+    product.unit_price = post_data.get('unit_price')
+    product.pallet_no = post_data.get('pallet_no')
+    product.sku = post_data.get('sku')
+    product.description = post_data.get('description')
+    product.unit_of_measure = post_data.get('unit_of_measure')
+    product.re_order_level = post_data.get('re_order_level')
+
+    # Handle category (foreign key) with contextlib.suppress
+    if (category_id := post_data.get('category')):
+        with contextlib.suppress(ValueError):
+            product.category_id = int(category_id)
+
+    if files_data.get('images'):
+        product.images = files_data['images']
+
 def product_edit(request, product_id):
     # Fetch product or return 404 if not found
     product = get_object_or_404(Product, product_id=product_id)
     categories = Category.objects.all()
 
     if request.method == 'POST':
-        product.name = request.POST.get('name')
-        product.quantity = request.POST.get('quantity')
-        product.unit_price = request.POST.get('unit_price')
-        product.pallet_no = request.POST.get('pallet_no')
-        product.sku = request.POST.get('sku')
-        product.description = request.POST.get('description')
-        product.unit_of_measure = request.POST.get('unit_of_measure')
-        product.re_order_level = request.POST.get('re_order_level')
-
-        # Handle category (foreign key)
-        category_id = request.POST.get('category')
-        if category_id:
-            try:
-                product.category_id = int(category_id)
-            except ValueError:
-                pass  # ignore invalid value
-
-
-        # If image upload is enabled later
-        if request.FILES.get('images'):
-            product.images = request.FILES['images']
-
+        update_product_from_post(product, request.POST, request.FILES)
         product.save()
         messages.success(request, "✅ Product updated successfully.")
         return redirect('product_detail', product_id=product.product_id)
@@ -1644,7 +1643,7 @@ def product_suggestions(request):
 #     return JsonResponse({'results': results})
 
 from django.http import JsonResponse
-from .models import Warehouse  # Replace with your actual model
+from .models import Warehouse 
 
 def whs_suggestions(request):
     query = request.GET.get('q', '')
@@ -1675,7 +1674,6 @@ from .forms import PickingForm
 
 def add_picking(request):
     if request.method == 'POST':
-       
         picking_id = request.POST.get('picking_id')
         pallet = request.POST.get('pallet')
         # created_by = request.POST.get('created_by')

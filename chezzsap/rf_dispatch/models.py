@@ -287,7 +287,6 @@ class StockUpload(models.Model):
     pallet_status = models.CharField(max_length=100, default='Not planned')
 
     def __str__(self):
-        return self.name
         return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
 
     def save(self, *args, **kwargs):
