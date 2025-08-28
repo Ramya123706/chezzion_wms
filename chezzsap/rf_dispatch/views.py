@@ -1455,13 +1455,15 @@ def edit_putaway(request, putaway_id):
 
 
 
-
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
-    putaway.status = "Completed"
-    putaway.is_confirmed = True
+    if putaway.status == "In Progress":
+        putaway.status = "Completed"
+    else:
+        putaway.status = "In Progress"
+
     putaway.save()
-    return redirect('putaway_pending')
+    return redirect("all_tasks")
 
 def delete_putaway(request,putaway_id):
     task = get_object_or_404(Putaway, putaway_id=putaway_id)
@@ -1651,9 +1653,14 @@ def edit_picking(request, picking_id):
 
 def confirm_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
-    picking.status = 'Completed'
+
+    if picking.status == "In Progress":
+        picking.status = "Completed"
+    else:
+        picking.status = "In Progress"
+
     picking.save()
-    return redirect('customer')  # Redirect to the customer page
+    return redirect("all_tasks") 
 
 
 
@@ -2284,3 +2291,41 @@ def add_packed_item(request, packing_id):
         form = PackedItemForm()
 
     return render(request, "packing/add_packed_item.html", {"form": form, "packing": packing})
+
+
+from itertools import chain
+from django.shortcuts import render
+from .models import Putaway, Picking
+from datetime import datetime, timezone
+
+def all_tasks(request):
+    putaway_tasks = Putaway.objects.all().values(
+        "putaway_id", "pallet", "location", "putaway_task_type", "status", "created_at", "confirmed_at"
+    )
+    picking_tasks = Picking.objects.all().values(
+        "picking_id", "pallet", "location", "product", "quantity", "picking_type", "status"
+    )
+
+    for task in putaway_tasks:
+        task["task_type"] = "Putaway"
+        task["task_id"] = task["putaway_id"]
+
+    for task in picking_tasks:
+        task["task_type"] = "Picking"
+        task["task_id"] = task["picking_id"]
+
+    tasks = list(chain(putaway_tasks, picking_tasks))
+
+    tasks = sorted(
+        tasks, key=lambda x: x.get("created_at") or datetime.min.replace(tzinfo=timezone.utc), reverse=True
+    )
+    return render(request, "tasks/list.html", {"tasks": tasks})
+
+
+def putaway_detail(request, putaway_id):
+    task = get_object_or_404(Putaway, putaway_id=putaway_id)
+    return render(request, "putaway/putaway_detail.html", {"task": task})
+
+def picking_detail(request, picking_id):
+    task = get_object_or_404(Picking, picking_id=picking_id)
+    return render(request, "picking/picking_detail.html", {"task": task})

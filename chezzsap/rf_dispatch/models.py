@@ -288,7 +288,6 @@ class StockUpload(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        # Update Inventory after save
         total_quantity = StockUpload.objects.filter(product=self.product).aggregate(
             total=Sum('quantity')
         )['total'] or 0
@@ -297,7 +296,7 @@ class StockUpload(models.Model):
         inventory.total_quantity = total_quantity
         inventory.save()
 
-        # Sync Product quanti ty
+       
         self.product.quantity = total_quantity
         self.product.save()
 
@@ -312,8 +311,6 @@ class StockUpload(models.Model):
         inventory, _ = Inventory.objects.get_or_create(product=product)
         inventory.total_quantity = total_quantity
         inventory.save()
-
-        # Sync Product quantity
         product.quantity = total_quantity
         product.save()
 
@@ -327,8 +324,7 @@ class Inventory(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.total_quantity} units"
-    
-# Purchase Order Header
+   
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
@@ -474,6 +470,7 @@ class Picking(models.Model):
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     
     PICKING_TYPE_CHOICES=[
         ('INBOUND', 'Inbound'),
@@ -536,9 +533,7 @@ class InboundDelivery(models.Model):
     def save(self, *args, **kwargs):
         if not self.inbound_delivery_number:
             self.inbound_delivery_number = f"IDN-{uuid.uuid4().hex[:8].upper()}"
-        
-        # if not self.batch_number:
-        #     self.batch_number = f"BATCH-{uuid.uuid4().hex[:6].upper()}"
+    
         
         super().save(*args, **kwargs)
 
@@ -579,7 +574,7 @@ class InboundDeliveryproduct(models.Model):
         return f"Delivery #{self.batch_number}"
 
    
-# Purchase Order Line Items
+
 class PurchaseItem(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

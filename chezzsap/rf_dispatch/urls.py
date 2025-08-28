@@ -171,5 +171,9 @@ urlpatterns = [
     path("packing/<int:packing_id>/edit/", views.edit_packing, name="edit_packing"),
     path("packing/<int:packing_id>/delete/", views.delete_packing, name="delete_packing"),
     path("packing/<int:packing_id>/add-item/", views.add_packed_item, name="add_packed_item"),
-    
+    path("tasks/", views.all_tasks, name="all_tasks"),
+    path("putaway/<str:putaway_id>/", views.putaway_detail, name="putaway_detail"),
+    path("picking/<str:picking_id>/", views.picking_detail, name="picking_detail"),
+
+
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
