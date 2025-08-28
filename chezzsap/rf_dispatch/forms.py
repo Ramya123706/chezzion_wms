@@ -268,4 +268,9 @@ class PackedItemForm(forms.ModelForm):
 
 PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)
 
-        
+
+from .models import PackingMaterial
+class PackingMaterialForm(forms.ModelForm):
+    class Meta:
+        model = PackingMaterial
+        fields = '__all__'

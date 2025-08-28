@@ -1777,13 +1777,16 @@ from django.shortcuts import render, get_object_or_404
 from .models import InboundDelivery, InboundDeliveryproduct
 
 def delivery_detail(request, inbound_delivery_number):
+    # Get the delivery
     delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)
-    ibdproducts = InboundDeliveryproduct.objects.filter(delivery=delivery)
+    
+    # Get related products (uses related_name='products' in InboundDeliveryProduct model)
+    ibdproducts = delivery.products.all()
+
     return render(request, 'inbound/delivery_detail.html', {
         'delivery': delivery,
         'ibdproducts': ibdproducts,
     })
-
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import InboundDelivery
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1886,12 +1889,12 @@ def add_child_pallet(request):
                 parent_pallet=parent,
                 product=parent.product,
                 p_mat=parent.p_mat,
-                quantity=0,  # or copy from parent
-                weight=0,    # or copy from parent
+                quantity=0,  
+                weight=0,    
             )
         
         messages.success(request, f"{num_children} child pallet(s) created for {parent_no}")
-        return redirect('creating_pallet')  # replace with your view name
+        return redirect('creating_pallet')  
 
 from django.shortcuts import render
 from .models import PurchaseOrder
@@ -2329,3 +2332,54 @@ def putaway_detail(request, putaway_id):
 def picking_detail(request, picking_id):
     task = get_object_or_404(Picking, picking_id=picking_id)
     return render(request, "picking/picking_detail.html", {"task": task})
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PackingMaterial
+
+def material_create(request):
+    if request.method == "POST":
+        material = request.POST.get("material")
+        description = request.POST.get("description")
+
+        if material:  
+            PackingMaterial.objects.create(material=material, description=description)
+            messages.success(request, "Packing material created successfully!")
+            return redirect("material_list")  # corrected redirect to list view
+        else:
+            messages.error(request, "Material name is required.")
+
+    return render(request, "material/mat_creation.html")
+
+
+def material_list(request):
+    materials = PackingMaterial.objects.all().order_by("id")
+    return render(request, "material/material_list.html", {"materials": materials})
+
+
+def material_edit(request, id):
+    material_obj = get_object_or_404(PackingMaterial, id=id)
+
+    if request.method == "POST":
+        material = request.POST.get("material")
+        description = request.POST.get("description")
+
+        if material:
+            material_obj.material = material
+            material_obj.description = description
+            material_obj.save()
+            messages.success(request, "Packing material updated successfully!")
+            return redirect("material_list")  # corrected redirect to list view
+        else:
+            messages.error(request, "Material name cannot be empty!")
+
+    return render(request, "material/mat_edit.html", {"material": material_obj})
+
+
+def material_delete(request, id):
+    material_obj = get_object_or_404(PackingMaterial, id=id)
+    material_obj.delete()
+    messages.success(request, "Packing material deleted successfully!")
+    return redirect("material_list")

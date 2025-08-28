@@ -556,8 +556,8 @@ class InboundDelivery(models.Model):
         return f"{self.product.product_id} - {self.product.name}" if self.product else None
 
 class InboundDeliveryproduct(models.Model):
-    delivery = models.ForeignKey(InboundDelivery, on_delete=models.CASCADE, related_name='product')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product')
+    delivery = models.ForeignKey(InboundDelivery, on_delete=models.CASCADE, related_name='products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inbound_deliveries')
     product_description = models.CharField(max_length=255)
     quantity_delivered = models.DecimalField(max_digits=10, decimal_places=2)
     quantity_received = models.DecimalField(max_digits=10, decimal_places=2)
@@ -669,3 +669,12 @@ class PackedItem(models.Model):
 
     def __str__(self):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
+
+
+class PackingMaterial(models.Model):
+    material = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.material
+    
