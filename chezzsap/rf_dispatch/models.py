@@ -55,6 +55,14 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         comment=comment
     )
 
+class PackingMaterial(models.Model):
+    p_mat= models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.p_mat
+
+    
 
 # class StockUpload(models.Model):
 #     whs_no = models.CharField(max_length=20, primary_key=True)
@@ -163,9 +171,11 @@ class Bin(models.Model):
 
 
 import uuid
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 class Product(models.Model):
-    product_id = models.CharField(max_length=50, unique=True)   # Your item_number
+    product_id = models.CharField(primary_key=True, max_length=50, unique=True)   # Your item_number
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   # current stock
     pallet_no = models.CharField(max_length=50, blank=True, null=True)
@@ -178,17 +188,18 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # Sync with inventory automatically
-        inventory, created = Inventory.objects.get_or_create(product=self)
-        inventory.total_quantity = self.quantity
-        inventory.save()
-
     def __str__(self):
         return f"{self.name} ({self.product_id})"
 
+# Signal must be **outside** the model class
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+@receiver(post_save, sender=Product)
+def update_inventory(sender, instance, **kwargs):
+    inventory, created = Inventory.objects.get_or_create(product=instance)
+    inventory.total_quantity = instance.quantity
+    inventory.save()
 
 
 from django.utils import timezone
@@ -206,11 +217,11 @@ class Pallet(models.Model):
     pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
-    p_mat = models.CharField(max_length=100, null=True, blank=True)
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    scanned_at = models.DateTimeField(default=now, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    scanned_at = models.DateTimeField(auto_now=True, blank=True)
     created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
 
@@ -275,7 +286,7 @@ class StockUpload(models.Model):
     batch = models.CharField(max_length=20)
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
     pallet = models.CharField(max_length=20)
-    p_mat = models.CharField(max_length=20)
+    p_mat = models.ForeignKey('PackingMaterial', on_delete=models.CASCADE, null=True, blank=True)
     inspection = models.CharField(max_length=20)
     stock_type = models.CharField(max_length=20)
     wps = models.CharField(max_length=20)
@@ -317,7 +328,7 @@ class StockUpload(models.Model):
 
 
 class Inventory(models.Model):
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -370,6 +381,7 @@ class PurchaseOrder(models.Model):
 #    
     
 
+    
 
 class Putaway(models.Model):
     putaway_id = models.CharField(max_length=50, unique=True, editable=False)   
@@ -515,19 +527,17 @@ class InboundDelivery(models.Model):
     inbound_delivery_number = models.CharField(max_length=50, unique=True, editable=False)
     delivery_date = models.DateField()
     document_date = models.DateField(blank=True, null=True)
-    gr_date = models.DateField()
     supplier = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     purchase_order_number = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE,null=True,  blank=True)
+    esn= models.CharField(max_length=100, blank=True, null=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
-
+   
     
     DELIVERY_STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Completed', 'Completed'),
     ]
     delivery_status = models.CharField(max_length=20, choices=DELIVERY_STATUS_CHOICES, default='Pending')
-    storage_location = models.CharField(max_length=100)
-    carrier_info = models.CharField(max_length=100)
     remarks = models.TextField(blank=True, null=True)
     
     def save(self, *args, **kwargs):
@@ -633,6 +643,7 @@ class SalesOrderItem(models.Model):
     so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
     product_id = models.CharField(max_length=50)
     product_name = models.CharField(max_length=50)
+    existing_quantity = models.IntegerField(default=0)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
@@ -646,8 +657,8 @@ from django.db import models
 
 class Packing(models.Model):
     pallet = models.CharField(max_length=50)
-    p_mat = models.CharField(max_length=100)   # packing material
-    del_no = models.CharField(max_length=50)   # delivery number
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
+    del_no = models.CharField(max_length=50)   
     gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
     net_wt = models.DecimalField(max_digits=10, decimal_places=2)
     volume = models.DecimalField(max_digits=10, decimal_places=2)
@@ -660,7 +671,7 @@ class Packing(models.Model):
 class PackedItem(models.Model):
     packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
     pallet = models.CharField(max_length=50)
-    p_mat = models.CharField(max_length=100)
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     batch_no = models.CharField(max_length=50)
     serial_no = models.CharField(max_length=50)
     quantity = models.IntegerField()
@@ -671,10 +682,3 @@ class PackedItem(models.Model):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
 
 
-class PackingMaterial(models.Model):
-    material = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.material
-    

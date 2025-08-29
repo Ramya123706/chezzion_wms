@@ -68,24 +68,8 @@ class ProductForm(forms.ModelForm):
 class StockUploadForm(forms.ModelForm):
     class Meta:
         model = StockUpload
-        fields = [
-            'whs_no', 'product', 'quantity', 'batch', 'bin', 'pallet',
-            'p_mat', 'inspection', 'stock_type', 'wps', 'doc_no', 'pallet_status'
-        ] 
-        widgets = {
-            'whs_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'product': forms.TextInput(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'batch': forms.TextInput(attrs={'class': 'form-control'}),
-            'bin': forms.TextInput(attrs={'class': 'form-control'}),
-            'pallet': forms.TextInput(attrs={'class': 'form-control'}),
-            'p_mat': forms.TextInput(attrs={'class': 'form-control'}),
-            'inspection': forms.TextInput(attrs={'class': 'form-control'}),
-            'stock_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'wps': forms.TextInput(attrs={'class': 'form-control'}),
-            'doc_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'pallet_status': forms.TextInput(attrs={'class': 'form-control'})
-        }
+        fields = '__all__'
+        
 
 class WarehouseForm(forms.ModelForm):
     class Meta:

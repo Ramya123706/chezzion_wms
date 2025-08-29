@@ -85,7 +85,12 @@
                     <!-- P_mat -->
                     <div class="form-group">
                         <label for="p_mat">P_mat</label>
-                        <input type="text" class="form-control" id="p_mat" name="p_mat" required>
+                        <select class="form-control" id="p_mat" name="p_mat" required>
+                            <option value="">-- Select Packing Material --</option>
+                            {% for mat in materials %}
+                                <option value="{{ mat.id }}">{{ mat.p_mat}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <!-- Inspection -->

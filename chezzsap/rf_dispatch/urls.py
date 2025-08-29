@@ -178,5 +178,7 @@ urlpatterns = [
     path("material/", views.material_list, name="material_list"),  
     path("material/<int:id>/edit/", views.material_edit, name="material_edit"), 
     path("material/<int:id>/delete/", views.material_delete, name="material_delete"),
+    path("get-total-quantity/<str:product_id>/", views.get_total_quantity, name="get_total_quantity"),
+
 
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

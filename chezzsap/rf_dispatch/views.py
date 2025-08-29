@@ -409,9 +409,11 @@ def batch_product_view(request):
             })
 
     # GET request
+    materials = PackingMaterial.objects.all()
+   
     products = Product.objects.all()
     warehouse = Warehouse.objects.all()
-    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse})
+    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse, "materials": materials})
 
 
 from django.http import JsonResponse
@@ -841,6 +843,10 @@ from django.shortcuts import render, redirect
 from django.db import transaction
 from .forms import PalletForm
 from .models import Pallet
+from django.utils import timezone
+
+
+
 
 from django.db import transaction
 
@@ -853,7 +859,7 @@ def creating_pallet(request):
                 pallet = form.save(commit=False)
                 pallet.created_by = str(request.user)
                 pallet.updated_by = str(request.user)
-                pallet.created_at = timezone.now()
+                
                 pallet.save()
 
                 # Handle creating child pallets if requested
@@ -1733,13 +1739,10 @@ def inbound_delivery(request):
             inbound_delivery_number=inbound_delivery_number,
             delivery_date=request.POST.get('delivery_date'),
             document_date=request.POST.get('document_date'),
-            gr_date=request.POST.get('gr_date'),
             supplier=supplier_obj,
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
-            storage_location=request.POST.get('storage_location'),
             delivery_status=request.POST.get('delivery_status'),
-            carrier_info=request.POST.get('carrier_info'),
             remarks=request.POST.get('remarks')
         )
 
@@ -2112,6 +2115,18 @@ from django.shortcuts import get_object_or_404
 from weasyprint import HTML
 from .models import SalesOrderCreation
 
+from django.http import JsonResponse
+from .models import Inventory
+
+def get_total_quantity(request, product_id):
+    try:
+        inventory = Inventory.objects.get(product__product_id=product_id)
+        return JsonResponse({"total_quantity": inventory.total_quantity})
+    except Inventory.DoesNotExist:
+        return JsonResponse({"total_quantity": 0})
+
+
+
 def sales_order_pdf(request, so_no):
     so = get_object_or_404(SalesOrderCreation, so_no=so_no)
 
@@ -2341,17 +2356,18 @@ from .models import PackingMaterial
 
 def material_create(request):
     if request.method == "POST":
-        material = request.POST.get("material")
+        p_mat = request.POST.get("p_mat")
         description = request.POST.get("description")
 
-        if material:  
-            PackingMaterial.objects.create(material=material, description=description)
+        if p_mat:  
+            PackingMaterial.objects.create(p_mat=p_mat, description=description)
             messages.success(request, "Packing material created successfully!")
-            return redirect("material_list")  # corrected redirect to list view
+            return redirect("material_list")
         else:
             messages.error(request, "Material name is required.")
 
     return render(request, "material/mat_creation.html")
+
 
 
 def material_list(request):
@@ -2383,3 +2399,6 @@ def material_delete(request, id):
     material_obj.delete()
     messages.success(request, "Packing material deleted successfully!")
     return redirect("material_list")
+
+
+

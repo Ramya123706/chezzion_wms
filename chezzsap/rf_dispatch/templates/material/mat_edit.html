@@ -11,12 +11,12 @@
                 {% csrf_token %}
                  <div class="form-group mb-3">
                         <label for="material" class="form-label"><b>Material</b></label>
-                    <input type="text" class="form-control" id="material" name="material" value="{{ material.material }}" required>
+                    <input type="text" class="form-control" id="p_mat" name="material" value="{{ material.p_mat }}" required>
                 </div>
 
                     <div class="form-group mb-3">
                         <label for="description" class="form-label"><b>Description</b></label>
-                    <textarea class="form-control" id="description" name="description" rows="3">{{ material.description }}</textarea>
+                    <textarea class="form-control" id="description" name="description" rows="3"required>{{ material.description }}</textarea>
                 </div>
 
                 <button type="submit" class="btn btn-success">Update</button>

@@ -47,6 +47,12 @@
 
 </div>
 
+                    <div class="col-md-6 mb-3">
+                        <label for="esn"><b>ESN</b></label>
+                        <input type="text" class="form-control" name="esn" id="esn" value="{{ delivery.esn }}">
+                    </div>
+
+
 <div class="col-md-6 mb-3">
     <label for="whs_no" class="form-label"><b>Warehouse</b></label>
     <select name="whs_no" id="whs_no" class="form-select" required>
@@ -64,21 +70,6 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label for="gr_date"><b>GR Date</b></label>
-                        <input type="date" class="form-control" name="gr_date" id="gr_date" value="{{ delivery.gr_date }}">
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="storage_location"><b>Storage Location</b></label>
-                        <input type="text" class="form-control" name="storage_location" id="storage_location" value="{{ delivery.storage_location }}">
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="carrier_info"><b>Carrier Info</b></label>
-                        <input type="text" class="form-control" name="carrier_info" id="carrier_info" value="{{ delivery.carrier_info }}">
-                    </div>
-
-                    <div class="col-md-6 mb-3">
                         <label for="delivery_status"><b>Delivery Status</b></label>
                         <select class="form-control" name="delivery_status" id="delivery_status">
                             <option value="" disabled selected>Select status</option>
@@ -87,10 +78,7 @@
                         </select>
                     </div>
 
-                    <!-- Add Row Button -->
-                    <div class="col-md-12 mb-3">
-                        <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
-                    </div>
+                   
 
                     <!-- Material Table -->
                     <table class="table table-bordered" id="deliveryTable">
@@ -174,7 +162,7 @@
         </div>
     </div>
 </div>
-
+<!-- 
 <script>
     // Function to add a new row to the table
     function addRow() {
@@ -198,8 +186,8 @@
             firstBatchInput.placeholder = "Auto-generated";
         }
     });
-</script>
-<script>
+</script> -->
+<!-- <script>
 document.getElementById("purchase_order").addEventListener("change", function() {
     const poId = this.value;
     const tableBody = document.querySelector('#deliveryTable tbody');
@@ -224,7 +212,7 @@ document.getElementById("purchase_order").addEventListener("change", function() 
             });
     }
 });
-</script>
+</script> -->
 
 
 {% endblock %}

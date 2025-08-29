@@ -21,7 +21,7 @@
                     {% for m in materials %}
                     <tr>
                         <td>{{ m.id }}</td>
-                        <td>{{ m.material }}</td>
+                        <td>{{ m.p_mat }}</td>
                         <td>{{ m.description }}</td>
                         <td>
                             <a href="{% url 'material_edit' m.id %}" class="btn btn-sm btn-warning">Edit</a>
