@@ -122,7 +122,13 @@ class Category(models.Model):
 
     def __str__(self):
         return self.category 
+    
+class SubCategory(models.Model):
+    category = models.ForeignKey(Category, related_name="subcategories", on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
 class Bin(models.Model):
     whs_no = models.ForeignKey(
         Warehouse,
@@ -132,7 +138,7 @@ class Bin(models.Model):
     bin_id = models.CharField(max_length=50, unique=True) 
     capacity = models.IntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
-    shelves = models.CharField(null=True, blank=True, max_length=100) 
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
     existing_quantity = models.IntegerField(default=0)
@@ -183,6 +189,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="products", default=True, null=True, blank=True) 
     re_order_level = models.IntegerField(default=10)
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -279,19 +286,22 @@ from django.db.models import Sum
 
 class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
-    whs_no = models.CharField(max_length=20)
+    whs_no = models.CharField(max_length=50)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    category = models.CharField(blank=True, null=True) 
+    sub_category = models.CharField(blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
-    batch = models.CharField(max_length=20)
+    batch = models.CharField(max_length=50)
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
-    pallet = models.CharField(max_length=20)
-    p_mat = models.ForeignKey('PackingMaterial', on_delete=models.CASCADE, null=True, blank=True)
-    inspection = models.CharField(max_length=20)
-    stock_type = models.CharField(max_length=20)
-    wps = models.CharField(max_length=20)
-    doc_no = models.CharField(max_length=20)
-    pallet_status = models.CharField(max_length=20, default='Not planned')
+    pallet = models.CharField(max_length=50)
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
+    inspection = models.CharField(max_length=50)
+    stock_type = models.CharField(max_length=50)
+ 
+    wps = models.CharField(max_length=50)
+    doc_no = models.CharField(max_length=50)
+    pallet_status = models.CharField(max_length=50, default='Not planned')
 
     def __str__(self):
         return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"

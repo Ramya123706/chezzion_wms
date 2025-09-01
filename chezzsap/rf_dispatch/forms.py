@@ -166,6 +166,7 @@ class CategoryForm(forms.ModelForm):
         widgets = {
             'category': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'subcategory': forms.TextInput(attrs={'class': 'form-control'}),
         }
         exclude = ['created_by', 'created_at', 'updated_by', 'updated_at']  # Exclude fields that are not needed in the form
         

@@ -103,7 +103,8 @@ urlpatterns = [
     # Categories
     path('add-category/', views.add_category, name='add_category'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
-
+    path("get-subcategories/<int:category_id>/", views.get_subcategories, name="get_subcategories"),
+    path("ajax/load-subcategories/", views.load_subcategories, name="ajax_load_subcategories"),
     # Suggestions
     path('ajax/truck-suggestions/', views.truck_suggestions, name='truck_suggestions'),
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),

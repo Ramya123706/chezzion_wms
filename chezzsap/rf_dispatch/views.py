@@ -367,12 +367,15 @@ def batch_product_view(request):
         wps = request.POST.get('wps')
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
+        category = request.POST.get('category')
+        sub_category = request.POST.get('sub_category')
 
         try:
-            product_instance = get_object_or_404(Product, id=product_id)
+            product_instance = get_object_or_404(Product, product_id=product_id)
+            p_mat = get_object_or_404(PackingMaterial, id=p_mat) if p_mat else None
             whs_key = request.POST.get('whs_no')
             warehouse = Warehouse.objects.get(whs_no=whs_key)
-
+            bin_ = Bin.objects.get(bin_id=bin_)
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
@@ -386,7 +389,9 @@ def batch_product_view(request):
                 stock_type=stock_type,
                 wps=wps,
                 doc_no=doc_no,
-                pallet_status=pallet_status
+                pallet_status=pallet_status,
+                category=category,
+                sub_category=sub_category
             )
 
             # Render with success flag
@@ -656,40 +661,67 @@ def product_detail_view(request, product_id):
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import Product, Category, SubCategory
 
 def add_product(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        product_id = request.POST.get('id')
+        product_id = request.POST.get('product_id')   # ✅ fixed key
         quantity = request.POST.get('quantity')
         pallet_no = request.POST.get('pallet_no')
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
         category = request.POST.get('category')
+        # subcategory = request.POST.get('subcategory')
         re_order_level = request.POST.get('re_order_level')
         images = request.FILES.get('images')
+        sub_category_id = request.POST.get('subcategory')  # get the ID from form
+        sub_category = None
+        if sub_category_id:  # only fetch if a value was submitted
+            sub_category = SubCategory.objects.get(id=sub_category_id)
 
         try:
             product = Product.objects.create(
-                product_id=product_id,
-                name=name,
-                quantity=quantity,
-                pallet_no=pallet_no,
-                sku=sku,
-                description=description,
-                unit_of_measure=unit_of_measure,
-                category=category,
-                re_order_level=re_order_level,
-                images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now()
-            )
-            return redirect('product_detail', product_id=product.product_id)
-        except Exception as e:
-            return render(request, 'product/add_product.html', {'error': str(e)})
+            product_id=product_id,
+            name=name,
+            quantity=quantity,
+            pallet_no=pallet_no,
+            sku=sku,
+            description=description,
+            unit_of_measure=unit_of_measure,
+            category=category,       
+            sub_category=sub_category,  # now correctly set
+            re_order_level=re_order_level,
+            images=images,
+            created_at=timezone.now(),
+            updated_at=timezone.now()
+        )
 
-    return render(request, 'product/add_product.html')
+            return redirect('product_detail', product_id=product.product_id)
+
+        except Exception as e:
+            return render(
+                request,
+                'product/add_product.html',
+                {
+                    'error': str(e),
+                    'categories': Category.objects.all(),
+                    'subcategories':SubCategory.objects.all() # ✅ reload dropdowns if error
+                }
+            )
+
+    # GET request → load form with categories
+    return render(
+        request,
+        'product/add_product.html',
+        {
+            'categories': Category.objects.all(),
+            'subcategories':SubCategory.objects.all()  # ✅ load subcategories too
+        }
+    )
 
 
 
@@ -1249,14 +1281,18 @@ def create_bin(request):
             warehouse = Warehouse.objects.get(whs_no=whs_key)
 
             category = Category.objects.get(id=request.POST.get('category'))
-
+            sub_category_name = request.POST.get('subcategory')  # FIX ✅
+            sub_category = None
+            if sub_category_name:
+                sub_category = SubCategory.objects.get(id=sub_category_name)
+                
             Bin.objects.create(
                 whs_no=warehouse,
                 bin_id=request.POST.get('bin_id'),
                 capacity=int(request.POST.get('capacity')),
                 category=category,
                 
-                shelves=request.POST.get('shelves'),
+                sub_category=sub_category, 
                 updated_by=request.POST.get('updated_by'),
                 created_by=request.POST.get('created_by')
             )
@@ -1284,7 +1320,7 @@ def task(request):
 
 
 from django.http import JsonResponse
-from .models import Category
+from .models import Category, SubCategory
 import json
 
 from django.shortcuts import render, redirect
@@ -1292,19 +1328,51 @@ from .forms import CategoryForm
 from .models import Category
 
 def add_category(request):
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_bin')  # Redirect to the main form page
-    else:
-        form = CategoryForm()
-    categories = Category.objects.all()
-    return render(request, 'bin/create_bin.html', {
-        'categories': categories,
-        'category_form': form,
-    })
+    if request.method == "POST":
+        try:
+            # Main category
+            category_name = request.POST.get("category")
+            description = request.POST.get("description")
 
+            category = Category.objects.create(
+                category=category_name,
+                description=description
+            )
+
+            # Subcategories
+            subcategories = []
+            for key, value in request.POST.items():
+                if key.startswith("sub_category_") and value.strip():
+                    subcat = SubCategory.objects.create(
+                        category=category,
+                        name=value.strip()
+                    )
+                    subcategories.append(subcat.name)
+
+            return JsonResponse({
+                "success": True,
+                "id": category.id,
+                "category": category.category,
+                "subcategories": subcategories
+            })
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Invalid request"})
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Category
+
+def get_subcategories(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    subcategories = list(category.subcategories.values("id", "name"))
+    return JsonResponse({"subcategories": subcategories})
+
+def load_subcategories(request):
+    category_id = request.GET.get("category_id")
+    subcategories = SubCategory.objects.filter(category_id=category_id).values("id", "name")
+    return JsonResponse({"subcategories": list(subcategories)})
 
 # def vendor_detail(request, vendor_id):  
 #     vendor = get_object_or_404(Vendor, id=vendor_id)
@@ -1542,7 +1610,8 @@ def product_suggestions(request):
         'product_id',   # must exist in your Product model
         'name',
         'description',
-        'category'
+        'category',
+        'sub_category'
     )[:10]  # Limit to 10 suggestions
 
     return JsonResponse({'results': list(products)})

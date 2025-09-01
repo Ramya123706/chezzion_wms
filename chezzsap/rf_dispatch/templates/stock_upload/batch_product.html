@@ -45,12 +45,18 @@
                         Can't find your product?
                         <a href="{% url 'add_product' %}" class="btn btn-sm btn-link">Add New Product</a>
                     </small>
+<!-- Category -->
+<div class="form-group">
+    <label for="category">Category</label>
+    <input type="text" id="category" name="category" class="form-control">
+</div>
 
-                    <!-- Category -->
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <input type="text" class="form-control" id="category" name="category" required>
-                    </div>
+<!-- Subcategory -->
+<div class="form-group">
+    <label for="sub_category">Subcategory</label>
+    <input type="text" id="sub_category" name="sub_category" class="form-control">
+</div>
+
 
                     <!-- Description -->
                     <div class="form-group">
@@ -169,6 +175,7 @@ document.getElementById("product_input").addEventListener("keyup", function () {
                             document.getElementById("product_input").value = item.product_id;
                             document.getElementById("description").value = item.description || "";
                             document.getElementById("category").value = item.category || "";
+                            document.getElementById("sub_category").value = item.sub_category || "";
                             suggestionBox.style.display = "none";
                         };
 
