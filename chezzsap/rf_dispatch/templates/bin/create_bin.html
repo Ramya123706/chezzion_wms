@@ -1,12 +1,73 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
-  <div class="row">
-    <!-- LEFT SIDE: Create Bin Form -->
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header text-white bg-primary">
-          <h5>Create Bin</h5>
+    <div class="row">
+
+        <!-- LEFT SIDE: Create Bin Form -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-primary">
+                    <h5>Create Bin</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'create_bin' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if error %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ error }}
+                        </div>
+                        {% endif %}
+                        <div class="form-group">
+                            <label><b>Warehouse</b></label>
+                            <input type="text" name="whs_no" id="whs_no" class="form-control" autocomplete="off" required>
+<div id="whs_suggestions" class="list-group position-absolute" style="z-index:1000;"></div>
+
+                        </div>
+                        <div class="form-group">
+                            <label for="bin_id"><b>Bin ID</b></label>
+                            <input type="text" id="bin_id" name="bin_id" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="capacity"><b>Capacity</b></label>
+                            <input type="text" id="capacity" name="capacity" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="existing_quantity"><b>Existing Quantity</b></label>
+                            <input type="text" id="existing_quantity" name="existing_quantity" class="form-control">
+                        </div>
+                        <div class="form-group">
+    <label for="category"><b>Category</b></label>
+    <select id="category" name="category" class="form-control" required>
+        <option value="">-- Select Category --</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.category }}</option>
+        {% endfor %}
+    </select>
+    <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#addCategoryModal">+ Add New Category</button>
+</div>
+
+
+                        
+                        <div class="form-group">
+                            <label for="shelves"><b>Shelves</b></label>
+                            <input type="text" id="shelves" name="shelves" class="form-control">
+                        </div>
+                        <!-- <div class="form-group">
+                            <label for="updated_by"><b>Updated by</b></label>
+                            <input type="text" id="updated_by" name="updated_by" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="created_by"><b>Created By</b></label>
+                            <input type="text" id="created_by" name="created_by" class="form-control" required>
+                        </div> -->
+
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="card-body">
           <form method="post" action="{% url 'create_bin' %}" enctype="multipart/form-data">

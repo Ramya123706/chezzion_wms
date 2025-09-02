@@ -9,9 +9,33 @@
                 <div class="card-header">
                     <h5>Chezzion WMS-Magic Box</h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3 text-center">
-                        <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50" alt="SAP logo">
+
+
+                {% if success %}
+                    <div class="alert alert-success">✅ Stock uploaded successfully!</div>
+                {% endif %}
+
+                {% if error %}
+                    <div class="alert alert-danger">❌ {{ error }}</div>
+                {% endif %}
+
+                <form action="{% url 'batch_product' %}" method="post">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                    {{ form.errors }}
+                    </div>
+                    {% endif %}	 
+
+                    <!-- Warehouse -->
+                    <div class="form-group">
+                        <label><b>Warehouse</b></label>
+                        <select name="whs_no" class="form-control" required>
+                            <option value="">Select Warehouse</option>
+                            {% for wh in warehouse %}
+                                <option value="{{ wh.whs_no }}">{{ wh.whs_no }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     {% if success %}
@@ -53,6 +77,16 @@
                             <label for="category">Category</label>
                             <input type="text" id="category" name="category" class="form-control">
                         </div>
+                    <!-- BIN -->
+                    <div class="form-group">
+                        <label for="bin">BIN</label>
+                        <select class="form-control" id="bin" name="bin" required>
+                            <option value="">-- Select BIN --</option>
+                            {% for b in bins %}
+                                <option value="{{ b.id }}">{{ b.bin_id }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
                         <!-- Subcategory -->
                         <div class="form-group">

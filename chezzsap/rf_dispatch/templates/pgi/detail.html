@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>PGI Detail</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>PGI No:</strong> {{ pgi.pgi_no }}</p>
+            <p><strong>Delivery No:</strong> {{ pgi.delivery.dlv_no }}</p>
+            <p><strong>Customer:</strong> {{ pgi.delivery.sold_to }}</p>
+            <p><strong>Posted By:</strong> {{ pgi.posted_by }}</p>
+            <p><strong>Date:</strong> {{ pgi.posting_date }}</p>
+            <p><strong>Remarks:</strong> {{ pgi.remarks }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -227,6 +227,7 @@ class InboundDeliveryForm(forms.ModelForm):
             'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
+        
 from .models import SalesOrderCreation
 class SalesOrderCreationForm(forms.ModelForm):
         class Meta:
@@ -236,6 +237,26 @@ class SalesOrderCreationForm(forms.ModelForm):
             'order_date': forms.DateInput(attrs={'type': 'date'}),
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+from django import forms
+from .models import OutboundDelivery, OutboundDeliveryItem, Product
+
+
+class OutboundDeliveryForm(forms.ModelForm):
+    class Meta:
+        model = OutboundDelivery
+        fields = '__all__'   # add other fields if required
+
+
+class OutboundDeliveryItemForm(forms.ModelForm):
+    product_id = forms.ModelChoiceField(
+        queryset=Product.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = OutboundDeliveryItem
+        fields = '__all__'  # include fields you have in model
             
 from django import forms
 from django.forms import modelformset_factory
@@ -259,3 +280,19 @@ class PackingMaterialForm(forms.ModelForm):
     class Meta:
         model = PackingMaterial
         fields = '__all__'
+        
+from django import forms
+from .models import GoodsReceipt
+
+
+
+class GoodsReceiptForm(forms.ModelForm):
+    class Meta:
+        model = GoodsReceipt
+        fields = ['inbound_delivery', 'posted_by', 'remarks']  # no gr_no
+        widgets = {
+            'inbound_delivery': forms.Select(attrs={'class': 'form-control'}),
+            'posted_by': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+

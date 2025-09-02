@@ -10,6 +10,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('start/', views.first, name='first'),
     path('six/', views.sixth, name='sixth'),
+    path("search/", views.search, name="search"),
 
     # Outbound steps
     path('outbound1/', views.outbound1, name='outbound1'),
@@ -33,6 +34,8 @@ urlpatterns = [
 
     # Check-in and inspection
     path('one/', yard_checkin_view, name='one'),
+    path('three/', views.three, name='three'),
+    path('four/', views.four, name='four'),
     path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
     path('get-truck-details/', views.get_truck_details, name='get_truck_details'),
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
@@ -54,7 +57,8 @@ urlpatterns = [
     path('product/edit/<str:product_id>/', views.product_edit, name='product_edit'),
     path('product-list/', views.product_list, name='product_list'),
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
-    
+
+
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
 
@@ -137,12 +141,10 @@ urlpatterns = [
     path('picking/confirm/<str:picking_id>/', views.confirm_picking, name='confirm_picking'),
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
-    path("get-po-products/<int:po_id>/", views.get_po_products, name="get_po_products"),
+    path('get-po-products/<int:po_id>/', views.get_po_products, name='get_po_products'),
     path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
-    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
-    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
 
 
     # Pallet Management
@@ -153,20 +155,22 @@ urlpatterns = [
     path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
     path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
 
-
-
-
     # Customer landing
     path('customer/', views.customer, name='customer'),
-
+    path('get-po-products/<int:po_id>/', views.get_po_products, name='get_po_products'),
     path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
     path('sales/', views.sales_order_list, name='sales_order_list'),
+    path("get-warehouse-address/<int:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
+    path('product-autocomplete/', views.product_autocomplete, name='product-autocomplete'),
+
     path('sales/<str:so_no>/', views.sales_order_detail, name='sales_order_detail'),
-    path('sales/<str:so_no>/edit/', views.sales_order_edit, name='sales_order_edit'),
+    path('sales-order/edit/<str:so_no>/', views.sales_order_edit, name='sales_order_edit'),
     path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
     path("sales/<str:so_no>/pdf/", views.sales_order_pdf, name="sales_order_pdf"),
 
-
+    # Outbound Delivery
+    path('outbound/', views.outbound, name='outbound'),
+    path('get-so-products/<int:so_id>/', views.get_so_products, name='get_so_products'),
     path("packing/create/", views.create_packing, name="create_packing"),
     path("packing/", views.packing_list, name="packing_list"),  
     path("packing/detail/<int:packing_id>/", views.packing_detail, name="packing_detail"),
@@ -182,6 +186,17 @@ urlpatterns = [
     path("material/<int:id>/edit/", views.material_edit, name="material_edit"), 
     path("material/<int:id>/delete/", views.material_delete, name="material_delete"),
     path("get-total-quantity/<str:product_id>/", views.get_total_quantity, name="get_total_quantity"),
+    path("outbound/<str:delivery_no>/", views.outbound_detail, name="outbound_detail"),
+# Outbound → PGI
+    path("pgi/<str:delivery_no>/", views.post_goods_issue, name="post_goods_issue"),
+    path("pgi/detail/<str:pgi_no>/", views.pgi_detail, name="pgi_detail"),
+
+    # Inbound → GR
+    path("gr/<str:inbound_no>/", views.goods_receipt, name="goods_receipt"),
+    path("gr/detail/<str:gr_no>/", views.gr_detail, name="gr_detail"),
+    #GR
+    path('create-gr/', views.create_gr, name='create_gr'),
+    path("gr_list/", views.gr_list, name="gr_list"),
 
 
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

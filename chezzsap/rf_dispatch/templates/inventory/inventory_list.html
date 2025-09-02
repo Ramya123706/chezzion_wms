@@ -2,31 +2,84 @@
 
 {% block content %}
 <div class="container mx-auto my-4">
-    <h2 class="mb-4">Inventory Summary</h2>
-    <table class="table table-bordered table-striped table-hover">
-        <thead class="bg-warning text-dark">
+    <h2 class="mb-4 text-center">Inventory Summary</h2>
+
+    <!-- Filters & Search -->
+    <form method="get" class="row g-2 mb-3">
+        <!-- Search -->
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Search by Product ID or Name"
+                value="{{ search_query }}">
+        </div>
+
+        <!-- Category Filter -->
+        <div class="col-md-4">
+            <select name="category" class="form-select">
+                <option value="">-- All Categories --</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if category_filter|stringformat:"s" == cat.id|stringformat:"s" %} selected
+                    {% endif %}>
+                    {{ cat.category }}
+                </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- Filter button -->
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+
+        <!-- Reset button -->
+        <div class="col-md-2">
+            <a href="{% url 'inventory' %}" class="btn btn-secondary w-100">Reset</a>
+        </div>
+    </form>
+
+    {% if inventory_data %}
+    <table class="table table-bordered table-striped table-hover shadow-sm">
+        <thead class="bg-warning text-dark text-center">
             <tr>
-                <th scope="col">Product ID</th>
-                <th scope="col">Product Name</th>
-                <th scope="col">SKU</th>
-                <th scope="col">Total Quantity</th>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>PO Number</th>
+                <th>GR No</th>
+                <th>Unit of Measure</th>
+                <th>Total Quantity</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in inventory %}
+            {% for row in inventory_data %}
             <tr>
-    <td>{{ item.product.product_id }}</td>
-    <td>
-        <a href="{% url 'product_detail' item.product.product_id %}">
-            {{ item.product.name }}
-        </a>
-    </td>
-    <td>{{ item.product.sku }}</td>
-    <td>{{ item.total_quantity }}</td>
-</tr>
-
+                <td class="text-center">{{ row.inventory.product.product_id }}</td>
+                <td>
+                    <a href="{% url 'product_detail' row.inventory.product.product_id %}" class="text-decoration-none">
+                        {{ row.inventory.product.name }}
+                    </a>
+                </td>
+                <td class="text-center">
+                    {{ row.inventory.product.category.category|default:"-" }}
+                </td>
+                <td class="text-center fw-bold">{{ row.inventory.created_at|date:"Y-m-d" }}</td>
+                <td class="text-center fw-bold">
+                    {% if row.po_number %}{{ row.po_number }}{% else %}-{% endif %}
+                </td>
+                <td class="text-center fw-bold">
+                    {% if row.gr_no %}{{ row.gr_no }}{% else %}-{% endif %}
+                </td>
+                <td class="text-center">{{ row.inventory.product.unit_of_measure }}</td>
+                <td class="text-center fw-bold">{{ row.inventory.total_quantity }}</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <div class="alert alert-info text-center">
+        No inventory records found.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
