@@ -2,53 +2,62 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
 }
+
 .sap-box {
-            border: 2px solid #000;
-            padding: 20px;
-            max-width: 500px;
-            margin: auto;
-            margin-bottom: 30px;
-        }
+    border: 2px solid #000;
+    padding: 20px;
+    max-width: 500px;
+    margin: auto;
+    margin-bottom: 30px;
+}
+
 .table td,
 .table th {
-            vertical-align: middle;
-        }
+    vertical-align: middle;
+}
+
 body {
-      background-color: #f3f5f4;
-      
-    }
+    background-color: #f3f5f4;
+
+}
+
 .sap-header {
-      background-color: #dce6c3;
-      padding: 10px;
-      font-weight: bold;
-      font-style: italic;
-    }
+    background-color: #dce6c3;
+    padding: 10px;
+    font-weight: bold;
+    font-style: italic;
+}
+
 table input {
-      width: 100%;
-      border: none;
-      background-color: #f9f9f9;
-    }
-    
-.grid
- {
+    width: 100%;
+    border: none;
+    background-color: #f9f9f9;
+}
+
+.grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
 .box {
-      border: 1px solid green;
-      padding: 15px;
-      text-align: center;
-      margin: 10px;
-      border-radius: 5px;
-      min-width: 180px;
-    }
+    border: 1px solid green;
+    padding: 15px;
+    text-align: center;
+    margin: 10px;
+    border-radius: 5px;
+    min-width: 180px;
+}
+
 .section-title {
-      font-weight: bold;
-      margin-top: 20px;
-      font-size: 1.2rem;
-    }
+    font-weight: bold;
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
 /* .header-title {
       font-size: 1.5rem;
       font-weight: bold;
@@ -65,37 +74,37 @@ table input {
 
 
 
-    .card:hover {
-        transform: translateY(-3px);
-    }
+.card:hover {
+    transform: translateY(-3px);
+}
 
-  
-    .product-list ul {
-        padding-left: 0;
-    }
 
-    .product-list ul li {
-        padding: 5px 0;
-        border-bottom: 1px dashed #ccc;
-    }
+.product-list ul {
+    padding-left: 0;
+}
 
-    .product-list ul li:last-child {
-        border-bottom: none;
-    }
+.product-list ul li {
+    padding: 5px 0;
+    border-bottom: 1px dashed #ccc;
+}
 
-   .card-footer {
+.product-list ul li:last-child {
+    border-bottom: none;
+}
+
+.card-footer {
     background-color: transparent;
     border-top: none;
     padding: 0 1rem 1rem;
     justify-content: center;
     gap: 10px;
 }
-    
-    .action-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-    }
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
 
 .img-product {
     width: 300px;
@@ -103,4 +112,67 @@ table input {
     object-fit: contain;
 }
 
+/* dashboard */
+.btn-tile {
+    border-radius: 12px;
+    padding: 12px;
+    color: #fff !important;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    justify-content: center;
+}
 
+.btn-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    color: black !important;
+}
+
+.btn-blue {
+    background: #2196f3;
+}
+
+.btn-green {
+    background: #4caf50;
+}
+
+.btn-orange {
+    background: #ff9800;
+}
+
+.btn-purple {
+    background: #673ab7;
+}
+
+.btn-teal {
+    background: #009688;
+}
+
+/* truck - landing */
+.card-tile {
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-tile:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.status-badge {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    border-radius: 8px;
+}

@@ -2,85 +2,106 @@
 {% load static %}
 
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<!-- <style>
-  .card {
-    margin-top: 60px;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-</style> -->
+
 
 <div class="container">
   <div class="row justify-content-center mt-5">
     <div class="col-md-10">
-      <div class="card">
+      <div class="card p-4">
 
-        <h4 class="text-center mb-4 mt-4">🔍 Truck Search Results</h4>
+        <h4 class="text-center mb-4">🚚 Truck Search Results</h4>
 
         <!-- Search Form -->
-        <form method="get" class="mb-4 text-center">
-          <div class="input-group mx-auto w-50">
-            <input type="text" name="search" class="form-control" placeholder="Enter Truck Number">
+        <form method="get" class="mb-4 text-center sticky-top bg-white py-3 shadow-sm rounded">
+          <div class="input-group mx-auto w-75">
+            <input type="text" name="search" value="{{ request.GET.search }}" class="form-control"
+              placeholder="Enter Truck Number">
             <button type="submit" class="btn btn-primary">Search</button>
           </div>
         </form>
 
         {% if trucks %}
-          <!-- Desktop Table View -->
-          <div class="d-none d-md-block w-75 mx-auto">
-            <table class="table table-bordered text-center align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>Truck Number</th>
-                  <th>Warehouse Number</th>
-                  <th>Truck Type</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for truck in trucks %}
-                <tr>
-                  <td>{{ truck.truck_no }}</td>
-                  <td>{{ truck.whs_no }}</td>
-                  <td>{{ truck.truck_type }}</td>
-                  <td>{{ truck.truck_status }}</td>
-                  <td>
-                    <a href="{% url 'truck_detail' truck.truck_no %}" class="btn btn-sm btn-info">View Details</a>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+        <!-- Desktop Table View -->
+        <div class="d-none d-md-block w-100 mx-auto">
+          <table class="table table-hover text-center align-middle">
+            <thead class="table-primary">
+              <tr>
+                <th>Truck Number</th>
+                <th>Warehouse</th>
+                <th>Truck Type</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for truck in trucks %}
+              <tr>
+                <td><i class="fa-solid fa-truck text-secondary me-2"></i>{{ truck.truck_no }}</td>
+                <td><i class="fa-solid fa-warehouse text-secondary me-2"></i>{{ truck.whs_no }}</td>
+                <td>{{ truck.truck_type }}</td>
+                <td>
+                  {% if truck.truck_status == "Available" %}
+                  <span class="status-badge bg-success text-white">Available</span>
+                  {% elif truck.truck_status == "In Transit" %}
+                  <span class="status-badge bg-warning text-dark">In Transit</span>
+                  {% elif truck.truck_status == "Delivered" %}
+                  <span class="status-badge bg-info text-dark">Delivered</span>
+                  {% else %}
+                  <span class="status-badge bg-secondary text-white">{{ truck.truck_status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'truck_detail' truck.truck_no %}" class="btn btn-sm btn-outline-info">
+                    <i class="fa-solid fa-circle-info me-1"></i> View
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
 
-          <!-- Mobile Card View -->
-          <div class="d-md-none">
-            {% for truck in trucks %}
-            <div class="card mb-3">
-              <div class="card-body">
-                <h5 class="card-title">Truck #{{ truck.truck_no }}</h5>
-                <p class="card-text mb-1"><strong>Warehouse:</strong> {{ truck.whs_no }}</p>
-                <p class="card-text mb-1"><strong>Type:</strong> {{ truck.truck_type }}</p>
-                <p class="card-text mb-2"><strong>Status:</strong> {{ truck.truck_status }}</p>
-                <a href="{% url 'truck_detail' truck.truck_no %}" class="btn btn-sm btn-info">View Details</a>
-              </div>
+        <!-- Mobile Card View -->
+        <div class="d-md-none">
+          {% for truck in trucks %}
+          <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">
+                <i class="fa-solid fa-truck text-primary me-2"></i> Truck #{{ truck.truck_no }}
+              </h5>
+              <p class="card-text mb-1"><i class="fa-solid fa-warehouse me-2"></i><strong>Warehouse:</strong> {{
+                truck.whs_no }}</p>
+              <p class="card-text mb-1"><strong>Type:</strong> {{ truck.truck_type }}</p>
+              <p class="card-text mb-2"><strong>Status:</strong>
+                {% if truck.truck_status == "Available" %}
+                <span class="badge bg-success">Available</span>
+                {% elif truck.truck_status == "In Transit" %}
+                <span class="badge bg-warning text-dark">In Transit</span>
+                {% elif truck.truck_status == "Delivered" %}
+                <span class="badge bg-info text-dark">Delivered</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ truck.truck_status }}</span>
+                {% endif %}
+              </p>
+              <a href="{% url 'truck_detail' truck.truck_no %}" class="btn btn-sm btn-outline-info w-100">
+                <i class="fa-solid fa-circle-info me-1"></i> View Details
+              </a>
             </div>
-            {% endfor %}
           </div>
+          {% endfor %}
+        </div>
 
         {% else %}
-          <!-- No Results -->
-          <div class="alert alert-warning text-center mt-4">
-            No trucks found matching your search.
-          </div>
+        <!-- No Results -->
+        <div class="alert alert-warning text-center mt-4">
+          <i class="fa-solid fa-triangle-exclamation me-2"></i> No trucks found matching your search.
+        </div>
         {% endif %}
 
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}

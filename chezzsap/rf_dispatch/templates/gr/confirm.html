@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Goods Receipt</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5>Inbound Delivery No: {{ inbound.dlv_no }}</h5>
+            <p><strong>Supplier:</strong> {{ inbound.supplier.name }}</p>
+            <p><strong>Order Date:</strong> {{ inbound.ord_date }} | <strong>Delivery Date:</strong> {{ inbound.del_date
+                }}</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="posted_by" class="form-label">Posted By</label>
+            <input type="text" name="posted_by" id="posted_by" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="remarks" class="form-label">Remarks</label>
+            <textarea name="remarks" id="remarks" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Confirm GR</button>
+        <a href="{% url 'inbound_detail' inbound.dlv_no %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

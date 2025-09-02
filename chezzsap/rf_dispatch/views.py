@@ -816,9 +816,59 @@ def get_product_description(request, product_id):
 # views.py
 from .models import Inventory
 
+from django.shortcuts import render
+from .models import Inventory, Category, PurchaseItem, GoodsReceiptItem
+
 def inventory_view(request):
-    inventory = Inventory.objects.select_related('product').all()
-    return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+    search_query = request.GET.get("search", "")
+    category_filter = request.GET.get("category")
+
+    # Base inventory query
+    inventory = Inventory.objects.select_related("product", "product__category").all()
+
+    # Search filter
+    if search_query:
+        inventory = inventory.filter(
+            product__name__icontains=search_query
+        ) | Inventory.objects.filter(
+            product__product_id__icontains=search_query
+        )
+
+    # Category filter
+    if category_filter:
+        inventory = inventory.filter(product__category__id=category_filter)
+
+    categories = Category.objects.all()
+
+    # Attach PO number & GR number for each inventory item
+    inventory_data = []
+    for item in inventory:
+        # Purchase order lookup (assuming PurchaseItem has product FK)
+        po_item = PurchaseItem.objects.filter(
+            product=item.product
+        ).select_related("purchase_order").first()
+
+        # Goods receipt lookup (via inbound_delivery_product → product)
+        gr_item = GoodsReceiptItem.objects.filter(
+            inbound_delivery_product__product=item.product
+        ).select_related("goods_receipt").first()
+
+        inventory_data.append({
+            "inventory": item,
+            "po_number": po_item.purchase_order.po_number if po_item and po_item.purchase_order else None,
+            "gr_no": gr_item.goods_receipt.gr_no if gr_item and gr_item.goods_receipt else None,
+        })
+
+
+    context = {
+        "inventory_data": inventory_data,
+        "categories": categories,
+        "search_query": search_query,
+        "category_filter": int(category_filter) if category_filter else None,
+    }
+    return render(request, "inventory/inventory_list.html", context)
+
+
 
 def product_delete(request, product_id):
 
@@ -931,17 +981,14 @@ def creating_pallet(request):
                 has_children = form.cleaned_data.get('has_child_pallets')
                 num_children = form.cleaned_data.get('number_of_children') or 0
 
-                # Only create children if:
-                # - checkbox is ticked
-                # - no parent pallet selected (so it's a true parent)
-                # - number of children > 0
+                
                 if has_children and not pallet.parent_pallet and num_children > 0:
                     for _ in range(num_children):
                         child = Pallet(
                             parent_pallet=pallet,
                             product=pallet.product,
                             p_mat=pallet.p_mat,
-                            quantity=0,  # or split from parent if you want
+                            quantity=0,  
                             weight=None,
                             created_at=pallet.created_at,
                             created_by=pallet.created_by,
@@ -1809,7 +1856,7 @@ def inbound_delivery(request):
             delivery_date=request.POST.get('delivery_date'),
             document_date=request.POST.get('document_date'),
             gr_date=request.POST.get('gr_date'),
-            vendor=vendor_obj,
+            supplier=vendor_obj,   # ✅ matches model field
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
             storage_location=request.POST.get('storage_location'),
@@ -1817,6 +1864,7 @@ def inbound_delivery(request):
             carrier_info=request.POST.get('carrier_info'),
             remarks=request.POST.get('remarks')
         )
+
 
         # Multiple product rows
         product_ids = request.POST.getlist('product[]')
@@ -2430,6 +2478,16 @@ from .models import OutboundDeliveryItem, OutboundDelivery
 
 from django.shortcuts import redirect
 
+from decimal import Decimal, InvalidOperation
+
+def safe_decimal(value, default=0):
+    try:
+        if value is None or value == "":
+            return Decimal(default)
+        return Decimal(value)
+    except (InvalidOperation, ValueError):
+        return Decimal(default)
+
 def outbound(request):
     sales_orders = SalesOrderCreation.objects.all()
     delivery_no = generate_outbound_delivery_number()
@@ -2461,20 +2519,21 @@ def outbound(request):
         vols = request.POST.getlist("vol_per_item[]")
 
         for i in range(len(product_ids)):
-            dlv_it_no = outbound_delivery_item_number()
+            item_no = outbound_delivery_item_number()
             OutboundDeliveryItem.objects.create(
                 delivery=outbound_delivery,
-                dlv_it_no=dlv_it_no,
-                product_id=product_ids[i],  # FK → Product
+                dlv_it_no=item_no,
+                product_id=product_ids[i],
                 product_name=product_names[i],
-                qty_order=qty_orders[i] or 0,
-                qty_issued=qty_issueds[i] or 0,
-                unit_price=unit_prices[i] or 0,
-                unit_total_price=unit_total_prices[i] or 0,
-                net_total_price=net_prices[i] or 0,
-                vol_per_item=vols[i] or 0,
+                qty_order=safe_decimal(qty_orders[i]),
+                qty_issued=safe_decimal(qty_issueds[i]),
+                unit_price=safe_decimal(unit_prices[i]),
+                unit_total_price=safe_decimal(unit_total_prices[i]),
+                net_total_price=safe_decimal(net_prices[i]),
+                vol_per_item=safe_decimal(vols[i]),
             )
-        return redirect("outbound") 
+
+        return redirect("outbound_detail", delivery_no=delivery_no) 
     
      # redirect after save
 
@@ -2627,3 +2686,158 @@ def add_packed_item(request, packing_id):
         form = PackedItemForm()
 
     return render(request, "packing/add_packed_item.html", {"form": form, "packing": packing})
+
+from django.shortcuts import render, get_object_or_404
+from .models import OutboundDelivery
+
+def outbound_detail(request, delivery_no):
+    outbound = get_object_or_404(OutboundDelivery, dlv_no=delivery_no)
+    items = outbound.items.all() 
+
+    return render(request, "outbound/detail.html", {
+        "outbound": outbound,
+        "items": items,
+    })
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.timezone import now
+from .models import OutboundDelivery, InboundDelivery, PostGoodsIssue, GoodsReceipt
+
+# ---------------------------
+# Post Goods Issue (PGI)
+# ---------------------------
+from .models import Inventory
+
+def post_goods_issue(request, delivery_no):
+    delivery = get_object_or_404(OutboundDelivery, dlv_no=delivery_no)
+
+    if hasattr(delivery, "pgi"):
+        return redirect("pgi_detail", pgi_no=delivery.pgi.pgi_no)
+
+    if request.method == "POST":
+        posted_by = request.POST.get("posted_by")
+        remarks = request.POST.get("remarks")
+        pgi_no = f"PGI{now().strftime('%Y%m%d%H%M%S')}"
+        pgi = PostGoodsIssue.objects.create(
+            pgi_no=pgi_no,
+            delivery=delivery,
+            posted_by=posted_by,
+            remarks=remarks,
+        )
+
+        # 🔽 Reduce Inventory for each outbound item
+        for item in delivery.items.all():
+            try:
+                inventory = Inventory.objects.get(product=item.product)
+                inventory.total_quantity -= item.quantity
+                if inventory.total_quantity < 0:
+                    inventory.total_quantity = 0   # prevent negative stock
+                inventory.save()
+            except Inventory.DoesNotExist:
+                # If no inventory exists for this product, create with 0
+                Inventory.objects.create(product=item.product, total_quantity=0)
+
+        return redirect("pgi_detail", pgi_no=pgi.pgi_no)
+
+    return render(request, "pgi/confirm.html", {"delivery": delivery})
+
+
+
+def pgi_detail(request, pgi_no):
+    pgi = get_object_or_404(PostGoodsIssue, pgi_no=pgi_no)
+    return render(request, "pgi/detail.html", {"pgi": pgi})
+    
+
+# ---------------------------
+# Goods Receipt (GR)
+# ---------------------------
+def goods_receipt(request, inbound_no):
+    inbound = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_no)
+
+    if hasattr(inbound, "gr"):
+        return redirect("gr_detail", gr_no=inbound.gr.gr_no)
+
+    if request.method == "POST":
+        posted_by = request.POST.get("posted_by")
+        remarks = request.POST.get("remarks")
+
+        gr_no = f"GR{now().strftime('%Y%m%d%H%M%S')}"
+        gr = GoodsReceipt.objects.create(
+            gr_no=gr_no,
+            inbound_delivery=inbound,
+            posted_by=posted_by,
+            remarks=remarks,
+        )
+
+        # 🔼 Increase Inventory for each inbound item
+        for item in inbound.items.all():
+            inventory, created = Inventory.objects.get_or_create(
+                product=item.product,
+                defaults={"total_quantity": 0}
+            )
+            inventory.total_quantity += item.quantity
+            inventory.save()
+
+        return redirect("gr_detail", gr_no=gr.gr_no)
+
+    return render(request, "gr/confirm.html", {"inbound": inbound})
+
+
+
+def gr_detail(request, gr_no):
+    gr = get_object_or_404(GoodsReceipt, gr_no=gr_no)
+    return render(request, "gr/detail.html", {"gr": gr})
+
+
+
+from django.shortcuts import render, redirect
+from .forms import GoodsReceiptForm
+
+def create_gr(request):
+    if request.method == "POST":
+        form = GoodsReceiptForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('inventory')  # After GR, go back to inventory
+    else:
+        form = GoodsReceiptForm()
+    return render(request, 'gr/create_gr.html', {'form': form})
+
+
+from django.shortcuts import render
+from .models import InboundDelivery
+
+def gr_list(request):
+    # Filter only completed or all GRs
+    search_term = request.GET.get("search")
+    if search_term:
+        grs = InboundDelivery.objects.filter(
+            inbound_delivery_number__icontains=search_term
+        ).order_by("-gr_date")
+    else:
+        grs = InboundDelivery.objects.all().order_by("-gr_date")
+
+    return render(request, "gr/gr_list.html", {"grs": grs})
+
+
+from django.shortcuts import render
+
+def search(request):
+    query = request.GET.get("q", "")
+    
+    features = [
+        {"name": "Yard Check-In", "url": "one"},
+        {"name": "Check Status", "url": "truck_list"},
+        {"name": "Stock Upload", "url": "#"},
+        {"name": "RF Dispatch", "url": "#"},
+        {"name": "Pallet Labels", "url": "#"},
+    ]
+    
+    if query:
+        results = [f for f in features if query.lower() in f["name"].lower()]
+    else:
+        results = []
+    
+    return render(request, "search.html", {"query": query, "results": results})

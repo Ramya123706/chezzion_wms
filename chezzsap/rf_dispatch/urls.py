@@ -10,6 +10,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('start/', views.first, name='first'),
     path('six/', views.sixth, name='sixth'),
+    path("search/", views.search, name="search"),
 
     # Outbound steps
     path('outbound1/', views.outbound1, name='outbound1'),
@@ -151,9 +152,6 @@ urlpatterns = [
     path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
     path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
 
-
-
-
     # Customer landing
     path('customer/', views.customer, name='customer'),
     path('get-po-products/<int:po_id>/', views.get_po_products, name='get_po_products'),
@@ -177,5 +175,18 @@ urlpatterns = [
     path("packing/<int:packing_id>/edit/", views.edit_packing, name="edit_packing"),
     path("packing/<int:packing_id>/delete/", views.delete_packing, name="delete_packing"),
     path("packing/<int:packing_id>/add-item/", views.add_packed_item, name="add_packed_item"),
-    
+    path("outbound/<str:delivery_no>/", views.outbound_detail, name="outbound_detail"),
+# Outbound → PGI
+    path("pgi/<str:delivery_no>/", views.post_goods_issue, name="post_goods_issue"),
+    path("pgi/detail/<str:pgi_no>/", views.pgi_detail, name="pgi_detail"),
+
+    # Inbound → GR
+    path("gr/<str:inbound_no>/", views.goods_receipt, name="goods_receipt"),
+    path("gr/detail/<str:gr_no>/", views.gr_detail, name="gr_detail"),
+    #GR
+    path('create-gr/', views.create_gr, name='create_gr'),
+    path("gr_list/", views.gr_list, name="gr_list"),
+
+
+
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
