@@ -6,82 +6,95 @@
         <!-- LEFT SIDE: Add Product -->
         <div class="col-md-6">
             <div class="card">
-            <div class="card-header text-white bg-primary">
-                <h5>Add Product</h5>
-            </div>
+                <div class="card-header text-white bg-primary">
+                    <h5>Add Product</h5>
+                </div>
              
-            <div class="card-body">
-                <form method="post" action="{% url 'add_product' %}" enctype="multipart/form-data">
-                    {% csrf_token %}
+                <div class="card-body">
+                    <form method="post" action="{% url 'add_product' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
  
-                    {% if error %}
-                        <div class="alert alert-danger">
-                            <strong>Error:</strong> {{ error }}
+                        {% if error %}
+                            <div class="alert alert-danger">
+                                <strong>Error:</strong> {{ error }}
+                            </div>
+                        {% endif %}
+ 
+                        <div class="form-group">
+                            <label for="name"><b>Product Name</b></label>
+                            <input type="text" id="name" name="name" class="form-control" required>
                         </div>
-                    {% endif %}
- 
-                    <div class="form-group">
-                        <label for="name"><b>Product Name</b></label>
-                        <input type="text" id="name" name="name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product_id"><b>Product ID</b></label>
-                        <input type="text" id="product_id" name="product_id" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="quantity"><b>Quantity</b></label>
-                        <input type="text" id="quantity" name="quantity" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="pallet_no"><b>Pallet No</b></label>
-                        <input type="text" id="pallet_no" name="pallet_no" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sku"><b>SKU</b></label>
-                        <input type="text" id="sku" name="sku" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="description"><b>Description</b></label>
-                        <input type="text" id="description" name="description" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="unit_of_measure"><b>Unit of Measure</b></label>
-                        <input type="text" id="unit_of_measure" name="unit_of_measure" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="category"><b>Category</b></label>
-                    <select id="category" name="category" class="form-control" required>
-                        <option value="">-- Select Category --</option>
-                        {% for cat in categories %}
-                            <option value="{{ cat.id }}">{{ cat.category }}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="form-text text-muted">
-                        Can't find your Category?
-                        <a href="{% url 'add_category' %}" class="btn btn-sm btn-link">Add New Category</a>
-                    </small>
-                    </div>
-                    <div class="form-group">
-                        <label for="re_order_level"><b>Reorder Level</b></label>
-                        <input type="text" id="re_order_level" name="re_order_level" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="unit_price"><b>Unit Price</b></label>
-                        <input type="number" id="unit_price" name="unit_price" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="images"><b>Image</b></label>
-                        <input type="file" id="images" name="images" class="form-control" accept="image/*">
-                    </div>
-                    
- 
-                    </div>
-                    <div class="text-center mb-2 ">
-                        <button type="submit" class="btn btn-primary ">Submit</button>
-                        <!-- <a href="{% url 'product_list' %}" class="btn btn-primary">Product List</a> -->
 
-                    </div>
-                </form>
+                        <div class="form-group">
+                            <label for="product_id"><b>Product ID</b></label>
+                            <input type="text" id="product_id" name="product_id" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quantity"><b>Quantity</b></label>
+                            <input type="text" id="quantity" name="quantity" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pallet_no"><b>Pallet No</b></label>
+                            <input type="text" id="pallet_no" name="pallet_no" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sku"><b>SKU</b></label>
+                            <input type="text" id="sku" name="sku" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description"><b>Description</b></label>
+                            <input type="text" id="description" name="description" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="unit_of_measure"><b>Unit of Measure</b></label>
+                            <input type="text" id="unit_of_measure" name="unit_of_measure" class="form-control" required>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="category"><b>Category</b></label>
+                            <select id="category" name="category" class="form-control" required>
+                                <option value="">-- Select Category --</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}">{{ cat.category }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Subcategory -->
+                        <div class="form-group">
+    <label for="subcategory"><b>Sub Category</b></label>
+    <select id="subcategory" name="subcategory" class="form-control">
+        <option value="">-- Select Subcategory --</option>
+        {% for sub in subcategories %}
+            <option value="{{ sub.id }}" {% if request.POST.subcategory == sub.id|stringformat:"s" %}selected{% endif %}>
+                {{ sub.name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+                        <div class="form-group">
+                            <label for="re_order_level"><b>Reorder Level</b></label>
+                            <input type="text" id="re_order_level" name="re_order_level" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="images"><b>Image</b></label>
+                            <input type="file" id="images" name="images" class="form-control" accept="image/*">
+                        </div>
+
+                        <div class="text-center mb-2 ">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     
@@ -90,8 +103,9 @@
             <div class="card">
                 <h4 class="text-center mb-4 mt-3">Search Products</h4>
                 <div class="p-4 ">
-                <a href="{% url 'product_list' %}" class="btn btn-secondary mb-2">View All Products</a>
+                    <a href="{% url 'product_list' %}" class="btn btn-secondary mb-2">View All Products</a>
                 </div>
+
                 <!-- Search Form -->
                 <form method="get" class="mb-4 text-center">
                     <div class="input-group mx-auto px-3">
@@ -116,14 +130,15 @@
                                 <tr>
                                     <td>{{ product.product_id }}</td>
                                     <td>{{ product.name }}</td>
-                                    <td><a href="{% url 'product_detail' product.product_id %}" class="btn btn-sm btn-info">View Details</a></td>
+                                    <td>
+                                        <a href="{% url 'product_detail' product.product_id %}" class="btn btn-sm btn-info">View Details</a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
 
-                    
                     <!-- Mobile Card View -->
                     <div class="d-md-none px-3 pb-3">
                         {% for product in products %}
@@ -147,4 +162,28 @@
         </div>
     </div>
 </div>
+
+<!-- JS for Subcategory -->
+<script>
+document.getElementById("category").addEventListener("change", function () {
+    const categoryId = this.value;
+    const subcategorySelect = document.getElementById("subcategory");
+
+    subcategorySelect.innerHTML = '<option value="">-- Select Subcategory --</option>';
+
+    if (categoryId) {
+        fetch(`/ajax/load-subcategories/?category_id=${categoryId}`)
+            .then(response => response.json())
+            .then(data => {
+                data.subcategories.forEach(sub => {
+                    const option = document.createElement("option");
+                    option.value = sub.id;
+                    option.text = sub.name;
+                    subcategorySelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error("Error loading subcategories:", error));
+    }
+});
+</script>
 {% endblock %}

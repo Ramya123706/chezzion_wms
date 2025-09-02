@@ -353,10 +353,11 @@ from .models import StockUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, StockUpload
 
+
 def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
-        product_id = request.POST.get('product')  # Product ID
+        product_id = request.POST.get('product')
         description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
@@ -368,13 +369,15 @@ def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
         wps = request.POST.get('wps')
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
+        category = request.POST.get('category')
+        sub_category = request.POST.get('sub_category')
 
         try:
-            product_instance = get_object_or_404(Product, product_id__iexact=product_id)
-
-            whs_key = request.POST.get('whs_no')
-            warehouse = Warehouse.objects.get(whs_no=whs_key)
-            bin_instance = get_object_or_404(Bin, id=bin)
+            product_instance = get_object_or_404(Product, product_id=product_id)
+            p_mat = get_object_or_404(PackingMaterial, id=p_mat) if p_mat else None
+            warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+            bin_ = get_object_or_404(Bin, bin_id=bin_)
+            batch = request.POST.get('batch_input') or batch or ''
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
@@ -388,52 +391,91 @@ def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
                 stock_type=stock_type,
                 wps=wps,
                 doc_no=doc_no,
-                pallet_status=pallet_status
+                pallet_status=pallet_status,
+                category=category,
+                sub_category=sub_category
             )
 
-            # Render with success flag
-            products = Product.objects.all()
-            
             return render(request, 'stock_upload/batch_product.html', {
-                'products': products,
+                'products': Product.objects.all(),
                 'warehouse': Warehouse.objects.all(),
+                'materials': PackingMaterial.objects.all(),
+                'success': True,
+                'query': query,
+                'stocks': stock_uploads
                 'bins': Bin.objects.all(),
-                'success': True
             })
 
         except Exception as e:
-            print("❌ Error during StockUpload creation:", e)
-            products = Product.objects.all()
-            
             return render(request, 'stock_upload/batch_product.html', {
-                'products': products,
+                'products': Product.objects.all(),
                 'warehouse': Warehouse.objects.all(),
-                'bins': Bin.objects.all(),
+                'materials': PackingMaterial.objects.all(),
                 'error': str(e),
-                
+                'query': query,
+                'stocks': stock_uploads
             })
 
     # GET request
-    products = Product.objects.all()
-    warehouse = Warehouse.objects.all()
-    bins = Bin.objects.all()
-    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse, 'bins': bins})
+    return render(request, 'stock_upload/batch_product.html', {
+        'products': Product.objects.all(),
+        'warehouse': Warehouse.objects.all(),
+        'materials': PackingMaterial.objects.all(),
+        'stocks': stock_uploads,
+        'query': query,
+    })
 
 
-from django.http import JsonResponse
-from .models import Product
-
+# === API: Get Product Description ===
 def get_product_description(request, product_id):
     try:
         product = Product.objects.get(id=product_id)
         return JsonResponse({'description': product.description})
     except Product.DoesNotExist:
         return JsonResponse({'description': ''}, status=404)
- 
 
-def stock_detail_view(request, pallet):
-    stock = get_object_or_404(StockUpload, pallet=pallet)
+
+# === Stock Management Views ===
+def stock_detail_view(request, pk):
+    stock = get_object_or_404(StockUpload, pk=pk)
     return render(request, 'stock_upload/stock_detail.html', {'stock': stock})
+
+
+def stock_list(request):
+    stocks = StockUpload.objects.all()
+    return render(request, 'stock_upload/stock_list.html', {'stocks': stocks})
+
+def stock_edit(request, pk):
+    stock = get_object_or_404(StockUpload, pk=pk)
+    warehouse = Warehouse.objects.all()
+    materials = PackingMaterial.objects.all()
+
+    if request.method == "POST":
+        stock.whs_no = request.POST.get("whs_no")
+        stock.product = request.POST.get("product")
+        stock.category = request.POST.get("category")
+        stock.sub_category = request.POST.get("sub_category")
+        stock.description = request.POST.get("description")
+        stock.quantity = request.POST.get("quantity")
+        stock.bin = request.POST.get("bin")
+        stock.pallet = request.POST.get("pallet")
+        stock.p_mat = request.POST.get("p_mat")  # foreign key ID
+        stock.inspection = request.POST.get("inspection")
+        stock.stock_type = request.POST.get("stock_type")
+        stock.wps = request.POST.get("wps")
+        stock.doc_no = request.POST.get("doc_no")
+        stock.pallet_status = request.POST.get("pallet_status")
+        stock.save()
+        return redirect("stock_list")
+
+    context = {
+        "stock": stock,
+        "warehouse": warehouse,
+        "materials": materials,
+    }
+    return render(request, "stock_upload/stock_edit.html", context)
+
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Warehouse
@@ -658,20 +700,28 @@ def product_detail_view(request, product_id):
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import Product, Category, SubCategory
 
 def add_product(request):
     if request.method == 'POST':
         name = request.POST.get('name')
-        product_id = request.POST.get('id')
+        product_id = request.POST.get('product_id')   # ✅ fixed key
         quantity = request.POST.get('quantity')
         pallet_no = request.POST.get('pallet_no')
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
         category = request.POST.get('category')
+        # subcategory = request.POST.get('subcategory')
         re_order_level = request.POST.get('re_order_level')
         unit_price = request.POST.get('unit_price')
         images = request.FILES.get('images')
+        sub_category_id = request.POST.get('subcategory')  # get the ID from form
+        sub_category = None
+        if sub_category_id:  # only fetch if a value was submitted
+            sub_category = SubCategory.objects.get(id=sub_category_id)
 
 
 def product_list(request):
@@ -711,25 +761,43 @@ def add_product(request):
         unit_price = float(request.POST.get('unit_price', 0))
         try:
             product = Product.objects.create(
-                product_id=product_id,
-                name=name,
-                quantity=quantity,
-                pallet_no=pallet_no,
-                sku=sku,
-                description=description,
-                unit_of_measure=unit_of_measure,
-                category=category,
-                re_order_level=re_order_level,
-                unit_price=unit_price,
-                images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now()
-            )
+            product_id=product_id,
+            name=name,
+            quantity=quantity,
+            pallet_no=pallet_no,
+            sku=sku,
+            description=description,
+            unit_of_measure=unit_of_measure,
+            category=category,       
+            sub_category=sub_category,  # now correctly set
+            re_order_level=re_order_level,
+            images=images,
+            created_at=timezone.now(),
+            updated_at=timezone.now()
+        )
+            
             return redirect('product_detail', product_id=product.product_id)
-        except Exception as e:
-            return render(request, 'product/add_product.html', {'error': str(e)})
 
-    return render(request, 'product/add_product.html')
+        except Exception as e:
+            return render(
+                request,
+                'product/add_product.html',
+                {
+                    'error': str(e),
+                    'categories': Category.objects.all(),
+                    'subcategories':SubCategory.objects.all() # ✅ reload dropdowns if error
+                }
+            )
+
+    # GET request → load form with categories
+    return render(
+        request,
+        'product/add_product.html',
+        {
+            'categories': Category.objects.all(),
+            'subcategories':SubCategory.objects.all()  # ✅ load subcategories too
+        }
+    )
 
 
 
@@ -962,6 +1030,10 @@ from django.shortcuts import render, redirect
 from django.db import transaction
 from .forms import PalletForm
 from .models import Pallet
+from django.utils import timezone
+
+
+
 
 from django.db import transaction
 
@@ -974,7 +1046,7 @@ def creating_pallet(request):
                 pallet = form.save(commit=False)
                 pallet.created_by = str(request.user)
                 pallet.updated_by = str(request.user)
-                pallet.created_at = timezone.now()
+                
                 pallet.save()
 
                 # Handle creating child pallets if requested
@@ -1372,13 +1444,17 @@ def create_bin(request):
             warehouse = Warehouse.objects.get(whs_no=whs_key)
 
             category = Category.objects.get(id=request.POST.get('category'))
-
+            sub_category_name = request.POST.get('subcategory')  # FIX ✅
+            sub_category = None
+            if sub_category_name:
+                sub_category = SubCategory.objects.get(id=sub_category_name)
+                
             Bin.objects.create(
                 whs_no=warehouse,
                 bin_id=request.POST.get('bin_id'),
                 capacity=int(request.POST.get('capacity')),
-                category=category,
-                shelves=request.POST.get('shelves'),
+                category=category,                
+                sub_category=sub_category, 
                 updated_by=request.POST.get('updated_by'),
                 created_by=request.POST.get('created_by')
             )
@@ -1406,7 +1482,7 @@ def task(request):
 
 
 from django.http import JsonResponse
-from .models import Category
+from .models import Category, SubCategory
 import json
 
 from django.shortcuts import render, redirect
@@ -1414,19 +1490,51 @@ from .forms import CategoryForm
 from .models import Category
 
 def add_category(request):
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_bin')  # Redirect to the main form page
-    else:
-        form = CategoryForm()
-    categories = Category.objects.all()
-    return render(request, 'bin/create_bin.html', {
-        'categories': categories,
-        'category_form': form,
-    })
+    if request.method == "POST":
+        try:
+            # Main category
+            category_name = request.POST.get("category")
+            description = request.POST.get("description")
 
+            category = Category.objects.create(
+                category=category_name,
+                description=description
+            )
+
+            # Subcategories
+            subcategories = []
+            for key, value in request.POST.items():
+                if key.startswith("sub_category_") and value.strip():
+                    subcat = SubCategory.objects.create(
+                        category=category,
+                        name=value.strip()
+                    )
+                    subcategories.append(subcat.name)
+
+            return JsonResponse({
+                "success": True,
+                "id": category.id,
+                "category": category.category,
+                "subcategories": subcategories
+            })
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+
+    return JsonResponse({"success": False, "message": "Invalid request"})
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import Category
+
+def get_subcategories(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    subcategories = list(category.subcategories.values("id", "name"))
+    return JsonResponse({"subcategories": subcategories})
+
+def load_subcategories(request):
+    category_id = request.GET.get("category_id")
+    subcategories = SubCategory.objects.filter(category_id=category_id).values("id", "name")
+    return JsonResponse({"subcategories": list(subcategories)})
 
 # def vendor_detail(request, vendor_id):  
 #     vendor = get_object_or_404(Vendor, id=vendor_id)
@@ -1585,13 +1693,15 @@ def edit_putaway(request, putaway_id):
 
 
 
-
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
-    putaway.status = "Completed"
-    putaway.is_confirmed = True
+    if putaway.status == "In Progress":
+        putaway.status = "Completed"
+    else:
+        putaway.status = "In Progress"
+
     putaway.save()
-    return redirect('putaway_pending')
+    return redirect("all_tasks")
 
 def delete_putaway(request,putaway_id):
     task = get_object_or_404(Putaway, putaway_id=putaway_id)
@@ -1664,7 +1774,8 @@ def product_suggestions(request):
         'product_id',   # must exist in your Product model
         'name',
         'description',
-        'category'
+        'category',
+        'sub_category'
     )[:10]  # Limit to 10 suggestions
 
     return JsonResponse({'results': list(products)})
@@ -1780,9 +1891,14 @@ def edit_picking(request, picking_id):
 
 def confirm_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
-    picking.status = 'Completed'
+
+    if picking.status == "In Progress":
+        picking.status = "Completed"
+    else:
+        picking.status = "In Progress"
+
     picking.save()
-    return redirect('customer')  # Redirect to the customer page
+    return redirect("all_tasks") 
 
 
 
@@ -1856,12 +1972,10 @@ def inbound_delivery(request):
             delivery_date=request.POST.get('delivery_date'),
             document_date=request.POST.get('document_date'),
             gr_date=request.POST.get('gr_date'),
-            supplier=vendor_obj,   # ✅ matches model field
+            supplier=vendor_obj,   
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
-            storage_location=request.POST.get('storage_location'),
             delivery_status=request.POST.get('delivery_status'),
-            carrier_info=request.POST.get('carrier_info'),
             remarks=request.POST.get('remarks')
         )
 
@@ -1901,13 +2015,16 @@ from django.shortcuts import render, get_object_or_404
 from .models import InboundDelivery, InboundDeliveryproduct
 
 def delivery_detail(request, inbound_delivery_number):
+    # Get the delivery
     delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)
-    ibdproducts = InboundDeliveryproduct.objects.filter(delivery=delivery)
+    
+    # Get related products (uses related_name='products' in InboundDeliveryProduct model)
+    ibdproducts = delivery.products.all()
+
     return render(request, 'inbound/delivery_detail.html', {
         'delivery': delivery,
         'ibdproducts': ibdproducts,
     })
-
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import InboundDelivery
 from django.shortcuts import render, get_object_or_404, redirect
@@ -2011,12 +2128,12 @@ def add_child_pallet(request):
                 parent_pallet=parent,
                 product=parent.product,
                 p_mat=parent.p_mat,
-                quantity=0,  # or copy from parent
-                weight=0,    # or copy from parent
+                quantity=0,  
+                weight=0,    
             )
         
         messages.success(request, f"{num_children} child pallet(s) created for {parent_no}")
-        return redirect('creating_pallet')  # replace with your view name
+        return redirect('creating_pallet')  
 
 from django.shortcuts import render
 from .models import PurchaseOrder
@@ -2373,6 +2490,18 @@ from django.shortcuts import get_object_or_404
 from weasyprint import HTML
 from .models import SalesOrderCreation
 
+from django.http import JsonResponse
+from .models import Inventory
+
+def get_total_quantity(request, product_id):
+    try:
+        inventory = Inventory.objects.get(product__product_id=product_id)
+        return JsonResponse({"total_quantity": inventory.total_quantity})
+    except Inventory.DoesNotExist:
+        return JsonResponse({"total_quantity": 0})
+
+
+
 def sales_order_pdf(request, so_no):
     so = get_object_or_404(SalesOrderCreation, so_no=so_no)
 
@@ -2686,6 +2815,98 @@ def add_packed_item(request, packing_id):
         form = PackedItemForm()
 
     return render(request, "packing/add_packed_item.html", {"form": form, "packing": packing})
+
+
+from itertools import chain
+from django.shortcuts import render
+from .models import Putaway, Picking
+from datetime import datetime, timezone
+
+def all_tasks(request):
+    putaway_tasks = Putaway.objects.all().values(
+        "putaway_id", "pallet", "location", "putaway_task_type", "status", "created_at", "confirmed_at"
+    )
+    picking_tasks = Picking.objects.all().values(
+        "picking_id", "pallet", "location", "product", "quantity", "picking_type", "status"
+    )
+
+    for task in putaway_tasks:
+        task["task_type"] = "Putaway"
+        task["task_id"] = task["putaway_id"]
+
+    for task in picking_tasks:
+        task["task_type"] = "Picking"
+        task["task_id"] = task["picking_id"]
+
+    tasks = list(chain(putaway_tasks, picking_tasks))
+
+    tasks = sorted(
+        tasks, key=lambda x: x.get("created_at") or datetime.min.replace(tzinfo=timezone.utc), reverse=True
+    )
+    return render(request, "tasks/list.html", {"tasks": tasks})
+
+
+def putaway_detail(request, putaway_id):
+    task = get_object_or_404(Putaway, putaway_id=putaway_id)
+    return render(request, "putaway/putaway_detail.html", {"task": task})
+
+def picking_detail(request, picking_id):
+    task = get_object_or_404(Picking, picking_id=picking_id)
+    return render(request, "picking/picking_detail.html", {"task": task})
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PackingMaterial
+
+def material_create(request):
+    if request.method == "POST":
+        p_mat = request.POST.get("p_mat")
+        description = request.POST.get("description")
+
+        if p_mat:  
+            PackingMaterial.objects.create(p_mat=p_mat, description=description)
+            messages.success(request, "Packing material created successfully!")
+            return redirect("material_list")
+        else:
+            messages.error(request, "Material name is required.")
+
+    return render(request, "material/mat_creation.html")
+
+
+
+def material_list(request):
+    materials = PackingMaterial.objects.all().order_by("id")
+    return render(request, "material/material_list.html", {"materials": materials})
+
+
+def material_edit(request, id):
+    material_obj = get_object_or_404(PackingMaterial, id=id)
+
+    if request.method == "POST":
+        material = request.POST.get("material")
+        description = request.POST.get("description")
+
+        if material:
+            material_obj.material = material
+            material_obj.description = description
+            material_obj.save()
+            messages.success(request, "Packing material updated successfully!")
+            return redirect("material_list")  # corrected redirect to list view
+        else:
+            messages.error(request, "Material name cannot be empty!")
+
+    return render(request, "material/mat_edit.html", {"material": material_obj})
+
+
+def material_delete(request, id):
+    material_obj = get_object_or_404(PackingMaterial, id=id)
+    material_obj.delete()
+    messages.success(request, "Packing material deleted successfully!")
+    return redirect("material_list")
+
+
 
 from django.shortcuts import render, get_object_or_404
 from .models import OutboundDelivery

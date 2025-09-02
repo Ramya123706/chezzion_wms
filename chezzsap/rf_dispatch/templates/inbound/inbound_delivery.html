@@ -52,14 +52,21 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label for="whs_no" class="form-label"><b>Warehouse</b></label>
-                        <select name="whs_no" id="whs_no" class="form-select" required>
-                            <option value="">Select a warehouse</option>
-                            {% for wh in warehouses %}
-                            <option value="{{ wh.pk }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="esn"><b>ESN</b></label>
+                        <input type="text" class="form-control" name="esn" id="esn" value="{{ delivery.esn }}">
                     </div>
+
+
+<div class="col-md-6 mb-3">
+    <label for="whs_no" class="form-label"><b>Warehouse</b></label>
+    <select name="whs_no" id="whs_no" class="form-select" required>
+        <option value="">Select a warehouse</option>
+        {% for wh in warehouses %}
+            <option value="{{ wh.pk }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
 
 
                     <div class="col-md-6 mb-3">
@@ -87,7 +94,7 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label for="delivery_status"><b>Delivery Status</b></label>
+                          <label for="delivery_status"><b>Delivery Status</b></label>
                         <select class="form-control" name="delivery_status" id="delivery_status">
                             <option value="" disabled selected>Select status</option>
                             <option value="Pending">
@@ -97,10 +104,7 @@
                         </select>
                     </div>
 
-                    <!-- Add Row Button -->
-                    <div class="col-md-12 mb-3">
-                        <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
-                    </div>
+                   
 
                     <!-- Material Table -->
                     <table class="table table-bordered" id="deliveryTable">
@@ -187,7 +191,7 @@
         </div>
     </div>
 </div>
-
+<!-- 
 <script>
     // Function to add a new row to the table
     function addRow() {
@@ -211,20 +215,21 @@
             firstBatchInput.placeholder = "Auto-generated";
         }
     });
-</script>
-<script>
-    document.getElementById("purchase_order").addEventListener("change", function () {
-        const poId = this.value;
-        const tableBody = document.querySelector('#deliveryTable tbody');
-        tableBody.innerHTML = "";  // clear previous rows
+</script> -->
+<!-- <script>
+document.getElementById("purchase_order").addEventListener("change", function() {
+    const poId = this.value;
+    const tableBody = document.querySelector('#deliveryTable tbody');
+    tableBody.innerHTML = "";  // clear previous rows
 
-        if (poId) {
-            fetch(`/get-po-products/${poId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    data.products.forEach(p => {
-                        const newRow = document.createElement("tr");
-                        newRow.innerHTML = `
+    if (poId) {
+        fetch(`/get-po-products/${poId}/`)
+            .then(response => response.json())
+            .then(data => {
+                data.products.forEach(p => {
+                    const newRow = document.createElement("tr");
+                    newRow.innerHTML = `
+
                         <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
                         <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
                         <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
@@ -235,8 +240,10 @@
                         tableBody.appendChild(newRow);
                     });
                 });
-        }
-    });
-</script>
+            });
+    }
+});
+</script> -->
+
 
 {% endblock %}

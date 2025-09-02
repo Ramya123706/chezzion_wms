@@ -20,12 +20,15 @@
                         <input type="text" name="so_no" value="{{ so_no }}" class="form-control" readonly>
                     </div>
 
-                    <div class="form-group">
-                        <label for="id_whs_no">Warehouse</label>
-                        <select id="id_whs_no" name="whs_no" class="form-control">
-                            <option value="">-- Select Warehouse --</option>
-                            {% for wh in warehouses %}
-                            <option value="{{ wh.whs_no}}">{{ wh.whs_no }}</option>
+                 <div class="mb-3">
+                        <label for="whs_no"><b>Warehouse</b></label>
+                        <select name="whs_no" id="whs_no" class="form-select" required>
+                            <option value="">Select Warehouse</option>
+                            {% for warehouse in warehouses %}
+                                <option value="{{ warehouse.whs_no }}"
+                                    {% if data.whs_no == warehouse.whs_no|stringformat:"s" %}selected{% endif %}>
+                                    {{ warehouse.whs_name }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -38,8 +41,8 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label"><b>Customer ID</b></label>
-                            <input type="text" name="customer_id" class="form-control" value="{{ data.customer_id }}"
-                                required>
+                            <input type="text" name="customer_id" class="form-control"
+                                   value="{{ data.customer_id }}" required>
 
                         </div>
 
@@ -64,8 +67,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center col-md-12 mb-3">
-                        <h5 class="text-primary  m-0"><b>Product Details</b></h5>
-                        <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
+                        <h5 class="text-primary m-0"><b>Product Details</b></h5>
                     </div>
 
                     <div class="table-responsive">
@@ -73,7 +75,9 @@
                             <thead class="table-light">
                                 <tr class="text-center">
                                     <th>Product Name</th>
+                                    <th>Existing Quantity</th>
                                     <th>Product ID</th>
+
                                     <th>Quantity</th>
                                     <th>Unit Price</th>
                                     <th>Unit Total Price</th>
@@ -81,6 +85,7 @@
                             </thead>
                             <tbody>
                                 {% if product_rows %}
+
                                 {% for row in product_rows %}
                                 <tr>
                                     <td>
@@ -161,6 +166,18 @@
 </div>
 
 <script>
+function calculateRowTotal(element) {
+    const row = element.closest('tr');
+    const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+    const unitPrice = parseFloat(row.querySelector('input[name="unit_price[]"]').value) || 0;
+    row.querySelector('input[name="unit_total_price[]"]').value = (quantity * unitPrice).toFixed(2);
+    calculateNetTotal();
+}
+
+function calculateNetTotal() {
+    let total = 0;
+    document.querySelectorAll('input[name="unit_total_price[]"]').forEach(input => {
+        total += parseFloat(input.value) || 0;
     function addRow() {
         const tableBody = document.querySelector('#productTable tbody');
         const newRow = document.createElement('tr');
@@ -224,6 +241,31 @@
     });
 </script>
 
+// Auto-fetch existing quantity when Product ID is entered
+<script>
+document.addEventListener("input", function(e) {
+    if (e.target.classList.contains("product-id")) {
+        const row = e.target.closest("tr");
+        const productId = e.target.value.trim();
+
+        if (productId) {
+            fetch(`/get-total-quantity/${productId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    row.querySelector(".total-qty").value = data.total_quantity;
+                })
+                .catch(err => {
+                    console.error("Error fetching inventory:", err);
+                    row.querySelector(".total-qty").value = 0;
+                });
+        } else {
+            row.querySelector(".total-qty").value = "";
+        }
+    }
+});
+</script>
+
+{% endblock %}
 <script>
     function setupAutocomplete(row) {
         const input = row.querySelector('.product_name');
