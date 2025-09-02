@@ -286,19 +286,18 @@ from django.db.models import Sum
 
 class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
-    whs_no = models.CharField(max_length=50)
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     category = models.CharField(blank=True, null=True) 
     sub_category = models.CharField(blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
-    batch = models.CharField(max_length=50)
-    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
+    batch = models.CharField(max_length=100, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE , null=True, blank=True)
     pallet = models.CharField(max_length=50)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     inspection = models.CharField(max_length=50)
     stock_type = models.CharField(max_length=50)
- 
     wps = models.CharField(max_length=50)
     doc_no = models.CharField(max_length=50)
     pallet_status = models.CharField(max_length=50, default='Not planned')

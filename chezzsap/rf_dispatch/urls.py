@@ -62,8 +62,10 @@ urlpatterns = [
     path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
     path('stock_upload/menu', views.stock_menu, name='stock_menu'),
     path('stock_upload/batch_product', views.batch_product_view, name='batch_product'),
-    path('stock/<str:pallet>/', views.stock_detail_view, name='stock_detail'),
-
+    path('stock/<int:pk>/', views.stock_detail_view, name='stock_detail'),
+    path('stocks/', views.stock_list, name='stock_list'),
+    path('stocks/<int:pk>/edit/', views.stock_edit, name='stock_edit'),
+    # path('products/search/', views.product_search, name='product_search'),
     # Warehouse
     path('warehouse/', views.warehouse_view, name='warehouse_view'),
     path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),

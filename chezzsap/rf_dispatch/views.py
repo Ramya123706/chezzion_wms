@@ -352,10 +352,27 @@ from .models import StockUpload
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product, StockUpload
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
+from django.db.models import Q
+from .models import StockUpload, Product, Warehouse, Bin, PackingMaterial
+
+# === Batch Product Upload & Sidebar Search ===
 def batch_product_view(request):
+    # --- SEARCH ---
+    query = request.GET.get('search')
+    if query:
+        stock_uploads = StockUpload.objects.filter(
+            Q(whs_no__icontains=query) | 
+            Q(product__product_id__icontains=query) |
+            Q(product__name__icontains=query)
+        )
+    else:
+        stock_uploads = StockUpload.objects.all()
+
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
-        product_id = request.POST.get('product')  # Product ID
+        product_id = request.POST.get('product')
         description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
@@ -373,9 +390,10 @@ def batch_product_view(request):
         try:
             product_instance = get_object_or_404(Product, product_id=product_id)
             p_mat = get_object_or_404(PackingMaterial, id=p_mat) if p_mat else None
-            whs_key = request.POST.get('whs_no')
-            warehouse = Warehouse.objects.get(whs_no=whs_key)
-            bin_ = Bin.objects.get(bin_id=bin_)
+            warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+            bin_ = get_object_or_404(Bin, bin_id=bin_)
+            batch = request.POST.get('batch_input') or batch or ''
+
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
@@ -394,47 +412,85 @@ def batch_product_view(request):
                 sub_category=sub_category
             )
 
-            # Render with success flag
-            products = Product.objects.all()
-            
             return render(request, 'stock_upload/batch_product.html', {
-                'products': products,
+                'products': Product.objects.all(),
                 'warehouse': Warehouse.objects.all(),
-                'success': True
+                'materials': PackingMaterial.objects.all(),
+                'success': True,
+                'query': query,
+                'stocks': stock_uploads
             })
 
         except Exception as e:
-            print("❌ Error during StockUpload creation:", e)
-            products = Product.objects.all()
-            
             return render(request, 'stock_upload/batch_product.html', {
-                'products': products,
+                'products': Product.objects.all(),
                 'warehouse': Warehouse.objects.all(),
-                'error': str(e)
+                'materials': PackingMaterial.objects.all(),
+                'error': str(e),
+                'query': query,
+                'stocks': stock_uploads
             })
 
     # GET request
-    materials = PackingMaterial.objects.all()
-   
-    products = Product.objects.all()
-    warehouse = Warehouse.objects.all()
-    return render(request, 'stock_upload/batch_product.html', {'products': products, 'warehouse': warehouse, "materials": materials})
+    return render(request, 'stock_upload/batch_product.html', {
+        'products': Product.objects.all(),
+        'warehouse': Warehouse.objects.all(),
+        'materials': PackingMaterial.objects.all(),
+        'stocks': stock_uploads,
+        'query': query,
+    })
 
 
-from django.http import JsonResponse
-from .models import Product
-
+# === API: Get Product Description ===
 def get_product_description(request, product_id):
     try:
         product = Product.objects.get(id=product_id)
         return JsonResponse({'description': product.description})
     except Product.DoesNotExist:
         return JsonResponse({'description': ''}, status=404)
- 
 
-def stock_detail_view(request, pallet):
-    stock = get_object_or_404(StockUpload, pallet=pallet)
+
+# === Stock Management Views ===
+def stock_detail_view(request, pk):
+    stock = get_object_or_404(StockUpload, pk=pk)
     return render(request, 'stock_upload/stock_detail.html', {'stock': stock})
+
+
+def stock_list(request):
+    stocks = StockUpload.objects.all()
+    return render(request, 'stock_upload/stock_list.html', {'stocks': stocks})
+
+def stock_edit(request, pk):
+    stock = get_object_or_404(StockUpload, pk=pk)
+    warehouse = Warehouse.objects.all()
+    materials = PackingMaterial.objects.all()
+
+    if request.method == "POST":
+        stock.whs_no = request.POST.get("whs_no")
+        stock.product = request.POST.get("product")
+        stock.category = request.POST.get("category")
+        stock.sub_category = request.POST.get("sub_category")
+        stock.description = request.POST.get("description")
+        stock.quantity = request.POST.get("quantity")
+        stock.bin = request.POST.get("bin")
+        stock.pallet = request.POST.get("pallet")
+        stock.p_mat = request.POST.get("p_mat")  # foreign key ID
+        stock.inspection = request.POST.get("inspection")
+        stock.stock_type = request.POST.get("stock_type")
+        stock.wps = request.POST.get("wps")
+        stock.doc_no = request.POST.get("doc_no")
+        stock.pallet_status = request.POST.get("pallet_status")
+        stock.save()
+        return redirect("stock_list")
+
+    context = {
+        "stock": stock,
+        "warehouse": warehouse,
+        "materials": materials,
+    }
+    return render(request, "stock_upload/stock_edit.html", context)
+
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Warehouse
