@@ -9,44 +9,53 @@
                 {% csrf_token %}
                 {% if form.errors %}
                 <div class="alert alert-danger">
-                {{ form.errors }}
+                    {{ form.errors }}
                 </div>
-                {% endif %}	
+                {% endif %}
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="inbound_delivery_number"><b>Inbound Delivery Number</b></label>
-                        <input type="text" class="form-control" name="inbound_delivery_number" id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number }}" placeholder="Auto generated" readonly>
+                        <input type="text" class="form-control" name="inbound_delivery_number"
+                            id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number }}"
+                            placeholder="Auto generated" readonly>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label for="delivery_date"><b>Delivery Date</b></label>
-                        <input type="date" class="form-control" name="delivery_date" id="delivery_date" value="{{ delivery.delivery_date }}">
+                        <input type="date" class="form-control" name="delivery_date" id="delivery_date"
+                            value="{{ delivery.delivery_date }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
-    <label for="vendor" class="form-label"><b>Supplier (Vendor)</b></label>
-    <select name="vendor" id="vendor" class="form-select">
-        <option value=""> Select Supplier </option>
-        {% for vendor in vendors %}
-            <option value="{{ vendor.vendor_id }}">{{ vendor.vendor_id }}-{{ vendor.name }}</option>
-        {% endfor %}
-    </select>
+                        <label for="vendor" class="form-label"><b>Supplier (Vendor)</b></label>
+                        <select name="vendor" id="vendor" class="form-select">
+                            <option value=""> Select Supplier </option>
+                            {% for vendor in vendors %}
+                            <option value="{{ vendor.vendor_id }}">{{ vendor.vendor_id }}-{{ vendor.name }}</option>
+                            {% endfor %}
+                        </select>
 
-    
-</div>
+
+                    </div>
 
 
 
                     <div class="col-md-6 mb-3">
-    <label for="purchase_order" class="form-label"><b>PO No</b></label>
-    <select name="po_number" id="purchase_order" class="form-select">
-    <option value="">Select PO No </option>
-    {% for po in purchase_orders %}
-        <option value="{{ po.id }}">{{ po.po_number }}</option>
-    {% endfor %}
-</select>
+                        <label for="purchase_order" class="form-label"><b>PO No</b></label>
+                        <select name="po_number" id="purchase_order" class="form-select">
+                            <option value="">Select PO No </option>
+                            {% for po in purchase_orders %}
+                            <option value="{{ po.id }}">{{ po.po_number }}</option>
+                            {% endfor %}
+                        </select>
 
-</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="esn"><b>ESN</b></label>
+                        <input type="text" class="form-control" name="esn" id="esn" value="{{ delivery.esn }}">
+                    </div>
+
 
 <div class="col-md-6 mb-3">
     <label for="whs_no" class="form-label"><b>Warehouse</b></label>
@@ -59,39 +68,43 @@
 </div>
 
 
+
                     <div class="col-md-6 mb-3">
                         <label for="document_date"><b>Document Date</b></label>
-                        <input type="date" class="form-control" name="document_date" id="document_date" value="{{ delivery.document_date }}">
+                        <input type="date" class="form-control" name="document_date" id="document_date"
+                            value="{{ delivery.document_date }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label for="gr_date"><b>GR Date</b></label>
-                        <input type="date" class="form-control" name="gr_date" id="gr_date" value="{{ delivery.gr_date }}">
+                        <input type="date" class="form-control" name="gr_date" id="gr_date"
+                            value="{{ delivery.gr_date }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label for="storage_location"><b>Storage Location</b></label>
-                        <input type="text" class="form-control" name="storage_location" id="storage_location" value="{{ delivery.storage_location }}">
+                        <input type="text" class="form-control" name="storage_location" id="storage_location"
+                            value="{{ delivery.storage_location }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label for="carrier_info"><b>Carrier Info</b></label>
-                        <input type="text" class="form-control" name="carrier_info" id="carrier_info" value="{{ delivery.carrier_info }}">
+                        <input type="text" class="form-control" name="carrier_info" id="carrier_info"
+                            value="{{ delivery.carrier_info }}">
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label for="delivery_status"><b>Delivery Status</b></label>
+                          <label for="delivery_status"><b>Delivery Status</b></label>
                         <select class="form-control" name="delivery_status" id="delivery_status">
                             <option value="" disabled selected>Select status</option>
-                            <option value="Pending" {% if delivery.delivery_status == "Pending" %}selected{% endif %}>Pending</option>
-                            <option value="Completed" {% if delivery.delivery_status == "Completed" %}selected{% endif %}>Completed</option>
+                            <option value="Pending">
+                                Pending</option>
+                            <option value="Completed">
+                                Completed</option>
                         </select>
                     </div>
 
-                    <!-- Add Row Button -->
-                    <div class="col-md-12 mb-3">
-                        <button type="button" class="btn btn-success" onclick="addRow()">Add Row</button>
-                    </div>
+                   
 
                     <!-- Material Table -->
                     <table class="table table-bordered" id="deliveryTable">
@@ -107,13 +120,14 @@
                         </thead>
                         <tbody>
                             <tr>
-    <td><input type="text" class="form-control" name="product[]"></td>
-<td><input type="text" class="form-control" name="product_description[]"></td>
-<td><input type="text" class="form-control" name="quantity_delivered[]"></td>
-<td><input type="text" class="form-control" name="quantity_received[]"></td>
-<td><input type="text" class="form-control" name="unit_of_measure[]"></td>
-<td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto generated" readonly></td>
-                    </tr>
+                                <td><input type="text" class="form-control" name="product[]"></td>
+                                <td><input type="text" class="form-control" name="product_description[]"></td>
+                                <td><input type="text" class="form-control" name="quantity_delivered[]"></td>
+                                <td><input type="text" class="form-control" name="quantity_received[]"></td>
+                                <td><input type="text" class="form-control" name="unit_of_measure[]"></td>
+                                <td><input type="text" class="form-control" name="batch_number[]"
+                                        placeholder="Auto generated" readonly></td>
+                            </tr>
                         </tbody>
                     </table>
 
@@ -139,7 +153,8 @@
                 <div class="card-body">
                     <form method="get" class="mb-3">
                         <div class="input-group">
-                            <input type="text" name="ibd_no" class="form-control" placeholder="Search by IBD No." value="{{ request.GET.inbound_delivery_number}}">
+                            <input type="text" name="ibd_no" class="form-control" placeholder="Search by IBD No."
+                                value="{{ request.GET.inbound_delivery_number}}">
                             <button class="btn btn-primary" type="submit">Search</button>
                         </div>
                     </form>
@@ -161,7 +176,8 @@
                                 <td>{{ entry.inbound_delivery_number }}</td>
                                 <td>{{ entry.purchase_order_number.po_number }}</td>
                                 <td>
-                                    <a href="{% url 'delivery_detail' entry.inbound_delivery_number %}" class="btn btn-sm btn-info px-3 py-1 fs-6">View Details</a>
+                                    <a href="{% url 'delivery_detail' entry.inbound_delivery_number %}"
+                                        class="btn btn-sm btn-info px-3 py-1 fs-6">View Details</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -175,7 +191,7 @@
         </div>
     </div>
 </div>
-
+<!-- 
 <script>
     // Function to add a new row to the table
     function addRow() {
@@ -199,8 +215,8 @@
             firstBatchInput.placeholder = "Auto-generated";
         }
     });
-</script>
-<script>
+</script> -->
+<!-- <script>
 document.getElementById("purchase_order").addEventListener("change", function() {
     const poId = this.value;
     const tableBody = document.querySelector('#deliveryTable tbody');
@@ -213,6 +229,7 @@ document.getElementById("purchase_order").addEventListener("change", function() 
                 data.products.forEach(p => {
                     const newRow = document.createElement("tr");
                     newRow.innerHTML = `
+
                         <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
                         <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
                         <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
@@ -220,11 +237,13 @@ document.getElementById("purchase_order").addEventListener("change", function() 
                         <td><input type="text" class="form-control" name="unit_of_measure[]" value="${p.uom}" readonly></td>
                         <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto generated" readonly></td>
                     `;
-                    tableBody.appendChild(newRow);
+                        tableBody.appendChild(newRow);
+                    });
                 });
             });
     }
 });
-</script>
+</script> -->
+
 
 {% endblock %}

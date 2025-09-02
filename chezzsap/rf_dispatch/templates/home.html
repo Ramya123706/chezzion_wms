@@ -1,175 +1,189 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h1 class="display-4">RF Dispatch</h1>
-            <p class="lead">Welcome to the RF Dispatch application!</p>
-            
-                <div class="box">
-                    <a href="{% url 'one' %}" class="btn btn-custom">Yard Checkin</a>
-                </div>
-              
-                <div class="box">
-                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Stock Upload</a>
-                </div>
-                <div class="box">
-                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Receiving By PO</a>
-                </div>
-                <div class="box">
-                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Kitting Based on Operations</a>
-                </div>
-                <div class="box">
-                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Dispatch</a>
-                </div>
-                <div class="box">
-                    <a href="{% url 'outbound1' %}" class="btn btn-custom">RF Intelligent HU Repack</a>
-                </div>
-            
+<div class="container my-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-center bg-white border-0">
+            <h4 class="fw-bold">
+                <span class="text-primary">Chezzion</span> WMS-Magic Box
+            </h4>
         </div>
-    </div>
-</div> -->
-<div class="card m-3 ">
-  <div class="card-header text-center">
-    <span class="underline">Chezzion</span> WMS-Magic Box
-  </div>
-  <div class="card m-3">
-       <div class="card-body">
-            <h6><strong>Core Warehouse:</strong></h6>
-            <div class="row mt-3">
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="{% url 'truck_landing' %}" class="btn btn-outline-primary w-100">Yard Check-In</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="{% url 'batch_product' %}" class="btn btn-outline-primary w-100">RF Stock Upload</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="{% url 'add_purchase' %}" class="btn btn-outline-primary w-100">RF Receiving by PO</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/kitting/" class="btn btn-outline-primary w-100">RF Kitting Based on Operations</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/dispatch/" class="btn btn-outline-primary w-100">RF Dispatch</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/hu-repack/" class="btn btn-outline-primary w-100">RF Intelligent HU Repack</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/bin-to-bin/" class="btn btn-outline-primary w-100">RF Bin to Bin</a>
-                </div>
-            </div>
-        </div>
-    </div>
-        <div class="card m-3">
-        <div class="card-body">
-            <h6><strong>Integration:</strong></h6>
-            <div class="row mt-3">
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/mes-integration/" class="btn btn-outline-primary w-100">MES Integration</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/pick-to-light/" class="btn btn-outline-primary w-100">Pick to Light</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/agv-integration/" class="btn btn-outline-primary w-100">AGV Integration</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/palletizer-integration/" class="btn btn-outline-primary w-100">Palletizer Integration</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/rfid-integration/" class="btn btn-outline-primary w-100">RFID Integration</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="card m-3">
-        <div class="card-body">
-            <h6><strong>Dashboard:</strong></h6>
-            <div class="row mt-3">
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/stock-in-bin/" class="btn btn-outline-primary w-100">Stock In Bin</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/mission-task/" class="btn btn-outline-primary w-100">Mission Task</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/work-package/" class="btn btn-outline-primary w-100">Work Package</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/quality-usage/" class="btn btn-outline-primary w-100">Quality Usage</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/pallet-floor-space/" class="btn btn-outline-primary w-100">Pallet Floor Space</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/container-management/" class="btn btn-outline-primary w-100">Container Management</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/weather-management/" class="btn btn-outline-primary w-100">Weather Management</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/batch-management/" class="btn btn-outline-primary w-100">Batch Management</a>
-                </div>
 
-            </div>
-        </div>
-    </div>
-    <div class="card m-3">
         <div class="card-body">
-            <h6><strong>Background AI:</strong></h6>
-            <div class="row mt-3">
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/reorg-hu-stock-of-inventory/" class="btn btn-outline-primary w-100">Reorganization of Handling Unit Stock of Inventory</a>
+
+            <!-- Core Warehouse -->
+            <h6 class="fw-bold mt-3">Core Warehouse</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% url 'truck_landing' %}" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-warehouse"></i> Yard Check-In
+                    </a>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/picking-task-creation-for-costly-sku/" class="btn btn-outline-primary w-100">Picking Task Creation for Costly SKU</a>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% url 'batch_product' %}" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-upload"></i> RF Stock Upload
+                    </a>
                 </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/reorg-empty-pallets-using-agv/" class="btn btn-outline-primary w-100">Reorganization of Empty Pallets Using AGV</a>
+                <div class="col-md-4 col-sm-6">
+                    <a href="{% url 'add_purchase' %}" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-truck"></i> RF Receiving by PO
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/kitting/" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-layer-group"></i> RF Kitting Based on Operations
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/dispatch/" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-truck-ramp-box"></i> RF Dispatch
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/hu-repack/" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-boxes-stacked"></i> RF Intelligent HU Repack
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/bin-to-bin/" class="btn btn-tile btn-blue w-100">
+                        <i class="fa-solid fa-cubes"></i> RF Bin to Bin
+                    </a>
+                </div>
+            </div>
+
+            <!-- Integration -->
+            <h6 class="fw-bold mt-3">Integration</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4 col-sm-6">
+                    <a href="/mes-integration/" class="btn btn-tile btn-green w-100">
+                        <i class="fa-solid fa-diagram-project"></i> MES Integration
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/pick-to-light/" class="btn btn-tile btn-green w-100">
+                        <i class="fa-solid fa-lightbulb"></i> Pick to Light
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/agv-integration/" class="btn btn-tile btn-green w-100">
+                        <i class="fa-solid fa-robot"></i> AGV Integration
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/palletizer-integration/" class="btn btn-tile btn-green w-100">
+                        <i class="fa-solid fa-box"></i> Palletizer Integration
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/rfid-integration/" class="btn btn-tile btn-green w-100">
+                        <i class="fa-solid fa-rss"></i> RFID Integration
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <h6 class="fw-bold mt-3">Dashboard</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4 col-sm-6">
+                    <a href="/stock-in-bin/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-box-open"></i> Stock In Bin
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/mission-task/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-bullseye"></i> Mission Task
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/work-package/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-briefcase"></i> Work Package
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/quality-usage/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-vial"></i> Quality Usage
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/pallet-floor-space/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-pallet"></i> Pallet Floor Space
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/container-management/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-box-archive"></i> Container Management
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/weather-management/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-cloud-sun"></i> Weather Management
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/batch-management/" class="btn btn-tile btn-orange w-100">
+                        <i class="fa-solid fa-layer-group"></i> Batch Management
+                    </a>
+                </div>
+            </div>
+
+            <!-- Background AI -->
+            <h6 class="fw-bold mt-3">Background AI</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-4 col-sm-6">
+                    <a href="/reorg-hu-stock-of-inventory/" class="btn btn-tile btn-purple w-100">
+                        <i class="fa-solid fa-dolly"></i> Reorganization of Handling Unit Stock
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/picking-task-creation-for-costly-sku/" class="btn btn-tile btn-purple w-100">
+                        <i class="fa-solid fa-gears"></i> Picking Task Creation for Costly SKU
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/reorg-empty-pallets-using-agv/" class="btn btn-tile btn-purple w-100">
+                        <i class="fa-solid fa-recycle"></i> Reorganization of Empty Pallets Using AGV
+                    </a>
+                </div>
+            </div>
+
+            <!-- Delivery Integration -->
+            <h6 class="fw-bold mt-3">Delivery Integration</h6>
+            <div class="row g-3">
+                <div class="col-md-4 col-sm-6">
+                    <a href="/purchase-orders/" class="btn btn-tile btn-teal w-100">
+                        <i class="fa-solid fa-file-invoice"></i> Purchase Orders
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/sales-orders/" class="btn btn-tile btn-teal w-100">
+                        <i class="fa-solid fa-handshake"></i> Sales Orders
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/sto-stock-transfer-order/" class="btn btn-tile btn-teal w-100">
+                        <i class="fa-solid fa-arrows-turn-to-dots"></i> STO Stock Transfer Order
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/bill-of-lading/" class="btn btn-tile btn-teal w-100">
+                        <i class="fa-solid fa-file-contract"></i> Bill Of Lading
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/production-order/" class="btn btn-tile btn-teal w-100">
+                        <i class="fa-solid fa-industry"></i> Production Order
+                    </a>
+                </div>
+                <div class="col-md-4 col-sm-6">
+                    <a href="/pallet-labels/" class="btn btn-tile btn-teal w-100">
+                        <i class="fa-solid fa-barcode"></i> Pallet Labels
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    <div class="card m-3">
-        <div class="card-body">
-            <h6><strong>Delivery Integration:</strong></h6>
-            <div class="row mt-3">
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/purchase-orders/" class="btn btn-outline-primary w-100">Purchase Orders</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/sales-orders/" class="btn btn-outline-primary w-100">Sales Orders</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/sto-stock-transfer-order/" class="btn btn-outline-primary w-100">STO Stock Transfer Order</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/bill-of-lading/" class="btn btn-outline-primary w-100">Bill Of Lading</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/production-order/" class="btn btn-outline-primary w-100">Production Order</a>
-                </div>
-                <div class="col-md-4 col-sm-6 mb-2">
-                    <a href="/pallet-labels/" class="btn btn-outline-primary w-100">Pallet Labels</Label></a>
-                </div>
-            </div>
-        </div>
-    </div>
-<!-- <div class="container mt-5 start-left">
-  <div class="col-md-12 text-center">
-    <div class="col-md-3">
-      <div class="list-group">
-        <a href="{% url 'one' %}" class="list-group-item list-group-item-action">Yard Checkin</a>
-        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Stock Upload</a>
-        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Receiving By PO</a>
-        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Kitting Based on Operations</a>
-        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Dispatch</a>
-        <a href="{% url 'outbound1' %}" class="list-group-item list-group-item-action">RF Intelligent HU Repack</a>
-      </div>
-    </div>
-  </div>
-</div> -->
+</div>
+
+
 
 {% endblock %}
