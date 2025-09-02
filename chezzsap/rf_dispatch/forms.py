@@ -267,3 +267,21 @@ class PackedItemForm(forms.ModelForm):
         fields = ["pallet", "p_mat", "batch_no", "serial_no", "quantity", "unit_price"]
 
 PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)
+
+
+from django import forms
+from .models import GoodsReceipt
+
+
+
+class GoodsReceiptForm(forms.ModelForm):
+    class Meta:
+        model = GoodsReceipt
+        fields = ['inbound_delivery', 'posted_by', 'remarks']  # no gr_no
+        widgets = {
+            'inbound_delivery': forms.Select(attrs={'class': 'form-control'}),
+            'posted_by': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+

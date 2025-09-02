@@ -324,7 +324,7 @@ class StockUpload(models.Model):
 
 
 class Inventory(models.Model):
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -420,51 +420,6 @@ class Putaway(models.Model):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
 from .models import Putaway
-
-# def pending_putaway(request):
-#     pending_tasks = Putaway.objects.filter(status="In Progress")
-#     return render(request, 'pending_task.html', {'pending_tasks': pending_tasks})
-
-# def edit_putaway(request, pk):
-#     putaway = get_object_or_404(Putaway, pk=pk)
-
-#     if request.method == 'POST':
-#         putaway.pallet = request.POST.get('pallet')
-#         putaway.location = request.POST.get('location')
-#         putaway.putaway_task_type = request.POST.get('putaway_task_type')
-#         putaway.status = request.POST.get('status')
-
-#         if putaway.status == "Completed":
-#             putaway.confirmed_at = now()
-
-#         putaway.save()
-#         return redirect('pending_putaway')
-
-#     return render(request, 'edit_putaway.html', {'putaway': putaway})
-
-# class PutawayTask(models.Model):
-    # PUTAWAY_TASK_CHOICES = [
-    #     ("Putaway by HU", "Putaway by HU"),
-    #     ("Putaway by Warehouse", "Putaway by Warehouse"),
-    #     ("Putaway by Product", "Putaway by Product"),
-    #     ("Putaway by Storage Bin", "Putaway by Storage Bin"),
-    # ]
-
-    # putaway_id = models.CharField(max_length=50)
-    # pallet = models.CharField(max_length=50)
-    # location = models.CharField(max_length=100)
-    # putaway_task_type = models.CharField(
-    #     max_length=50,
-    #     choices=PUTAWAY_TASK_CHOICES,
-    #     default="Putaway by HU"
-    # )
-    # status = models.CharField(max_length=20, choices=[
-    #     ("In Progress", "In Progress"),
-    #     ("Completed", "Completed"),
-    # ], default="In Progress")
-
-    # def __str__(self):
-    #     return f"{self.putaway_id} - {self.putaway_task_type}"
 
 
 
@@ -656,8 +611,19 @@ class SalesOrderItem(models.Model):
 
 class OutboundDelivery(models.Model):
     dlv_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    so_no = models.ForeignKey(SalesOrderCreation, on_delete=models.CASCADE, related_name='outbound_deliveries')  
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='outbound_deliveries', default=None, null=True, blank=True)
+    so_no = models.ForeignKey(
+        SalesOrderCreation,
+        on_delete=models.CASCADE,
+        related_name='outbound_deliveries'
+    )
+    whs_no = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name='outbound_deliveries',
+        default=None,
+        null=True,
+        blank=True
+    )
     whs_address = models.CharField(max_length=100, blank=True, null=True)
 
     sold_to = models.CharField(max_length=100, blank=True, null=True)
@@ -669,8 +635,13 @@ class OutboundDelivery(models.Model):
     def __str__(self):
         return f"Delivery {self.dlv_no}"
 
+
 class OutboundDeliveryItem(models.Model):
-    delivery = models.ForeignKey(OutboundDelivery, on_delete=models.CASCADE, related_name='items')
+    delivery = models.ForeignKey(
+        OutboundDelivery,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
     dlv_it_no = models.CharField(max_length=10)  # Item number (10,20,30…)
     product_id = models.CharField(max_length=50, blank=True, null=True)
     product_name = models.CharField(max_length=100, default="Unknown")
@@ -688,12 +659,13 @@ class OutboundDeliveryItem(models.Model):
         unique_together = ('delivery', 'dlv_it_no')
 
     def save(self, *args, **kwargs):
-        self.total_unit_price = self.qty_issued * self.unit_price
-        self.net_price = self.total_unit_price
+        # auto-calc totals
+        self.unit_total_price = self.qty_issued * self.unit_price
+        self.net_total_price = self.unit_total_price  # adjust if you need tax/discount later
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product} - Item {self.dlv_it_no}"
+        return f"{self.product_name} - Item {self.dlv_it_no}"
 
 from django.db import models
 
@@ -723,3 +695,68 @@ class PackedItem(models.Model):
 
     def __str__(self):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
+
+
+class PostGoodsIssue(models.Model):
+    pgi_no = models.CharField(max_length=50, unique=True)
+    delivery = models.OneToOneField(  # one PGI per delivery
+        OutboundDelivery,
+        on_delete=models.CASCADE,
+        related_name="pgi"
+    )
+    posting_date = models.DateField(auto_now_add=True)
+    posted_by = models.CharField(max_length=100)  # user/employee
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"PGI {self.pgi_no} for Delivery {self.delivery.dlv_no}"
+
+from django.db import models
+
+class GoodsReceipt(models.Model):
+    gr_no = models.CharField(max_length=50, unique=True, editable=False)
+    inbound_delivery = models.OneToOneField(
+        InboundDelivery,
+        on_delete=models.CASCADE,
+        related_name="gr"
+    )
+    posting_date = models.DateField(auto_now_add=True)
+    posted_by = models.CharField(max_length=100)  # user/employee
+    remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.gr_no:
+            last_gr = GoodsReceipt.objects.order_by("-id").first()
+            if last_gr and last_gr.gr_no.startswith("GR"):
+                number = int(last_gr.gr_no.replace("GR", "")) + 1
+            else:
+                number = 1
+            self.gr_no = f"GR{number:05d}"  # GR00001, GR00002...
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.gr_no} - {self.inbound_delivery.inbound_delivery_number}"
+
+
+class GoodsReceiptItem(models.Model):
+    goods_receipt = models.ForeignKey(
+        GoodsReceipt,
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+    inbound_delivery_product = models.ForeignKey(
+        InboundDeliveryproduct,
+        on_delete=models.CASCADE,
+        related_name="gr_items"
+    )
+    quantity_received = models.DecimalField(max_digits=10, decimal_places=2)
+    batch_number = models.CharField(max_length=50, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # default batch = inbound delivery batch if not provided
+        if not self.batch_number and self.inbound_delivery_product.batch_number:
+            self.batch_number = self.inbound_delivery_product.batch_number
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.goods_receipt.gr_no} - {self.inbound_delivery_product.product.name}"
