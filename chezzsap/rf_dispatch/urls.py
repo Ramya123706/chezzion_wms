@@ -38,7 +38,9 @@ urlpatterns = [
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     path('inspection-summary/', views.inspection_summary_view, name='inspection_summary'),
     path('truck_landing/', views.truck_landing, name='truck_landing'),
-
+    # path("questions/", views.question_list, name="question_list"),
+    # path("questions/add/", views.add_question, name="add_question"),
+    # path("questions/delete/<int:pk>/", views.delete_question, name="delete_question"),
     # Truck Logs
     path('status-log/<str:truck_no>/', views.status_log_view, name='status_log'),
     path('truck-log/<str:truck_no>/', views.truck_log_view, name='truck_log_view'),

@@ -8,15 +8,17 @@ YES_NO_CHOICES = [
     ('No', 'No'),
 ]
 class YardHdr(models.Model):
-    yard_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
-    truck_no = models.CharField(primary_key=True, max_length=100)
+    id = models.AutoField(primary_key=True)
+    yard_id = models.CharField(max_length=100, null=True, blank=True)
+    truck_no = models.CharField(max_length=100)
     whs_no = models.CharField(max_length=5)
-    truck_type = models.CharField(max_length=20)
+    truck_type = models.CharField(max_length=50, blank=True, null=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
     po_no = models.CharField(max_length=10)
     truck_date = models.DateField()
     truck_time = models.TimeField()
+    truck_state = models.CharField(max_length=50, default='Unknown', blank=True, null=True)
     seal_no = models.CharField(max_length=10)
     yard_scan = models.CharField(max_length=20)
     truck_status = models.CharField(max_length=10, editable=False, default='Not planned')
@@ -32,7 +34,20 @@ class YardHdr(models.Model):
 
     def __str__(self):
         return str(self.truck_no)
-    
+
+# models.py
+from django.db import models
+
+# from django import forms
+
+# class WarehouseQuestion(models.Model):
+#     text = models.CharField(max_length=255, unique=True)
+#     is_active = models.BooleanField(default=True)
+
+#     def __str__(self):
+#         return self.text
+
+
 class TruckLog(models.Model):
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
@@ -126,9 +141,9 @@ class Bin(models.Model):
         related_name="bins" 
     )
     bin_id = models.CharField(max_length=50, unique=True) 
+    bin_type = models.CharField(max_length=50)
     capacity = models.IntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
-    shelves = models.CharField(null=True, blank=True, max_length=100) 
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
     existing_quantity = models.IntegerField(default=0)
@@ -282,7 +297,7 @@ class StockUpload(models.Model):
     p_mat = models.CharField(max_length=100)
     inspection = models.CharField(max_length=100)
     stock_type = models.CharField(max_length=100)
-    wps = models.CharField(max_length=100)
+    item_number = models.CharField(max_length=100)
     doc_no = models.CharField(max_length=100)
     pallet_status = models.CharField(max_length=100, default='Not planned')
 
@@ -523,7 +538,7 @@ class InboundDelivery(models.Model):
     inbound_delivery_number = models.CharField(max_length=50, unique=True, editable=False)
     delivery_date = models.DateField()
     document_date = models.DateField(blank=True, null=True)
-    gr_date = models.DateField()
+
     supplier = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="inbounddeliveries")
     purchase_order_number = models.ForeignKey(PurchaseOrder,on_delete=models.CASCADE,null=True,  blank=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
@@ -534,8 +549,7 @@ class InboundDelivery(models.Model):
         ('Completed', 'Completed'),
     ]
     delivery_status = models.CharField(max_length=20, choices=DELIVERY_STATUS_CHOICES, default='Pending')
-    storage_location = models.CharField(max_length=100)
-    carrier_info = models.CharField(max_length=100)
+    
     remarks = models.TextField(blank=True, null=True)
     
     def save(self, *args, **kwargs):
@@ -688,13 +702,14 @@ class OutboundDeliveryItem(models.Model):
     class Meta:
         unique_together = ('delivery', 'dlv_it_no')
 
-    def save(self, *args, **kwargs):
-        self.total_unit_price = self.qty_issued * self.unit_price
-        self.net_price = self.total_unit_price
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # Calculate totals before saving
+    #     self.unit_total_price = self.qty_issued * self.unit_price
+    #     self.net_total_price = self.unit_total_price
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product} - Item {self.dlv_it_no}"
+        return f"{self.product_name} - Item {self.dlv_it_no}"
 
 from django.db import models
 

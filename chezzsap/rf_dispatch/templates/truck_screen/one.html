@@ -34,12 +34,12 @@
                     </div>
                 </div>
                 <div class="mb-3 row">
-    <label class="col-sm-4 col-form-label">Truck No</label>
-   
-    <div class="col-sm-8">
-    <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off">
-<div id="truck_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
-</div>
+                    <label class="col-sm-4 col-form-label">Truck No</label>
+                
+                    <div class="col-sm-8">
+                    <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off">
+                <div id="truck_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
+                </div>
             </div>
 
 
@@ -86,6 +86,17 @@
                 <label class="col-sm-4 col-form-label">Truck Time</label>
                 <div class="col-sm-8">
                     <input type="time" class="form-control" name="truck_time">
+                </div>
+            </div>
+            <div class="mb-3 row">
+
+                <label class="col-sm-4 col-form-label">Truck State</label>
+                <div class="col-sm-8">
+                    <select class="form-select" id="truckStateSelect" name="truck_state">
+                        <option value="full load">Full Load</option>
+                        <option value="empty load">Empty Load</option>
+                        <option value="partial load">Partial Load</option>
+                    </select>
                 </div>
             </div>
             <div class="mb-3 row">

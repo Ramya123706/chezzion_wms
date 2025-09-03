@@ -14,7 +14,7 @@ class YardHdrForm(forms.ModelForm):
         model = YardHdr
         fields = [
             'whs_no', 'truck_no', 'truck_type', 'driver_name',
-            'driver_phn_no', 'po_no', 'truck_date', 'truck_time',
+            'driver_phn_no', 'po_no', 'truck_date', 'truck_time', 'truck_state',
             'seal_no', 'yard_scan'
         ]
         widgets = {
@@ -48,6 +48,25 @@ class TruckInspectionForm(forms.ModelForm):
             'is_the_truck_dock_level_ok': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
         }
 
+# forms.py
+from django import forms
+
+
+# from django import forms
+# from .models import WarehouseQuestion
+
+# class WarehouseQuestionForm(forms.ModelForm):
+#     class Meta:
+#         model = WarehouseQuestion
+#         fields = ['question_text']
+
+# class WarehouseQuestionForm(forms.ModelForm):
+#     class Meta:
+#         model = WarehouseQuestion
+#         fields = ['text']   # ✅ Must exactly match the model field name
+#         widgets = {
+#            'text': forms.TextInput(attrs={'placeholder': 'Enter your question here...'})
+#        }
 
 from django import forms
 class Trucksearchform(forms.Form):
@@ -206,7 +225,7 @@ class InboundDeliveryForm(forms.ModelForm):
             'inbound_delivery_number': forms.TextInput(attrs={'class': 'form-control'}),
             'delivery_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'document_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'gr_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            # 'gr_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'supplier': forms.TextInput(attrs={'class': 'form-control'}),
             'purchase_order_number': forms.TextInput(attrs={'class': 'form-control'}),
             'warehouse_no': forms.TextInput(attrs={'class': 'form-control'}),
@@ -217,8 +236,8 @@ class InboundDeliveryForm(forms.ModelForm):
             'unit_of_measure': forms.TextInput(attrs={'class': 'form-control'}),
             'batch_number': forms.TextInput(attrs={'class': 'form-control'}),
             'delivery_status': forms.Select(attrs={'class': 'form-control'}),
-            'storage_location': forms.TextInput(attrs={'class': 'form-control'}),
-            'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'storage_location': forms.TextInput(attrs={'class': 'form-control'}),
+            # 'carrier_info': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control'}),
         }
         

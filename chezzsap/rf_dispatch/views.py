@@ -118,6 +118,41 @@ def yard_checkin_view(request):
     
     return render(request, 'truck_screen/one.html', {'form': form, 'warehouses': warehouses, 'truck': Truck.objects.all()})
 
+
+# from django.shortcuts import render, redirect, get_object_or_404
+# from .models import WarehouseQuestion
+# from .forms import WarehouseQuestionForm
+# from django.contrib.auth.decorators import user_passes_test
+
+# # only superuser can access
+# def superuser_required(view_func):
+#     decorated_view_func = user_passes_test(lambda u: u.is_superuser)(view_func)
+#     return decorated_view_func
+
+# @superuser_required
+# def question_list(request):
+#     questions = WarehouseQuestion.objects.all()
+#     return render(request, "question_list.html", {"questions": questions})
+
+# @superuser_required
+# def add_question(request):
+#     if request.method == "POST":
+#         form = WarehouseQuestionForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect("question_list")
+#     else:
+#         form = WarehouseQuestionForm()
+#     return render(request, "add_question.html", {"form": form})
+
+# @superuser_required
+# def delete_question(request, pk):
+#     question = get_object_or_404(WarehouseQuestion, pk=pk)
+#     question.delete()
+#     return redirect("question_list")
+
+
+
 from django.http import JsonResponse
 from .models import Truck
 
@@ -206,7 +241,7 @@ def truck_log_view(request):
     error_message = ""
 
     if truck_no_query:
-        logs = TruckLog.objects.filter(truck_no__truck_no__icontains=truck_no_query).order_by('-truck_date', '-truck_time')
+        logs = TruckLog.objects.filter(truck_no__truck_no__icontains=truck_no_query).order_by('-truck_date', '-truck_time').first()
         try:
             truck_details = YardHdr.objects.get(truck_no=truck_no_query)
         except YardHdr.DoesNotExist:
@@ -242,7 +277,7 @@ def truck_status_view(request, truck_no):
         'form': form,
         'truck': truck,
         'not_found': not_found,
-        'trucklog':TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time') if truck else None
+        'trucklog':TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time').first() if truck else None
     })
 
 
@@ -261,7 +296,8 @@ from .utils import log_truck_status
 
 def truck_detail(request, truck_no):
     try:
-        truck = YardHdr.objects.get(truck_no=truck_no)
+        truck = YardHdr.objects.filter(truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
+
 
         # Log status only on POST
         if request.method == 'POST':
@@ -270,7 +306,7 @@ def truck_detail(request, truck_no):
             log_truck_status(truck_instance=truck, status=new_status, comment=comment)
 
         # Fetch logs related to this truck
-        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
+        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time').first()
 
         return render(request, 'truck_screen/truck_detail.html', {
             'truck': truck,
@@ -319,7 +355,7 @@ def batch_product_view(request):
         p_mat = request.POST.get('p_mat')
         inspection = request.POST.get('inspection')
         stock_type = request.POST.get('stock_type')
-        wps = request.POST.get('wps')
+        item_number = request.POST.get('item_number')
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
 
@@ -340,7 +376,7 @@ def batch_product_view(request):
                 p_mat=p_mat,
                 inspection=inspection,
                 stock_type=stock_type,
-                wps=wps,
+                item_number=item_number,
                 doc_no=doc_no,
                 pallet_status=pallet_status
             )
@@ -932,9 +968,9 @@ def create_bin(request):
             Bin.objects.create(
                 whs_no=warehouse,
                 bin_id=request.POST.get('bin_id'),
+                bin_type=request.POST.get('bin_type'),
                 capacity=int(request.POST.get('capacity')),
                 category=category,
-                shelves=request.POST.get('shelves'),
                 updated_by=request.POST.get('updated_by'),
                 created_by=request.POST.get('created_by')
             )
@@ -1294,18 +1330,18 @@ def inbound_delivery(request):
     if request.method == 'POST':
         inbound_delivery_number = generate_inbound_delivery_number()
         vendor_id = request.POST.get('vendor')
-        vendor_obj = Vendor.objects.get(pk=vendor_id)
+        supplier_obj = Vendor.objects.filter(pk=vendor_id).first()
         delivery = InboundDelivery.objects.create(
             inbound_delivery_number=inbound_delivery_number,
             delivery_date=request.POST.get('delivery_date'),
             document_date=request.POST.get('document_date'),
-            gr_date=request.POST.get('gr_date'),
-            vendor=vendor_obj,
+            # gr_date=request.POST.get('gr_date'),
+            supplier=supplier_obj,
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
-            storage_location=request.POST.get('storage_location'),
+            # storage_location=request.POST.get('storage_location'),
             delivery_status=request.POST.get('delivery_status'),
-            carrier_info=request.POST.get('carrier_info'),
+            # carrier_info=request.POST.get('carrier_info'),
             remarks=request.POST.get('remarks')
         )
 

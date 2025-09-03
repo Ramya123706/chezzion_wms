@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Warehouse Questions</h2>
+
+    <a href="{% url 'add_question' %}" class="btn btn-success mb-3">➕ Add Question</a>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Active</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for q in questions %}
+            <tr>
+                <td>{{ q.question_text }}</td>
+                <td>{{ q.is_active }}</td>
+                <td>
+                    <a href="{% url 'delete_question' q.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3">No questions added yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

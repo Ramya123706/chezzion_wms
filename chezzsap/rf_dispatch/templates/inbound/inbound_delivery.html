@@ -28,7 +28,9 @@
     <select name="vendor" id="vendor" class="form-select">
         <option value=""> Select Supplier </option>
         {% for vendor in vendors %}
-            <option value="{{ vendor.vendor_id }}">{{ vendor.vendor_id }}-{{ vendor.name }}</option>
+            <option value="{{ vendor.id }}">{{ vendor.vendor_id }} - {{ vendor.name }}</option>
+
+
         {% endfor %}
     </select>
 
@@ -64,20 +66,7 @@
                         <input type="date" class="form-control" name="document_date" id="document_date" value="{{ delivery.document_date }}">
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label for="gr_date"><b>GR Date</b></label>
-                        <input type="date" class="form-control" name="gr_date" id="gr_date" value="{{ delivery.gr_date }}">
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="storage_location"><b>Storage Location</b></label>
-                        <input type="text" class="form-control" name="storage_location" id="storage_location" value="{{ delivery.storage_location }}">
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="carrier_info"><b>Carrier Info</b></label>
-                        <input type="text" class="form-control" name="carrier_info" id="carrier_info" value="{{ delivery.carrier_info }}">
-                    </div>
+                    
 
                     <div class="col-md-6 mb-3">
                         <label for="delivery_status"><b>Delivery Status</b></label>
