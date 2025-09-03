@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Value Grid - Chezzion</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .value-grid {
+            margin: 30px 0;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .card {
+            border-radius: 12px;
+            margin: 10px 0;
+            min-height: 100px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 10px;
+        }
+
+        .blue {
+            background-color: #1d4e89;
+            color: #fff;
+        }
+
+        .darkgray {
+            background-color: #5a5a5a;
+            color: #fff;
+        }
+
+        .orange {
+            background-color: #f68b1e;
+            color: #fff;
+        }
+
+        .green {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .logo {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .logo img {
+            max-width: 180px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container value-grid">
+
+        <h2 class="text-center mb-4">Value Grid</h2>
+
+        <div class="logo">
+            <img src="https://i.ibb.co/7g9S9jn/chezzion-logo.png" alt="Chezzion Logo"> <!-- Replace with your logo -->
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-4 g-3">
+
+            <!-- Lean Warehousing -->
+            <div class="col">
+                <div class="card blue">Real time consumption at Point of Use/ Consumption</div>
+                <div class="card blue">Efficient Auto Call Off Production Line</div>
+                <div class="card blue">Auto-staging to pre-stage Bins</div>
+                <div class="card blue">Just-In-Time - Inventory</div>
+                <div class="card blue">Optimized replenishment across ASRS & Racks</div>
+                <div class="card blue">Improved Material Handling</div>
+            </div>
+
+            <!-- Smart Simplicity -->
+            <div class="col">
+                <div class="card darkgray">Production Progress Monitor – View all operations</div>
+                <div class="card darkgray">Repack Dashboard – drive complex operation</div>
+                <div class="card darkgray">Increased throughput</div>
+                <div class="card darkgray">Layout-based Queue & Resource Management</div>
+                <div class="card darkgray">People-based Queue & Resource Management</div>
+                <div class="card darkgray">Reduced inventory handling cost</div>
+            </div>
+
+            <!-- Ease of Execution -->
+            <div class="col">
+                <div class="card orange">Intelligent Receiving & Direct Loading</div>
+                <div class="card darkgray">Intelligent Allocation of Customer Sensitive Stock</div>
+                <div class="card orange">Intelligent Receiving from Production</div>
+                <div class="card darkgray">Intelligent Putaway to ASRS</div>
+                <div class="card darkgray">Optimized Bin Utilization using Flexible Rearrangement</div>
+                <div class="card darkgray">Increased inventory traceability</div>
+            </div>
+
+            <!-- Green Warehousing -->
+            <div class="col">
+                <div class="card green">Enhanced Order Fulfillment</div>
+                <div class="card green">Picking driven by TU-Dock-Door</div>
+                <div class="card green">Voice Picking (reduce redundant movements)</div>
+                <div class="card green">Synchronized Picking driven by Shipment planning</div>
+                <div class="card green">Effective PFS usage Pick and Load based on Loading schema</div>
+                <div class="card green">Parcel Picking (Enhanced Withdrawal & Allocation)</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

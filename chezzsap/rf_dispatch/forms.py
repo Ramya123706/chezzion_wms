@@ -65,6 +65,11 @@ class ProductForm(forms.ModelForm):
 
 
 
+class StockUploadForm(forms.ModelForm):
+    class Meta:
+        model = StockUpload
+        fields = '__all__'
+        
 
 class WarehouseForm(forms.ModelForm):
     class Meta:
@@ -161,6 +166,7 @@ class CategoryForm(forms.ModelForm):
         widgets = {
             'category': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'subcategory': forms.TextInput(attrs={'class': 'form-control'}),
         }
         exclude = ['created_by', 'created_at', 'updated_by', 'updated_at']  # Exclude fields that are not needed in the form
         
@@ -269,6 +275,12 @@ class PackedItemForm(forms.ModelForm):
 PackedItemFormSet = modelformset_factory(PackedItem, form=PackedItemForm, extra=1, can_delete=True)
 
 
+from .models import PackingMaterial
+class PackingMaterialForm(forms.ModelForm):
+    class Meta:
+        model = PackingMaterial
+        fields = '__all__'
+        
 from django import forms
 from .models import GoodsReceipt
 
@@ -283,5 +295,4 @@ class GoodsReceiptForm(forms.ModelForm):
             'posted_by': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
-
 

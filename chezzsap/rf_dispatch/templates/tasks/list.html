@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center text-white bg-primary">All Tasks</h2>
+<!-- 
+    <form method="get" class="mb-3 d-flex justify-content-end">
+        <select name="status" class="form-select w-auto me-2" onchange="this.form.submit()">
+            <option value="">-- Filter by Status --</option>
+            <option value="In Progress" {% if request.GET.status == "In Progress" %}selected{% endif %}>In Progress</option>
+            <option value="Completed" {% if request.GET.status == "Completed" %}selected{% endif %}>Completed</option>
+        </select>
+    </form> -->
+
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Task ID</th>
+                <th>Type</th>
+                <!-- <th>Pallet</th>
+                <th>Location</th>
+                <th>Product</th>
+                <th>Quantity</th> -->
+                <th>Task Type</th>
+                <th>Status</th>
+                <th>Actions</th> 
+                <!-- <th>Created At</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.task_id }}</td>
+                <td><span class="badge {% if task.task_type == 'Putaway' %}bg-primary{% else %}bg-success{% endif %}">
+                    {{ task.task_type }}
+                </span></td>
+                <!-- <td>{{ task.pallet }}</td>
+                <td>{{ task.location }}</td>
+                <td>{{ task.product|default:"-" }}</td>
+                <td>{{ task.quantity|default:"-" }}</td> -->
+                <td>
+                    {% if task.task_type == "Putaway" %}
+                        {{ task.putaway_task_type }}
+                    {% else %}
+                        {{ task.picking_type }}
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge {% if task.status == 'In Progress' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                        {{ task.status }}
+                    </span>
+                </td>
+                <!-- <td>{{ task.created_at|default:"-" }}</td> -->
+                  <td>
+                    {% if task.task_type == "Putaway" %}
+                        <a href="{% url 'putaway_detail' task.putaway_id %}" class="btn btn-sm btn-info">View Details</a>
+                    {% else %}
+                        <a href="{% url 'picking_detail' task.picking_id %}" class="btn btn-sm btn-info">View Details</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center text-muted">No tasks found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white text-center">
+            <h4>Picking Task Details</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tr>
+                    <th>Picking ID</th>
+                    <td>{{ task.picking_id }}</td>
+                </tr>
+                <tr>
+                    <th>Pallet</th>
+                    <td>{{ task.pallet }}</td>
+                </tr>
+                <tr>
+                    <th>Location</th>
+                    <td>{{ task.location }}</td>
+                </tr>
+                <tr>
+                    <th>Product</th>
+                    <td>{{ task.product }}</td>
+                </tr>
+                <tr>
+                    <th>Quantity</th>
+                    <td>{{ task.quantity }}</td>
+                </tr>
+                <tr>
+                    <th>Picking Type</th>
+                    <td>{{ task.picking_type }}</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        <span class="badge 
+                            {% if task.status == 'Completed' %} bg-success
+                            {% elif task.status == 'In Progress' %} bg-warning text-dark
+                            {% else %} bg-secondary {% endif %}">
+                            {{ task.status }}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="card-footer text-center">
+            <a href="{% url 'all_tasks' %}" class="btn btn-secondary">Back to All Tasks</a>
+            {% if task.status != "Completed" %}
+                <a href="{% url 'confirm_picking' task.picking_id %}" 
+                   class="btn btn-success"
+                   onclick="return confirm('Are you sure to mark this task as Completed?');">
+                   Mark Completed
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

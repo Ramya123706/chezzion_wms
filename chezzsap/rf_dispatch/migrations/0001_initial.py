@@ -1,5 +1,4 @@
 import django.db.models.deletion
-import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
@@ -56,14 +55,17 @@ class Migration(migrations.Migration):
                 ('inbound_delivery_number', models.CharField(editable=False, max_length=50, unique=True)),
                 ('delivery_date', models.DateField()),
                 ('document_date', models.DateField(blank=True, null=True)),
-                ('gr_date', models.DateField()),
+                ('esn', models.CharField(blank=True, max_length=100, null=True)),
                 ('delivery_status', models.CharField(choices=[('Pending', 'Pending'), ('Completed', 'Completed')], default='Pending', max_length=20)),
-                ('storage_location', models.CharField(max_length=100)),
-                ('carrier_info', models.CharField(max_length=100)),
                 ('remarks', models.TextField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
+            name='PackingMaterial',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('p_mat', models.CharField(max_length=255, unique=True)),
+                ('description', models.TextField(blank=True, null=True)),
             name='Packing',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -86,6 +88,8 @@ class Migration(migrations.Migration):
                 ('location', models.CharField(max_length=100)),
                 ('product', models.CharField(max_length=100)),
                 ('quantity', models.PositiveIntegerField()),
+                ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
+
                 ('picking_type', models.CharField(choices=[('INBOUND', 'Inbound'), ('OUTBOUND', 'Outbound')], default='Inbound', max_length=50)),
                 ('status', models.CharField(choices=[('In Progress', 'In Progress'), ('Completed', 'Completed')], default='In Progress', max_length=20)),
             ],
@@ -129,14 +133,24 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('so_no', models.CharField(editable=False, max_length=50, unique=True)),
+
                 ('whs_address', models.CharField(default='Unknown', max_length=100)),
+
                 ('customer_id', models.CharField(max_length=50)),
                 ('customer_code', models.CharField(max_length=50)),
                 ('order_date', models.DateField()),
                 ('delivery_date', models.DateField()),
+                ('net_total_price', models.DecimalField(decimal_places=2, default=0, max_digits=50)),
+                ('status', models.CharField(choices=[('Draft', 'Draft'), ('Confirm', 'Confirm'), ('Cancel', 'Cancel'), ('Edit', 'Edit'), ('Delivery', 'Delivery')], default='Draft', max_length=50)),
+                ('remarks', models.TextField(blank=True, null=True)),
+
+                ('net_total_price', models.DecimalField(decimal_places=2, default=0, max_digits=50)),
+                ('status', models.CharField(choices=[('Draft', 'Draft'), ('Confirm', 'Confirm'), ('Cancel', 'Cancel'), ('Edit', 'Edit'), ('Delivery', 'Delivery')], default='Draft', max_length=50)),
+                ('remarks', models.TextField(blank=True, null=True)),
                 ('status', models.CharField(choices=[('Draft', 'Draft'), ('Confirm', 'Confirm'), ('Cancel', 'Cancel'), ('Edit', 'Edit'), ('Delivery', 'Delivery')], default='Draft', max_length=50)),
                 ('remarks', models.TextField(blank=True, null=True)),
                 ('net_total_price', models.DecimalField(decimal_places=2, default=0, max_digits=50)),
+
             ],
         ),
         migrations.CreateModel(
@@ -194,7 +208,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('bin_id', models.CharField(max_length=50, unique=True)),
                 ('capacity', models.IntegerField()),
-                ('shelves', models.CharField(blank=True, max_length=100, null=True)),
+                ('sub_category', models.CharField(blank=True, default=True, max_length=100, null=True)),
                 ('created_by', models.CharField(blank=True, max_length=100, null=True)),
                 ('updated_by', models.CharField(blank=True, max_length=100, null=True)),
                 ('existing_quantity', models.IntegerField(default=0)),
@@ -203,6 +217,36 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Packing',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('pallet', models.CharField(max_length=50)),
+                ('del_no', models.CharField(max_length=50)),
+                ('gross_wt', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('net_wt', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('volume', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('p_mat', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.packingmaterial')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='PackedItem',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('pallet', models.CharField(max_length=50)),
+                ('batch_no', models.CharField(max_length=50)),
+                ('serial_no', models.CharField(max_length=50)),
+                ('quantity', models.IntegerField()),
+                ('unit_price', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('packing', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='rf_dispatch.packing')),
+                ('p_mat', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.packingmaterial')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Product',
+            fields=[
+                ('product_id', models.CharField(max_length=50, primary_key=True, serialize=False, unique=True)),
             name='PackedItem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -240,13 +284,13 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('pallet_no', models.CharField(editable=False, max_length=100, unique=True)),
-                ('p_mat', models.CharField(blank=True, max_length=100, null=True)),
                 ('quantity', models.IntegerField(default=0)),
                 ('weight', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('scanned_at', models.DateTimeField(blank=True, default=django.utils.timezone.now)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('scanned_at', models.DateTimeField(auto_now=True)),
                 ('created_by', models.CharField(blank=True, default=None, max_length=100, null=True)),
                 ('updated_by', models.CharField(blank=True, default=None, max_length=100, null=True)),
+                ('p_mat', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.packingmaterial')),
                 ('parent_pallet', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='child_pallets', to='rf_dispatch.pallet')),
                 ('product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.product')),
             ],
@@ -258,7 +302,7 @@ class Migration(migrations.Migration):
                 ('total_quantity', models.IntegerField(default=0)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('product', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.product')),
+                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.product')),
             ],
         ),
         migrations.CreateModel(
@@ -270,8 +314,8 @@ class Migration(migrations.Migration):
                 ('quantity_received', models.DecimalField(decimal_places=2, max_digits=10)),
                 ('unit_of_measure', models.CharField(max_length=20)),
                 ('batch_number', models.CharField(blank=True, max_length=50, null=True)),
-                ('delivery', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='product', to='rf_dispatch.inbounddelivery')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='product', to='rf_dispatch.product')),
+                ('delivery', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='products', to='rf_dispatch.inbounddelivery')),
+                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='inbound_deliveries', to='rf_dispatch.product')),
             ],
         ),
         migrations.CreateModel(
@@ -294,11 +338,22 @@ class Migration(migrations.Migration):
             name='SalesOrderItem',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('product_id', models.CharField(max_length=50)),
+                ('product_name', models.CharField(max_length=50)),
+                ('existing_quantity', models.IntegerField(default=0)),
+                ('quantity', models.IntegerField()),
+                ('unit_price', models.DecimalField(decimal_places=2, max_digits=10)),
+                ('unit_total_price', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
+
+                ('product_id', models.CharField(max_length=50)),
+
                 ('product_name', models.CharField(max_length=50)),
                 ('quantity', models.IntegerField()),
                 ('unit_price', models.DecimalField(decimal_places=2, max_digits=10)),
                 ('unit_total_price', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
+
                 ('product', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.product')),
+
                 ('so_no', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='rf_dispatch.salesordercreation')),
             ],
         ),
@@ -309,6 +364,13 @@ class Migration(migrations.Migration):
                 ('whs_no', models.CharField(max_length=100)),
                 ('description', models.TextField(blank=True, null=True)),
                 ('quantity', models.IntegerField()),
+                ('batch', models.CharField(max_length=20)),
+                ('pallet', models.CharField(max_length=20)),
+                ('inspection', models.CharField(max_length=20)),
+                ('stock_type', models.CharField(max_length=20)),
+                ('wps', models.CharField(max_length=20)),
+                ('doc_no', models.CharField(max_length=20)),
+                ('pallet_status', models.CharField(default='Not planned', max_length=20)),
                 ('batch', models.CharField(max_length=100)),
                 ('pallet', models.CharField(max_length=100)),
                 ('p_mat', models.CharField(max_length=100)),
@@ -318,7 +380,16 @@ class Migration(migrations.Migration):
                 ('doc_no', models.CharField(max_length=100)),
                 ('pallet_status', models.CharField(default='Not planned', max_length=100)),
                 ('bin', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.bin')),
+                ('p_mat', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.packingmaterial')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rf_dispatch.product')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='SubCategory',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=100)),
+                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subcategories', to='rf_dispatch.category')),
             ],
         ),
         migrations.AddField(
@@ -345,6 +416,11 @@ class Migration(migrations.Migration):
                 ('so_no', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='outbound_deliveries', to='rf_dispatch.salesordercreation')),
                 ('whs_no', models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='outbound_deliveries', to='rf_dispatch.warehouse')),
             ],
+        ),
+        migrations.AddField(
+            model_name='salesordercreation',
+            name='whs_no',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='warehouse', to='rf_dispatch.warehouse'),
         ),
         migrations.AddField(
             model_name='inbounddelivery',
