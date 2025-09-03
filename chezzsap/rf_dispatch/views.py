@@ -2647,4 +2647,4 @@ def change_password(request):
 
 def logout_view(request):
     logout(request)
-    return render(request, 'rf_dispatch/logout.html')
+    return render(request, 'account/logout.html')
