@@ -200,5 +200,8 @@ urlpatterns = [
     path('create-gr/', views.create_gr, name='create_gr'),
     path("gr_list/", views.gr_list, name="gr_list"),
 
+    path("bulk-upload-bins/", views.bulk_upload_bins, name="bulk_upload_bins"),
+    path('bulk-upload-products/', views.bulk_upload_products, name='bulk_upload_products'),
+    path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

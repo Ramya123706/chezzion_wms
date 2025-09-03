@@ -242,11 +242,11 @@ from django.utils.timezone import now
 import uuid
 
 class PackingMaterial(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    material = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.material
 
 class Pallet(models.Model):
     pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
@@ -316,8 +316,8 @@ class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    category = models.CharField(blank=True, null=True) 
-    sub_category = models.CharField(blank=True, null=True) 
+    category = models.CharField(max_length=100, blank=True, null=True)   # ✅ fixed
+    sub_category = models.CharField(max_length=100, blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
     batch = models.CharField(max_length=100, null=True, blank=True)
@@ -326,7 +326,7 @@ class StockUpload(models.Model):
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     inspection = models.CharField(max_length=50)
     stock_type = models.CharField(max_length=50)
-    wps = models.CharField(max_length=50)
+    item_number = models.CharField(max_length=50)
     doc_no = models.CharField(max_length=50)
     pallet_status = models.CharField(max_length=50, default='Not planned')
 
