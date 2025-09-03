@@ -133,7 +133,13 @@ class Category(models.Model):
 
     def __str__(self):
         return self.category 
+    
+class SubCategory(models.Model):
+    category = models.ForeignKey(Category, related_name="subcategories", on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
 class Bin(models.Model):
     whs_no = models.ForeignKey(
         Warehouse,
@@ -144,6 +150,7 @@ class Bin(models.Model):
     bin_type = models.CharField(max_length=50)
     capacity = models.IntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
     existing_quantity = models.IntegerField(default=0)
@@ -181,9 +188,12 @@ class Bin(models.Model):
 #         return self.name
 
 
+import uuid
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 class Product(models.Model):
-    product_id = models.CharField(max_length=100, unique=True)   # Your item_number
+    product_id = models.CharField(primary_key=True, max_length=50, unique=True)   # Your item_number
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   # current stock
     pallet_no = models.CharField(max_length=50, blank=True, null=True)
@@ -191,10 +201,12 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="products", default=True, null=True, blank=True) 
     re_order_level = models.IntegerField(default=10)
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
     def save(self, *args, **kwargs):
@@ -207,7 +219,15 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} ({self.product_id})"
 
+# Signal must be **outside** the model class
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+@receiver(post_save, sender=Product)
+def update_inventory(sender, instance, **kwargs):
+    inventory, created = Inventory.objects.get_or_create(product=instance)
+    inventory.total_quantity = instance.quantity
+    inventory.save()
 
 
 from django.utils import timezone
@@ -221,15 +241,22 @@ from django.db import models
 from django.utils.timezone import now
 import uuid
 
+class PackingMaterial(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
 class Pallet(models.Model):
     pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
-    p_mat = models.CharField(max_length=100, null=True, blank=True)
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    scanned_at = models.DateTimeField(default=now, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    scanned_at = models.DateTimeField(auto_now=True, blank=True)
     created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
 
@@ -287,28 +314,29 @@ from django.db.models import Sum
 
 class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
-    whs_no = models.CharField(max_length=100)
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    category = models.CharField(blank=True, null=True) 
+    sub_category = models.CharField(blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
-    batch = models.CharField(max_length=100)
-    bin = models.ForeignKey(Bin, on_delete=models.CASCADE)
-    pallet = models.CharField(max_length=100)
-    p_mat = models.CharField(max_length=100)
-    inspection = models.CharField(max_length=100)
-    stock_type = models.CharField(max_length=100)
-    item_number = models.CharField(max_length=100)
-    doc_no = models.CharField(max_length=100)
-    pallet_status = models.CharField(max_length=100, default='Not planned')
+    batch = models.CharField(max_length=100, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE , null=True, blank=True)
+    pallet = models.CharField(max_length=50)
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
+    inspection = models.CharField(max_length=50)
+    stock_type = models.CharField(max_length=50)
+    wps = models.CharField(max_length=50)
+    doc_no = models.CharField(max_length=50)
+    pallet_status = models.CharField(max_length=50, default='Not planned')
+
 
     def __str__(self):
-        return self.name
         return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        # Update Inventory after save
         total_quantity = StockUpload.objects.filter(product=self.product).aggregate(
             total=Sum('quantity')
         )['total'] or 0
@@ -317,7 +345,7 @@ class StockUpload(models.Model):
         inventory.total_quantity = total_quantity
         inventory.save()
 
-        # Sync Product quanti ty
+       
         self.product.quantity = total_quantity
         self.product.save()
 
@@ -332,23 +360,20 @@ class StockUpload(models.Model):
         inventory, _ = Inventory.objects.get_or_create(product=product)
         inventory.total_quantity = total_quantity
         inventory.save()
-
-        # Sync Product quantity
         product.quantity = total_quantity
         product.save()
 
 
 
 class Inventory(models.Model):
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.product.name} - {self.total_quantity} units"
-    
-# Purchase Order Header
+   
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
@@ -394,6 +419,7 @@ class PurchaseOrder(models.Model):
 #    
     
 
+    
 
 class Putaway(models.Model):
     putaway_id = models.CharField(max_length=50, unique=True, editable=False)   
@@ -437,51 +463,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
 from .models import Putaway
 
-# def pending_putaway(request):
-#     pending_tasks = Putaway.objects.filter(status="In Progress")
-#     return render(request, 'pending_task.html', {'pending_tasks': pending_tasks})
-
-# def edit_putaway(request, pk):
-#     putaway = get_object_or_404(Putaway, pk=pk)
-
-#     if request.method == 'POST':
-#         putaway.pallet = request.POST.get('pallet')
-#         putaway.location = request.POST.get('location')
-#         putaway.putaway_task_type = request.POST.get('putaway_task_type')
-#         putaway.status = request.POST.get('status')
-
-#         if putaway.status == "Completed":
-#             putaway.confirmed_at = now()
-
-#         putaway.save()
-#         return redirect('pending_putaway')
-
-#     return render(request, 'edit_putaway.html', {'putaway': putaway})
-
-# class PutawayTask(models.Model):
-    # PUTAWAY_TASK_CHOICES = [
-    #     ("Putaway by HU", "Putaway by HU"),
-    #     ("Putaway by Warehouse", "Putaway by Warehouse"),
-    #     ("Putaway by Product", "Putaway by Product"),
-    #     ("Putaway by Storage Bin", "Putaway by Storage Bin"),
-    # ]
-
-    # putaway_id = models.CharField(max_length=50)
-    # pallet = models.CharField(max_length=50)
-    # location = models.CharField(max_length=100)
-    # putaway_task_type = models.CharField(
-    #     max_length=50,
-    #     choices=PUTAWAY_TASK_CHOICES,
-    #     default="Putaway by HU"
-    # )
-    # status = models.CharField(max_length=20, choices=[
-    #     ("In Progress", "In Progress"),
-    #     ("Completed", "Completed"),
-    # ], default="In Progress")
-
-    # def __str__(self):
-    #     return f"{self.putaway_id} - {self.putaway_task_type}"
-
 
 
 from django.db import models
@@ -494,6 +475,7 @@ class Picking(models.Model):
     location = models.CharField(max_length=100)
     product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
     
     PICKING_TYPE_CHOICES=[
         ('INBOUND', 'Inbound'),
@@ -538,26 +520,23 @@ class InboundDelivery(models.Model):
     inbound_delivery_number = models.CharField(max_length=50, unique=True, editable=False)
     delivery_date = models.DateField()
     document_date = models.DateField(blank=True, null=True)
-
-    supplier = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True, related_name="inbounddeliveries")
-    purchase_order_number = models.ForeignKey(PurchaseOrder,on_delete=models.CASCADE,null=True,  blank=True)
+    supplier = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+    purchase_order_number = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE,null=True,  blank=True)
+    esn= models.CharField(max_length=100, blank=True, null=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='inbound_deliveries', null=True, blank=True)
-
+   
     
     DELIVERY_STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Completed', 'Completed'),
     ]
     delivery_status = models.CharField(max_length=20, choices=DELIVERY_STATUS_CHOICES, default='Pending')
-    
     remarks = models.TextField(blank=True, null=True)
     
     def save(self, *args, **kwargs):
         if not self.inbound_delivery_number:
             self.inbound_delivery_number = f"IDN-{uuid.uuid4().hex[:8].upper()}"
-        
-        # if not self.batch_number:
-        #     self.batch_number = f"BATCH-{uuid.uuid4().hex[:6].upper()}"
+    
         
         super().save(*args, **kwargs)
 
@@ -580,8 +559,8 @@ class InboundDelivery(models.Model):
         return f"{self.product.product_id} - {self.product.name}" if self.product else None
 
 class InboundDeliveryproduct(models.Model):
-    delivery = models.ForeignKey(InboundDelivery, on_delete=models.CASCADE, related_name='product')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product')
+    delivery = models.ForeignKey(InboundDelivery, on_delete=models.CASCADE, related_name='products')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inbound_deliveries')
     product_description = models.CharField(max_length=255)
     quantity_delivered = models.DecimalField(max_digits=10, decimal_places=2)
     quantity_received = models.DecimalField(max_digits=10, decimal_places=2)
@@ -598,7 +577,7 @@ class InboundDeliveryproduct(models.Model):
         return f"Delivery #{self.batch_number}"
 
    
-# Purchase Order Line Items
+
 class PurchaseItem(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="purchase_items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -658,6 +637,7 @@ class SalesOrderItem(models.Model):
     so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey('Product', on_delete=models.CASCADE, default=None)  # ForeignKey instead of product_id/product_name
     product_name = models.CharField(max_length=50)
+    existing_quantity = models.IntegerField(default=0)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
@@ -671,8 +651,19 @@ class SalesOrderItem(models.Model):
 
 class OutboundDelivery(models.Model):
     dlv_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    so_no = models.ForeignKey(SalesOrderCreation, on_delete=models.CASCADE, related_name='outbound_deliveries')  
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='outbound_deliveries', default=None, null=True, blank=True)
+    so_no = models.ForeignKey(
+        SalesOrderCreation,
+        on_delete=models.CASCADE,
+        related_name='outbound_deliveries'
+    )
+    whs_no = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name='outbound_deliveries',
+        default=None,
+        null=True,
+        blank=True
+    )
     whs_address = models.CharField(max_length=100, blank=True, null=True)
 
     sold_to = models.CharField(max_length=100, blank=True, null=True)
@@ -684,8 +675,13 @@ class OutboundDelivery(models.Model):
     def __str__(self):
         return f"Delivery {self.dlv_no}"
 
+
 class OutboundDeliveryItem(models.Model):
-    delivery = models.ForeignKey(OutboundDelivery, on_delete=models.CASCADE, related_name='items')
+    delivery = models.ForeignKey(
+        OutboundDelivery,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
     dlv_it_no = models.CharField(max_length=10)  # Item number (10,20,30…)
     product_id = models.CharField(max_length=50, blank=True, null=True)
     product_name = models.CharField(max_length=100, default="Unknown")
@@ -716,8 +712,8 @@ from django.db import models
 
 class Packing(models.Model):
     pallet = models.CharField(max_length=50)
-    p_mat = models.CharField(max_length=100)   # packing material
-    del_no = models.CharField(max_length=50)   # delivery number
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
+    del_no = models.CharField(max_length=50)   
     gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
     net_wt = models.DecimalField(max_digits=10, decimal_places=2)
     volume = models.DecimalField(max_digits=10, decimal_places=2)
@@ -730,7 +726,7 @@ class Packing(models.Model):
 class PackedItem(models.Model):
     packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
     pallet = models.CharField(max_length=50)
-    p_mat = models.CharField(max_length=100)
+    p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     batch_no = models.CharField(max_length=50)
     serial_no = models.CharField(max_length=50)
     quantity = models.IntegerField()
@@ -739,3 +735,67 @@ class PackedItem(models.Model):
 
     def __str__(self):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
+
+class PostGoodsIssue(models.Model):
+    pgi_no = models.CharField(max_length=50, unique=True)
+    delivery = models.OneToOneField(  # one PGI per delivery
+        OutboundDelivery,
+        on_delete=models.CASCADE,
+        related_name="pgi"
+    )
+    posting_date = models.DateField(auto_now_add=True)
+    posted_by = models.CharField(max_length=100)  # user/employee
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"PGI {self.pgi_no} for Delivery {self.delivery.dlv_no}"
+
+from django.db import models
+
+class GoodsReceipt(models.Model):
+    gr_no = models.CharField(max_length=50, unique=True, editable=False)
+    inbound_delivery = models.OneToOneField(
+        InboundDelivery,
+        on_delete=models.CASCADE,
+        related_name="gr"
+    )
+    posting_date = models.DateField(auto_now_add=True)
+    posted_by = models.CharField(max_length=100)  # user/employee
+    remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.gr_no:
+            last_gr = GoodsReceipt.objects.order_by("-id").first()
+            if last_gr and last_gr.gr_no.startswith("GR"):
+                number = int(last_gr.gr_no.replace("GR", "")) + 1
+            else:
+                number = 1
+            self.gr_no = f"GR{number:05d}"  # GR00001, GR00002...
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.gr_no} - {self.inbound_delivery.inbound_delivery_number}"
+
+
+class GoodsReceiptItem(models.Model):
+    goods_receipt = models.ForeignKey(
+        GoodsReceipt,
+        on_delete=models.CASCADE,
+        related_name="items"
+    )
+    inbound_delivery_product = models.ForeignKey(
+        InboundDeliveryproduct,
+        on_delete=models.CASCADE,
+        related_name="gr_items"
+    )
+    quantity_received = models.DecimalField(max_digits=10, decimal_places=2)
+    batch_number = models.CharField(max_length=50, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        # default batch = inbound delivery batch if not provided
+        if not self.batch_number and self.inbound_delivery_product.batch_number:
+            self.batch_number = self.inbound_delivery_product.batch_number
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.goods_receipt.gr_no} - {self.inbound_delivery_product.product.name}"

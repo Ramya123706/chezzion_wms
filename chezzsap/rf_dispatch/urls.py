@@ -10,6 +10,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('start/', views.first, name='first'),
     path('six/', views.sixth, name='sixth'),
+    path("search/", views.search, name="search"),
 
     # Outbound steps
     path('outbound1/', views.outbound1, name='outbound1'),
@@ -33,6 +34,8 @@ urlpatterns = [
 
     # Check-in and inspection
     path('one/', yard_checkin_view, name='one'),
+    path('three/', views.three, name='three'),
+    path('four/', views.four, name='four'),
     path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
     path('get-truck-details/', views.get_truck_details, name='get_truck_details'),
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
@@ -65,8 +68,10 @@ urlpatterns = [
     path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
     path('stock_upload/menu', views.stock_menu, name='stock_menu'),
     path('stock_upload/batch_product', views.batch_product_view, name='batch_product'),
-    path('stock/<str:pallet>/', views.stock_detail_view, name='stock_detail'),
-
+    path('stock/<int:pk>/', views.stock_detail_view, name='stock_detail'),
+    path('stocks/', views.stock_list, name='stock_list'),
+    path('stocks/<int:pk>/edit/', views.stock_edit, name='stock_edit'),
+    # path('products/search/', views.product_search, name='product_search'),
     # Warehouse
     path('warehouse/', views.warehouse_view, name='warehouse_view'),
     path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
@@ -106,7 +111,8 @@ urlpatterns = [
     # Categories
     path('add-category/', views.add_category, name='add_category'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
-
+    path("get-subcategories/<int:category_id>/", views.get_subcategories, name="get_subcategories"),
+    path("ajax/load-subcategories/", views.load_subcategories, name="ajax_load_subcategories"),
     # Suggestions
     path('ajax/truck-suggestions/', views.truck_suggestions, name='truck_suggestions'),
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
@@ -141,8 +147,6 @@ urlpatterns = [
     path('inbound/delivery_detail/<str:inbound_delivery_number>/', views.delivery_detail, name='delivery_detail'),
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
-    path('pallet/<str:pallet_no>/', views.pallet_detail, name='pallet_detail'),
-    path('pallet/edit/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
 
 
     # Pallet Management
@@ -152,9 +156,6 @@ urlpatterns = [
     path('pallet/delete/<str:pallet_no>/', views.delete_pallet, name='delete_pallet'), 
     path('edit_pallet/<str:pallet_no>/', views.edit_pallet, name='edit_pallet'),
     path('add_child_pallet/', views.add_child_pallet, name='add_child_pallet'),
-
-
-
 
     # Customer landing
     path('customer/', views.customer, name='customer'),
@@ -179,5 +180,25 @@ urlpatterns = [
     path("packing/<int:packing_id>/edit/", views.edit_packing, name="edit_packing"),
     path("packing/<int:packing_id>/delete/", views.delete_packing, name="delete_packing"),
     path("packing/<int:packing_id>/add-item/", views.add_packed_item, name="add_packed_item"),
-    
+    path("tasks/", views.all_tasks, name="all_tasks"),
+    path("putaway/<str:putaway_id>/", views.putaway_detail, name="putaway_detail"),
+    path("picking/<str:picking_id>/", views.picking_detail, name="picking_detail"),         
+    path("material/create/", views.material_create, name="material_create"),
+    path("material/", views.material_list, name="material_list"),  
+    path("material/<int:id>/edit/", views.material_edit, name="material_edit"), 
+    path("material/<int:id>/delete/", views.material_delete, name="material_delete"),
+    path("get-total-quantity/<str:product_id>/", views.get_total_quantity, name="get_total_quantity"),
+    path("outbound/<str:delivery_no>/", views.outbound_detail, name="outbound_detail"),
+# Outbound → PGI
+    path("pgi/<str:delivery_no>/", views.post_goods_issue, name="post_goods_issue"),
+    path("pgi/detail/<str:pgi_no>/", views.pgi_detail, name="pgi_detail"),
+
+    # Inbound → GR
+    path("gr/<str:inbound_no>/", views.goods_receipt, name="goods_receipt"),
+    path("gr/detail/<str:gr_no>/", views.gr_detail, name="gr_detail"),
+    #GR
+    path('create-gr/', views.create_gr, name='create_gr'),
+    path("gr_list/", views.gr_list, name="gr_list"),
+
+
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

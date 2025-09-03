@@ -26,10 +26,11 @@ SECRET_KEY = 'django-insecure-126g3a)3(-*k((e7pfz#0$-0fvp)@kx_jd5!vh5p+#wks*hou$
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = [
-     'https://demo.chezzion.com',
-     'http://localhost:3000',
-]
+# ALLOWED_HOSTS = ['demo.chezzion.com']
+# CSRF_TRUSTED_ORIGINS = [
+#      'https://demo.chezzion.com',
+#      'http://localhost:3000',
+# ]
 
 # Application definition
 
@@ -168,4 +169,3 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

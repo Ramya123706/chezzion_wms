@@ -2,15 +2,14 @@
 
 {% block content %}
 <div class="container mt-5">
-    <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h5>Chezzion WMS-Magic Box</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3 text-center">
-                    <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50" alt="SAP logo">
+    <div class="row">
+        <!-- Main Form Column -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Chezzion WMS-Magic Box</h5>
                 </div>
+
 
                 {% if success %}
                     <div class="alert alert-success">✅ Stock uploaded successfully!</div>
@@ -39,42 +38,45 @@
                         </select>
                     </div>
 
-                    <!-- Product Search -->
-                    <div class="form-group position-relative">
-                        <label for="product_input">Product</label>
-                        <input type="text" class="form-control" id="product_input" name="product" placeholder="Start typing product ID or name" autocomplete="off" required>
-                        <div id="product_suggestions" class="border bg-white position-absolute w-100" style="z-index: 1000; display: none;"></div>
-                    </div>
+                    {% if success %}
+                        <div class="alert alert-success">✅ Stock uploaded successfully!</div>
+                    {% endif %}
 
-                    <small class="form-text text-muted">
-                        Can't find your product?
-                        <a href="{% url 'add_product' %}" class="btn btn-sm btn-link">Add New Product</a>
-                    </small>
+                    {% if error %}
+                        <div class="alert alert-danger">❌ {{ error }}</div>
+                    {% endif %}
 
-                    <!-- Category -->
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <input type="text" class="form-control" id="category" name="category" required>
-                    </div>
+                    <form action="{% url 'batch_product' %}" method="post">
+                        {% csrf_token %}
 
-                    <!-- Description -->
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <input type="text" class="form-control" id="description" name="description" required>
-                    </div>
+                        <!-- Warehouse -->
+                        <div class="form-group">
+                            <label><b>Warehouse</b></label>
+                            <select name="whs_no" class="form-control" required>
+                                <option value="">Select Warehouse</option>
+                                {% for wh in warehouse %}
+                                    <option value="{{ wh.whs_no }}">{{ wh.whs_no }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-                    <!-- Quantity -->
-                    <div class="form-group">
-                        <label for="quantity">Quantity</label>
-                        <input type="number" class="form-control" id="quantity" name="quantity" required>
-                    </div>
+                        <!-- Product Search -->
+                        <div class="form-group position-relative">
+                            <label for="product_input">Product</label>
+                            <input type="text" class="form-control" id="product_input" name="product" placeholder="Start typing product ID or name" autocomplete="off" required>
+                            <div id="product_suggestions" class="border bg-white position-absolute w-100" style="z-index: 1000; display: none;"></div>
+                        </div>
 
-                    <!-- Batch -->
-                    <div class="form-group">
-                        <label for="batch">Batch</label>
-                        <input type="text" class="form-control" id="batch" name="batch" required>
-                    </div>
+                        <small class="form-text text-muted">
+                            Can't find your product?
+                            <a href="{% url 'add_product' %}" class="btn btn-sm btn-link">Add New Product</a>
+                        </small>
 
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <input type="text" id="category" name="category" class="form-control">
+                        </div>
                     <!-- BIN -->
                     <div class="form-group">
                         <label for="bin">BIN</label>
@@ -86,23 +88,68 @@
                         </select>
                     </div>
 
-                    <!-- Pallet -->
-                    <div class="form-group">
-                        <label for="pallet">Pallet</label>
-                        <input type="text" class="form-control" id="pallet" name="pallet" required>
-                    </div>
+                        <!-- Subcategory -->
+                        <div class="form-group">
+                            <label for="sub_category">Subcategory</label>
+                            <input type="text" id="sub_category" name="sub_category" class="form-control">
+                        </div>
 
-                    <!-- P_mat -->
-                    <div class="form-group">
-                        <label for="p_mat">P_mat</label>
-                        <input type="text" class="form-control" id="p_mat" name="p_mat" required>
-                    </div>
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" class="form-control" id="description" name="description" required>
+                        </div>
 
-                    <!-- Inspection -->
-                    <div class="form-group">
-                        <label for="inspection">Inspection</label>
-                        <input type="text" class="form-control" id="inspection" name="inspection" required>
-                    </div>
+                        <!-- Quantity -->
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" required>
+                        </div>
+
+                        <!-- Batch -->
+                        <div class="mb-3">
+                            <label class="form-label"><b>Batch</b></label><br>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="batch_option" id="batchYes" value="yes">
+                                <label class="form-check-label" for="batchYes">Yes</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="batch_option" id="batchNo" value="no" checked>
+                                <label class="form-check-label" for="batchNo">No</label>
+                            </div>
+                            <div class="mt-2 d-none" id="batchInputDiv">
+                                <input type="text" class="form-control" id="batchInput" name="batch_input" placeholder="Enter batch value">
+                            </div>
+                        </div>
+
+                        <!-- BIN -->
+                        <div class="form-group">
+                            <label for="bin">BIN</label>
+                            <input type="text" class="form-control" id="bin" name="bin">
+                        </div>
+
+                        <!-- Pallet -->
+                        <div class="form-group">
+                            <label for="pallet">Pallet</label>
+                            <input type="text" class="form-control" id="pallet" name="pallet" required>
+                        </div>
+
+                        <!-- P_mat -->
+                        <div class="form-group">
+                            <label for="p_mat">P_mat</label>
+                            <select class="form-control" id="p_mat" name="p_mat" required>
+                                <option value="">-- Select Packing Material --</option>
+                                {% for mat in materials %}
+                                    <option value="{{ mat.id }}">{{ mat.p_mat}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Inspection -->
+                        <div class="form-group">
+                            <label for="inspection">Inspection</label>
+                            <input type="text" class="form-control" id="inspection" name="inspection" required>
+                        </div>
 
 <!-- Stock Type -->
 <div class="form-group">
@@ -122,37 +169,84 @@
                         <input type="text" class="form-control" id="item_number" name="item_number" required>
                     </div>
 
-                    <!-- Doc No -->
-                    <div class="form-group">
-                        <label for="doc_no">Doc No</label>
-                        <input type="text" class="form-control" id="doc_no" name="doc_no" required>
-                    </div>
+                        <!-- Doc No -->
+                        <div class="form-group">
+                            <label for="doc_no">Doc No</label>
+                            <input type="text" class="form-control" id="doc_no" name="doc_no" required>
+                        </div>
 
-                    <!-- Pallet Status -->
-                    <div class="form-group">
-                        <label for="pallet_status">Pallet Status</label>
-                        <select class="form-control" id="pallet_status" name="pallet_status" required>
-                            <option value="">-- Select Pallet Status --</option>
-                            <option value="Received">Received</option>
-                            <option value="Planned">Planned</option>
-                            <option value="Damaged">Damaged</option>
-                            <option value="Rejected">Rejected</option>
-                        </select>
-                    </div>
+                        <!-- Pallet Status -->
+                        <div class="form-group">
+                            <label for="pallet_status">Pallet Status</label>
+                            <select class="form-control" id="pallet_status" name="pallet_status" required>
+                                <option value="">-- Select Pallet Status --</option>
+                                <option value="Received">Received</option>
+                                <option value="Planned">Planned</option>
+                                <option value="Damaged">Damaged</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
 
-                    <!-- Buttons -->
-                    <div class="d-flex justify-content-between mt-4">
-                        <a class="btn btn-secondary" href="#">F1 ADIT</a>
-                        <a class="btn btn-secondary" href="#">F1 SKUP</a>
-                        <a class="btn btn-secondary" href="#">F7 BACK</a>
-                        <button type="submit" class="btn btn-primary">ENTER</button>
-                    </div>
-                </form>
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a class="btn btn-secondary" href="#">F1 ADIT</a>
+                            <a class="btn btn-secondary" href="#">F1 SKUP</a>
+                            <a class="btn btn-secondary" href="#">F7 BACK</a>
+                            <button type="submit" class="btn btn-primary">ENTER</button>
+                        </div>
+                    </form>
+                </div>
             </div>
+        </div>
+
+   <!-- Sidebar -->
+<div class="col-md-4">
+     <div class="d-flex justify-content-center mb-3">
+        <button id="listBtn" class="btn btn-success">List</button>
+    </div>
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0">Search Products</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="product_search" class="form-control" placeholder="Search by Product ID or Name" value="{{ request.GET.product_search }}">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </form>
+
+            {% if products %}
+            <table class="table table-sm table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Product ID</th>
+                        
+                        <th>Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                    <tr>
+                        <td>{{ stock.product_id }}</td>
+                        <td>{{ stock.category }}</td>
+                        <td>
+                            <a href="{% url 'stock_detail' stock.id %}" class="btn btn-sm btn-info px-3 py-1 fs-6">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="alert alert-warning text-center">No products found.</div>
+            {% endif %}
         </div>
     </div>
 </div>
 
+
+<!-- Product Input Suggestions -->
 <script>
 document.getElementById("product_input").addEventListener("keyup", function () {
     const query = this.value.trim();
@@ -174,7 +268,7 @@ document.getElementById("product_input").addEventListener("keyup", function () {
                             document.getElementById("product_input").value = item.product_id;
                             document.getElementById("description").value = item.description || "";
                             document.getElementById("category").value = item.category || "";
-
+                            document.getElementById("sub_category").value = item.sub_category || "";
                             suggestionBox.style.display = "none";
                         };
 
@@ -192,6 +286,69 @@ document.getElementById("product_input").addEventListener("keyup", function () {
     } else {
         suggestionBox.style.display = "none";
     }
+});
+</script>
+
+<!-- Batch Input Toggle -->
+<script>
+const batchYes = document.getElementById('batchYes');
+const batchNo = document.getElementById('batchNo');
+const batchInputDiv = document.getElementById('batchInputDiv');
+
+function toggleBatchInput() {
+  if (batchYes.checked) {
+    batchInputDiv.classList.remove('d-none'); // Show input
+    batchInputDiv.querySelector('input').focus();
+  } else {
+    batchInputDiv.classList.add('d-none'); // Hide input
+    batchInputDiv.querySelector('input').value = ''; // Clear input
+  }
+}
+
+batchYes.addEventListener('change', toggleBatchInput);
+batchNo.addEventListener('change', toggleBatchInput);
+</script>
+
+<!-- Sidebar Quick Search -->
+<script>
+document.getElementById("view_details").addEventListener("click", function() {
+    const query = document.getElementById("side_search").value.trim();
+    const resultsDiv = document.getElementById("side_results");
+
+    if (!query) {
+        resultsDiv.innerHTML = '<div class="alert alert-warning">Please enter a product ID or name.</div>';
+        return;
+    }
+
+    fetch(`/ajax/product-suggestions/?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.results.length > 0) {
+                resultsDiv.innerHTML = '';
+                data.results.forEach(item => {
+                    resultsDiv.innerHTML += `
+                        <div class="border p-2 mb-2">
+                            <strong>${item.product_id}</strong> - ${item.name}<br>
+                            Category: ${item.category || '-'}<br>
+                            Subcategory: ${item.sub_category || '-'}<br>
+                            Description: ${item.description || '-'}
+                        </div>
+                    `;
+                });
+            } else {
+                resultsDiv.innerHTML = '<div class="alert alert-info">No products found.</div>';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            resultsDiv.innerHTML = '<div class="alert alert-danger">Error fetching product details.</div>';
+        });
+});
+</script>
+<script>
+document.getElementById("listBtn").addEventListener("click", function () {
+   
+    window.location.href = "{% url 'stock_list' %}";
 });
 </script>
 {% endblock %}

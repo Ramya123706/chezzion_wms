@@ -3,34 +3,35 @@
 
 <div class="container mt-5">
     <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card">
-            <div class="card-header">
-            <h5>Chezzion WMS-Magic Box</h5>
+        <div class="card shadow-lg">
+            <div class="card-header bg-light text-center">
+                <h5 class="text-center mb-4 mt-3"><i class="fa-solid fa-truck-front"></i> Truck check-in and Check-out
+                </h5>
             </div>
             <div class="card-body">
-                <h5><img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50"
-                            alt="SAP logo"></h5>
-                <h5 class="text-center mb-4 mt-3">Truck check-in and Check-out</h5>
-                <form id="inspectionForm" method="POST" >
-                {% csrf_token %}
-                {% if form.errors %}
-                <div class="alert alert-danger">
-                {{ form.errors }}
-                </div>
-                {% endif %}	    
-                <div class="mb-3 row">
-                    <label class="col-sm-4 col-form-label">WHS No</label>
-                    <!-- <div class="col-sm-8">
-                    <select class="form-select" name="whs_no" required>
-                        <option value="" selected disabled>Select WHS No</option>
-                        {% for warehouse in warehouses %}
-                            <option value="{{ warehouse.whs_no }}">{{ warehouse.whs_no }}</option>
-                        {% endfor %}
-                    </select>
-                    </div> -->
-                    <div class="col-sm-8">
-                    <input type="text" id="whs_no_input" name="whs_no" class="form-control" placeholder="Enter WHS No" autocomplete="off">
-<div id="whs_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
+
+
+
+
+                <form id="inspectionForm" method="POST">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold">
+                            <i class="fa-solid fa-warehouse"></i> WHS No
+                        </label>
+                        <div class="col-sm-8">
+                            <input type="text" id="whs_no_input" name="whs_no" class="form-control"
+                                placeholder="Enter WHS No" autocomplete="off">
+                            <div id="whs_suggestions" class="border p-2 bg-white"
+                                style="position:absolute; z-index:999; display:none;">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="mb-3 row">
@@ -201,68 +202,68 @@
     });
 </script>
 <script>
-document.getElementById("truck_no_input").addEventListener("keyup", function () {
-    const query = this.value;
-    const suggestionBox = document.getElementById("truck_suggestions");
+    document.getElementById("truck_no_input").addEventListener("keyup", function () {
+        const query = this.value;
+        const suggestionBox = document.getElementById("truck_suggestions");
 
-    if (query.length > 0) { 
-        fetch(`/ajax/truck-suggestions/?q=${query}`)
-            .then(response => response.json())
-            .then(data => {
-                suggestionBox.innerHTML = "";
-                if (data.results.length > 0) {
-                    data.results.forEach(item => {
-                        const div = document.createElement("div");
-                        div.textContent = item.truck_no;
-                        div.style.cursor = "pointer";
-                        div.onclick = function () {
-                            document.getElementById("truck_no_input").value = item.truck_no;
-                            suggestionBox.style.display = "none";
-                            // Optional: trigger change event
-                            document.getElementById("truck_no_input").dispatchEvent(new Event("change"));
-                        };
-                        suggestionBox.appendChild(div);
-                    });
-                    suggestionBox.style.display = "block";
-                } else {
-                    suggestionBox.style.display = "none";
-                }
-            });
-    } else {
-        suggestionBox.style.display = "none";
-    }
-});
+        if (query.length > 0) {
+            fetch(`/ajax/truck-suggestions/?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionBox.innerHTML = "";
+                    if (data.results.length > 0) {
+                        data.results.forEach(item => {
+                            const div = document.createElement("div");
+                            div.textContent = item.truck_no;
+                            div.style.cursor = "pointer";
+                            div.onclick = function () {
+                                document.getElementById("truck_no_input").value = item.truck_no;
+                                suggestionBox.style.display = "none";
+                                // Optional: trigger change event
+                                document.getElementById("truck_no_input").dispatchEvent(new Event("change"));
+                            };
+                            suggestionBox.appendChild(div);
+                        });
+                        suggestionBox.style.display = "block";
+                    } else {
+                        suggestionBox.style.display = "none";
+                    }
+                });
+        } else {
+            suggestionBox.style.display = "none";
+        }
+    });
 </script>
 <script>
-document.getElementById("whs_no_input").addEventListener("keyup", function () {
-    const query = this.value;
-    const suggestionBox = document.getElementById("whs_suggestions");
+    document.getElementById("whs_no_input").addEventListener("keyup", function () {
+        const query = this.value;
+        const suggestionBox = document.getElementById("whs_suggestions");
 
-    if (query.length > 0) {
-        fetch(`/ajax/whs-suggestions/?q=${query}`)
-            .then(response => response.json())
-            .then(data => {
-                suggestionBox.innerHTML = "";
-                if (data.results.length > 0) {
-                    data.results.forEach(item => {
-                        const div = document.createElement("div");
-                        div.textContent = item.whs_no;
-                        div.style.cursor = "pointer";
-                        div.onclick = function () {
-                            document.getElementById("whs_no_input").value = item.whs_no;
-                            suggestionBox.style.display = "none";
-                        };
-                        suggestionBox.appendChild(div);
-                    });
-                    suggestionBox.style.display = "block";
-                } else {
-                    suggestionBox.style.display = "none";
-                }
-            });
-    } else {
-        suggestionBox.style.display = "none";
-    }
-});
+        if (query.length > 0) {
+            fetch(`/ajax/whs-suggestions/?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionBox.innerHTML = "";
+                    if (data.results.length > 0) {
+                        data.results.forEach(item => {
+                            const div = document.createElement("div");
+                            div.textContent = item.whs_no;
+                            div.style.cursor = "pointer";
+                            div.onclick = function () {
+                                document.getElementById("whs_no_input").value = item.whs_no;
+                                suggestionBox.style.display = "none";
+                            };
+                            suggestionBox.appendChild(div);
+                        });
+                        suggestionBox.style.display = "block";
+                    } else {
+                        suggestionBox.style.display = "none";
+                    }
+                });
+        } else {
+            suggestionBox.style.display = "none";
+        }
+    });
 </script>
 
 
