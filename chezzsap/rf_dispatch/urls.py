@@ -199,4 +199,11 @@ urlpatterns = [
     path("gr_list/", views.gr_list, name="gr_list"),
 
 
+
+    path("login/", views.login_view, name="login"),
+    path("profile_detail/", views.profile_detail_view, name="profile_detail"),
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path('logout/', views.logout_view, name='logout'), 
+    path('profile/change-password/', views.change_password, name='change_password'),
+
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
