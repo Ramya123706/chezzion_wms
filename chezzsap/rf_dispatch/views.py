@@ -243,7 +243,9 @@ def truck_log_view(request):
     error_message = ""
 
     if truck_no_query:
-        logs = TruckLog.objects.filter(truck_no__truck_no__icontains=truck_no_query).order_by('-truck_date', '-truck_time').first()
+        logs = TruckLog.objects.filter(
+            truck_no__truck_no__iexact=truck_no_query
+        ).order_by('-truck_date', '-truck_time')
         try:
             truck_details = YardHdr.objects.get(truck_no=truck_no_query)
         except YardHdr.DoesNotExist:
@@ -255,6 +257,7 @@ def truck_log_view(request):
         'truck_details': truck_details,
         'error_message': error_message,
     })
+
 
 
 from .models import YardHdr
@@ -298,8 +301,10 @@ from .utils import log_truck_status
 
 def truck_detail(request, truck_no):
     try:
+        # Fetch the latest YardHdr for this truck number
         truck = YardHdr.objects.filter(truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
-
+        if not truck:
+            return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
 
         # Log status only on POST
         if request.method == 'POST':
@@ -307,8 +312,8 @@ def truck_detail(request, truck_no):
             comment = request.POST.get('comment', '')
             log_truck_status(truck_instance=truck, status=new_status, comment=comment)
 
-        # Fetch logs related to this truck
-        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time').first()
+        # Fetch ALL logs related to this truck
+        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
 
         return render(request, 'truck_screen/truck_detail.html', {
             'truck': truck,
@@ -323,21 +328,32 @@ from django.contrib.auth.decorators import login_required
 from .models import YardHdr
 from .utils import log_truck_status  
 
+@login_required
 def update_truck_status(request, truck_no):
-    if request.method == 'POST':
-        new_status = request.POST.get('new_status')
-        truck = get_object_or_404(YardHdr, truck_no=truck_no)
-        old_status = truck.truck_status
+    if request.method == "POST":
+        new_status = request.POST.get("new_status")
+        comment = request.POST.get("comment", "")
 
-        if new_status and new_status != old_status:
+        try:
+            truck = YardHdr.objects.get(truck_no=truck_no)
+            # Update current truck status
             truck.truck_status = new_status
             truck.save()
 
-        comment = request.POST.get('comment', '')
+            # Create a log entry
+            TruckLog.objects.create(
+                truck_no=truck,
+                status=new_status,
+                comment=comment,
+                status_changed_by=request.user
+            )
 
-        log_truck_status(truck_instance=truck, status=new_status,  comment=comment)
+            messages.success(request, f"Truck status updated to {new_status}.")
+        except YardHdr.DoesNotExist:
+            messages.error(request, "Truck not found.")
 
-        return redirect('truck_detail', truck_no=truck_no)  
+    return redirect("truck_detail", truck_no=truck_no)
+
 
 # ------------
 # STOCK UPLOAD
@@ -1507,10 +1523,13 @@ def vendor_edit(request, vendor_id):
         return redirect('vendor_list')
     return render(request, 'vendor/vendor_edit.html', {'vendor': vendor})
 
+
+
 def vendor_delete(request, vendor_id):
     vendor = get_object_or_404(Vendor, vendor_id=vendor_id)
-    vendor.delete()
-    messages.success(request, f"Vendor {vendor.name} deleted successfully.")
+    if request.method == "POST":
+        vendor.delete()
+        return redirect('vendor_list')
     return redirect('vendor_list')
 
 from django.shortcuts import render
@@ -1762,11 +1781,9 @@ import random
 def generate_inbound_delivery_number():
     return f"IBD{random.randint(1000, 9999)}"
 
-def generate_inbound_delivery_number():
-    return f"IBD{random.randint(1000, 9999)}"
+from django.utils.dateparse import parse_date
 
 def inbound_delivery(request):
-    
     search_term = request.GET.get('inbound_delivery_number')
     if search_term:
         deliveries = InboundDelivery.objects.filter(
@@ -1784,17 +1801,19 @@ def inbound_delivery(request):
         inbound_delivery_number = generate_inbound_delivery_number()
         vendor_id = request.POST.get('vendor')
         supplier_obj = Vendor.objects.filter(pk=vendor_id).first()
+
+        # Safely parse dates, default to None if empty
+        delivery_date = parse_date(request.POST.get('delivery_date')) or None
+        document_date = parse_date(request.POST.get('document_date')) or None
+
         delivery = InboundDelivery.objects.create(
             inbound_delivery_number=inbound_delivery_number,
-            delivery_date=request.POST.get('delivery_date'),
-            document_date=request.POST.get('document_date'),
-            # gr_date=request.POST.get('gr_date'),
+            delivery_date=delivery_date,
+            document_date=document_date,
             supplier=supplier_obj,
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
-            # storage_location=request.POST.get('storage_location'),
             delivery_status=request.POST.get('delivery_status'),
-            # carrier_info=request.POST.get('carrier_info'),
             remarks=request.POST.get('remarks')
         )
 
@@ -1826,7 +1845,6 @@ def inbound_delivery(request):
         'purchase_orders': purchase_orders,
         'products': products_list
     })
-
 
 from django.shortcuts import render, get_object_or_404
 from .models import InboundDelivery, InboundDeliveryproduct,  PurchaseOrder, Product
