@@ -398,9 +398,18 @@ def batch_product_view(request):
                 sub_category=sub_category
             )
 
-
             query = request.GET.get('search', '')
 
+            stock_uploads = StockUpload.objects.all()
+            return render(request, 'stock_upload/batch_product.html', {
+                'products': Product.objects.all(),
+                'warehouse': Warehouse.objects.all(),
+                'materials': PackingMaterial.objects.all(),
+                'stocks': stock_uploads,
+                'query': query,
+            })
+        except Exception as e:
+            query = request.GET.get('search', '')
             stock_uploads = StockUpload.objects.all()
             return render(request, 'stock_upload/batch_product.html', {
                 'products': Product.objects.all(),
@@ -2884,33 +2893,82 @@ def bulk_upload_bins(request):
     return redirect("create_bin")
 
 
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib import messages
+from .models import Profile  # import your Profile model
+
+# views.py
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from .models import Profile
+
 def add_user(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        password = request.POST.get('password')
-        email = request.POST.get('email')
-        phn_no = request.POST.get('phn_no')
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        phone = request.POST.get('phn_no')
         company_name = request.POST.get('company_name')
         warehouse = request.POST.get('warehouse')
-
-        if not name or not password:
-            messages.error(request, "Username and password are required.")
-            return redirect('add_user')
-
-        if User.objects.filter(username=name).exists():
-            messages.error(request, "Username already exists.")
-            return redirect('add_user')
+        image = request.FILES.get('image')
 
         user = User.objects.create_user(
-            username=name,
-            password=password,
+            username=username,
             email=email,
-            phn_no=phn_no,
-            company_name=company_name,
-            warehouse=warehouse
+            password=password
         )
-        user.save()
-        messages.success(request, "User created successfully.")
-        return redirect('user_list')
 
+        # Create a profile automatically
+        Profile.objects.get_or_create(
+            user=user,
+            phone=phone,
+            company_name=company_name,
+            warehouse=warehouse,
+            image=image)
+
+        return redirect('user_list')  # or wherever you want
     return render(request, 'account/add_user.html')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.models import User
+from .models import Profile
+
+# User Detail
+def user_detail(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'account/user_detail.html', {'user': user})
+
+
+# Edit User
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        user.first_name = request.POST.get('first_name')
+        user.last_name = request.POST.get('last_name')
+        user.email = request.POST.get('email')
+        user.save()
+
+        profile, created = Profile.objects.get_or_create(user=user)
+        profile.phn_no = request.POST.get('phn_no')
+        profile.company_name = request.POST.get('company_name')
+        profile.warehouse = request.POST.get('warehouse')
+        if request.FILES.get('image'):
+            profile.image = request.FILES['image']
+        profile.save()
+
+        return redirect('user_detail', user_id=user.id)
+
+    return render(request, 'account/edit_user.html', {'user': user})
+
+# Delete User
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == "POST":
+        user.delete()
+        return redirect('user_list')
+    
+def user_list(request):
+    users = User.objects.all().select_related('profile')
+    return render(request, 'account/user_list.html', {'users': users})

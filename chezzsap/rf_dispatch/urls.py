@@ -210,5 +210,10 @@ urlpatterns = [
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('logout/', views.logout_view, name='logout'), 
     path('profile/change-password/', views.change_password, name='change_password'),
-
+    path('add_user/', views.add_user, name='add_user'),
+    path('users/', views.user_list, name='user_list'),
+    path('users/<int:user_id>/', views.user_detail, name='user_detail'),
+    path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
+    path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+    
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
