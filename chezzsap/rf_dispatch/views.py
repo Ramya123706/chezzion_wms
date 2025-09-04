@@ -349,8 +349,7 @@ import csv
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
 from django.shortcuts import render, get_object_or_404
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
- 
- 
+
 def batch_product_view(request):
     query = ""
  
@@ -402,7 +401,7 @@ def batch_product_view(request):
                 category=category,
                 sub_category=sub_category
             )
- 
+
         except Exception as e:
             query = request.GET.get('search', '')
             stock_uploads = StockUpload.objects.all()
@@ -414,7 +413,7 @@ def batch_product_view(request):
                 'query': query,
                 'stocks': stock_uploads,
             })
- 
+
     stock_uploads = StockUpload.objects.all()
     query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
@@ -425,6 +424,7 @@ def batch_product_view(request):
         'query': query,
     })
  
+
 
 def batch_product_csv_upload(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
@@ -439,24 +439,46 @@ def batch_product_csv_upload(request):
             reader = csv.DictReader(file_data)
 
             for row in reader:
-                # Product
+                # --- Handle Category ---
+                category_value = row.get('Category')
+                category_instance = None
+                if category_value:
+                    if category_value.isdigit():  # treat as ID
+                        category_instance = Category.objects.filter(id=category_value).first()
+                    else:  # treat as Name
+                        category_instance, _ = Category.objects.get_or_create(name=category_value)
+
+                # --- Handle SubCategory ---
+                sub_category_value = row.get('Sub Category')
+                sub_category_instance = None
+                if sub_category_value:
+                    if sub_category_value.isdigit():
+                        sub_category_instance = SubCategory.objects.filter(id=sub_category_value).first()
+                    else:
+                        sub_category_instance, _ = SubCategory.objects.get_or_create(name=sub_category_value)
+
+                # --- Product ---
                 product_instance, _ = Product.objects.get_or_create(
                     product_id=row.get('Product ID'),
-                    defaults={'description': row.get('Description', ''), 'category': row.get('Category', '')}
+                    defaults={
+                        'description': row.get('Description', ''),
+                        'category': category_instance,
+                        'sub_category': sub_category_instance,
+                    }
                 )
 
-                # Warehouse
+                # --- Warehouse ---
                 warehouse = Warehouse.objects.filter(whs_no=row.get('Warehouse')).first()
                 if not warehouse:
                     raise ValueError(f"Warehouse '{row.get('Warehouse')}' not found")
 
-                # Bin
+                # --- Bin ---
                 bin_instance = Bin.objects.filter(bin_id=row.get('Bin')).first()
 
-                # Packing Material
+                # --- Packing Material ---
                 p_mat_instance = PackingMaterial.objects.filter(id=row.get('P_Mat')).first()
 
-                # Create StockUpload
+                # --- StockUpload ---
                 StockUpload.objects.create(
                     whs_no=warehouse,
                     product=product_instance,
@@ -471,8 +493,8 @@ def batch_product_csv_upload(request):
                     item_number=row.get('Item Number', ''),
                     doc_no=row.get('Doc No', ''),
                     pallet_status=row.get('Pallet Status', 'Planned'),
-                    category=row.get('Category', ''),
-                    sub_category=row.get('Sub Category', '')
+                    category=category_instance,
+                    sub_category=sub_category_instance,
                 )
 
             messages.success(request, "CSV uploaded successfully!")
