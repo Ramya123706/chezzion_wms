@@ -2648,3 +2648,34 @@ def change_password(request):
 def logout_view(request):
     logout(request)
     return render(request, 'account/logout.html')
+
+def add_user(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+        phn_no = request.POST.get('phn_no')
+        company_name = request.POST.get('company_name')
+        warehouse = request.POST.get('warehouse')
+
+        if not name or not password:
+            messages.error(request, "Username and password are required.")
+            return redirect('add_user')
+
+        if User.objects.filter(username=name).exists():
+            messages.error(request, "Username already exists.")
+            return redirect('add_user')
+
+        user = User.objects.create_user(
+            username=name,
+            password=password,
+            email=email,
+            phn_no=phn_no,
+            company_name=company_name,
+            warehouse=warehouse
+        )
+        user.save()
+        messages.success(request, "User created successfully.")
+        return redirect('user_list')
+
+    return render(request, 'account/add_user.html')
