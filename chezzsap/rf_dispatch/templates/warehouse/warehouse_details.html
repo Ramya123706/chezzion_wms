@@ -1,35 +1,69 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-    
-    <div class="card-header text-dark text-center">
-        <h4>Warehouse</h4>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6 col-sm-12 mx-auto">
-                <table class="table text-start table-responsive table-striped p-2">
-                    <tbody>
-                        <tr><th colspan="2" class="text-center bg-warning">Warehouse Info</th></tr>
-                        <tr><th>Warehouse No</th><td>{{ warehouse.whs_no }}</td></tr>
-                        <tr><th>Name</th><td>{{ warehouse.whs_name }}</td></tr>
-                        <tr><th>Address</th><td>{{ warehouse.address }}</td></tr>
-                        <tr><th>Phone No</th><td>{{ warehouse.phn_no }}</td></tr>
-                        <tr><th>Email</th><td>{{ warehouse.email }}</td></tr>
-                        <tr><th>Manager</th><td>{{ warehouse.manager }}</td></tr> 
+
+    <div class="card shadow">
+        <div class="card-header text-dark text-center bg-light">
+            <h4><i class="fa-solid fa-warehouse me-2"></i> Warehouse</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 col-sm-12 mx-auto">
+
+                    <!-- Warehouse Info Table -->
+                    <table class="table text-start table-striped table-bordered">
+                        <tbody>
+                            <tr>
+                                <th colspan="2" class="text-center bg-warning text-dark">
+                                    <i class="fa-solid fa-circle-info me-1"></i> Warehouse Info
+                                </th>
+                            </tr>
+                            <tr>
+                                <th><i class="fa-solid fa-hashtag me-1"></i> Warehouse No</th>
+                                <td>{{ warehouse.whs_no }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fa-solid fa-building me-1"></i> Name</th>
+                                <td>{{ warehouse.whs_name }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fa-solid fa-map-location-dot me-1"></i> Address</th>
+                                <td>{{ warehouse.address }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fa-solid fa-phone me-1"></i> Phone No</th>
+                                <td>{{ warehouse.phn_no }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fa-solid fa-envelope me-1"></i> Email</th>
+                                <td>{{ warehouse.email }}</td>
+                            </tr>
+                            <tr>
+                                <th><i class="fa-solid fa-user-tie me-1"></i> Manager</th>
+                                <td>{{ warehouse.manager }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Warehouse Image -->
+                    <div class="text-center mb-3">
                         {% if warehouse.image %}
-                        <div class="text-center mb-3">
-                            <img src="{{ warehouse.image.url }}" class="img-fluid rounded" alt="Warehouse Image" style="max-width: 300px;">
-                        </div>
+                        <img src="{{ warehouse.image.url }}" class="img-fluid rounded shadow-sm border"
+                            alt="Warehouse Image" style="max-width: 300px;">
                         {% else %}
-                        <div class="text-center mb-3 text-muted">
-                            No image uploaded for this warehouse.
-                        </div>
-                        {% endif %}                       
-                    </tbody>
-                </table>
-                <div>
-                    <a href="{% url 'warehouse_view' %}" class="btn btn-secondary">F7 BACK</a>
+                        <p class="text-muted">
+                            <i class="fa-solid fa-image me-1"></i> No image uploaded for this warehouse.
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Back Button -->
+                    <div class="text-center">
+                        <a href="{% url 'warehouse_view' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-arrow-left me-1"></i> F7 Back
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </div>

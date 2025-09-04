@@ -347,11 +347,13 @@ from django.contrib import messages
 import csv
 
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
-
-
+from django.shortcuts import render, get_object_or_404
+from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
+ 
+ 
 def batch_product_view(request):
     query = ""
-
+ 
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
         product_id = request.POST.get('product')
@@ -360,26 +362,29 @@ def batch_product_view(request):
         batch = request.POST.get('batch')
         bin_id = request.POST.get('bin')
         pallet = request.POST.get('pallet')
-        p_mat_id = request.POST.get('p_mat')
+        p_mat = request.POST.get('p_mat')
         inspection = request.POST.get('inspection')
         stock_type = request.POST.get('stock_type')
-        item_number = request.POST.get('item_number')  
+        item_number = request.POST.get('item_number')
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
         category = request.POST.get('category')
         sub_category = request.POST.get('sub_category')
-
+ 
         try:
             product_instance, _ = Product.objects.get_or_create(
                 product_id=product_id,
-                defaults={'name': request.POST.get('product', ''), 'description': request.POST.get('description', '')}
+                defaults={
+                    'name': request.POST.get('product', ''),
+                    'description': request.POST.get('description', '')
+                }
             )
-
+ 
             warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
             bin_instance = Bin.objects.filter(bin_id=bin_id).first()
             p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
             batch = request.POST.get('batch_input') or batch or ''
-
+ 
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
@@ -391,39 +396,35 @@ def batch_product_view(request):
                 p_mat=p_mat_instance,
                 inspection=inspection,
                 stock_type=stock_type,
-                item_number=item_number,   
+                item_number=item_number,
                 doc_no=doc_no,
                 pallet_status=pallet_status,
                 category=category,
                 sub_category=sub_category
             )
-
-
+ 
+        except Exception as e:
             query = request.GET.get('search', '')
-
             stock_uploads = StockUpload.objects.all()
             return render(request, 'stock_upload/batch_product.html', {
-                'products': products,
-                'warehouse': warehouses,
-                'materials': materials,
-                'bins': bins,
-                'stocks': stock_uploads,
+                'products': Product.objects.all(),
+                'warehouse': Warehouse.objects.all(),
+                'materials': PackingMaterial.objects.all(),
+                'error': str(e),
                 'query': query,
                 'stocks': stock_uploads,
             })
-
-
+ 
     stock_uploads = StockUpload.objects.all()
     query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
-        'products': products,
-        'warehouse': warehouses,
-        'materials': materials,
-        'bins': bins,
+        'products': Product.objects.all(),
+        'warehouse': Warehouse.objects.all(),
+        'materials': PackingMaterial.objects.all(),
         'stocks': stock_uploads,
         'query': query,
     })
-
+ 
 
 def batch_product_csv_upload(request):
     if request.method == 'POST' and request.FILES.get('csv_file'):
@@ -2738,149 +2739,3 @@ def search(request):
         results = []
     
     return render(request, "search.html", {"query": query, "results": results})
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-
-def login_view(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect("home")   
-        else:
-            messages.error(request, "Invalid username or password")
-    return render(request, "account/login.html")
-
-@login_required
-def profile_detail_view(request):
-    user = request.user
-    profile = getattr(user, 'profile', None)  # in case user has a related profile
-    return render(request, 'account/profile_detail.html', {
-        'user': user,
-        'profile': profile,
-    })
-    
-from .models import Profile
-
-@login_required
-def edit_profile(request):
-    user = request.user
-    profile, created = Profile.objects.get_or_create(user=user)  # ✅ safe lookup
-
-    if request.method == 'POST':
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.email = request.POST.get('email', user.email)
-
-        profile.phone = request.POST.get('phone', profile.phone)
-        profile.company_name = request.POST.get('company_name', profile.company_name)
-        profile.warehouse = request.POST.get('warehouse', profile.warehouse)
-
-        if 'image' in request.FILES:
-            profile.image = request.FILES['image']
-
-        user.save()
-        profile.save()
-
-        return redirect('profile_detail')
-
-    return render(request, 'account/profile_edit.html', {'profile': profile})
-
-
-from django.contrib.auth import authenticate, update_session_auth_hash
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-
-@login_required
-def change_password(request):
-    if request.method == 'POST':
-        old_password = request.POST.get('old_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
-
-        user = request.user
-        if not user.check_password(old_password):
-            messages.error(request, "Old password is incorrect.")
-            return redirect('change_password')
-        if new_password != confirm_password:
-            messages.error(request, "New password and Confirm password do not match.")
-            return redirect('change_password')
-        user.set_password(new_password)
-        user.save()
-        update_session_auth_hash(request, user)
-
-        messages.success(request, "Your password has been changed successfully.")
-        return redirect('profile_detail')
-
-    return render(request, 'account/change_password.html')
-
-
-def logout_view(request):
-    logout(request)
-    return render(request, 'account/logout.html')
-
-import csv
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.core.files.storage import FileSystemStorage
-from .models import Bin, Category, SubCategory
-
-def bulk_upload_bins(request):
-    if request.method == "POST" and request.FILES.get("csv_file"):
-        csv_file = request.FILES["csv_file"]
-
-        if not csv_file.name.endswith('.csv'):
-            messages.error(request, "File must be a CSV.")
-            return redirect("create_bin")
-
-        file_data = csv_file.read().decode("utf-8").splitlines()
-        reader = csv.DictReader(file_data)
-
-        created, skipped = 0, 0
-        for row in reader:
-            try:
-                warehouse_code = row["Warehouse"]
-                bin_id = row["Bin ID"]
-                bin_type = row["Bin Type"]
-                capacity = row["Capacity"]
-                existing_quantity = row.get("Existing Quantity", 0)
-                category_name = row["Category"]
-                subcategory_name = row["Sub Category"]
-
-                # ✅ Get or create Warehouse
-                warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
-
-                # ✅ Get or create Category
-                category, _ = Category.objects.get_or_create(category=category_name)
-
-                # ✅ Get or create Subcategory
-                subcategory, _ = SubCategory.objects.get_or_create(
-                    name=subcategory_name, category=category
-                )
-
-                # ✅ Create Bin
-                Bin.objects.create(
-                    whs_no=warehouse,
-                    bin_id=bin_id,
-                    bin_type=bin_type,
-                    capacity=capacity,
-                    existing_quantity=existing_quantity,
-                    category=category,
-                    sub_category=subcategory,
-                )
-                created += 1
-            except Exception as e:
-                print("Skipping row:", row, "Error:", e)
-                skipped += 1
-
-        messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
-        return redirect("create_bin")
-
-    return redirect("create_bin")
