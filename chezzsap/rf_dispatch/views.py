@@ -406,6 +406,17 @@ def batch_product_view(request):
                 sub_category=sub_category
             )
 
+
+        except Exception as e:
+            query = request.GET.get('search', '')
+            stock_uploads = StockUpload.objects.all()
+            return render(request, 'stock_upload/batch_product.html', {
+                'products': Product.objects.all(),
+                'warehouse': Warehouse.objects.all(),
+                'materials': PackingMaterial.objects.all(),
+                'stocks': stock_uploads,
+                'query': query,
+            })
         except Exception as e:
             query = request.GET.get('search', '')
             stock_uploads = StockUpload.objects.all()
@@ -2766,6 +2777,7 @@ def search(request):
     
     return render(request, "search.html", {"query": query, "results": results})
 
+
  
 def bulk_upload_bins(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
@@ -2826,14 +2838,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
 
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+
 
         if not username or not password:
             messages.error(request, "Please enter both username and password")
@@ -2865,6 +2875,7 @@ from .models import Profile
 @login_required
 def edit_profile(request):
     user = request.user
+
     profile, created = Profile.objects.get_or_create(user=user)  
 
     if request.method == 'POST':
