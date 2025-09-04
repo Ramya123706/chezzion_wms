@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+  <div class="col-md-8 col-lg-6 bg-white p-4 rounded shadow">
+
+    <!-- Profile Header -->
+    <div class="text-center mb-4">
+      <img src="{{ profile.image.url|default:'https://via.placeholder.com/150' }}" 
+           alt="Profile Picture" 
+           class="rounded-circle border shadow-sm"
+           style="width: 140px; height: 140px; object-fit: cover;">
+    </div>
+
+    <!-- Profile Details -->
+    <h4 class="text-center text-white bg-primary mb-3">Profile Details</h4>
+    
+    <form>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="first_name" class="form-label fw-bold">First Name</label>
+          <input type="text" id="first_name" class="form-control" value="{{ user.first_name }}" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="last_name" class="form-label fw-bold">Last Name</label>
+          <input type="text" id="last_name" class="form-control" value="{{ user.last_name }}" readonly>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="email" class="form-label fw-bold">Email</label>
+          <input type="email" id="email" class="form-control" value="{{ user.email }}" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="phone" class="form-label fw-bold">Phone No.</label>
+          <input type="text" id="phone" class="form-control" value="{{ profile.phone }}" readonly>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="company" class="form-label fw-bold">Company</label>
+          <input type="text" id="company" class="form-control" value="{{ profile.company_name }}" readonly>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="warehouse" class="form-label fw-bold">Warehouse</label>
+          <input type="text" id="warehouse" class="form-control" value="{{ profile.warehouse }}" readonly>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="text-center mt-4">
+        <a href="{% url 'change_password' %}" class="btn btn-primary px-4">Change Password</a>
+        <a href="{% url 'edit_profile' %}" class="btn btn-warning px-4">Edit Profile</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

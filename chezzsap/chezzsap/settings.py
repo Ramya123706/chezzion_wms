@@ -93,7 +93,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'chezz',
         'USER': 'postgres',
-        'PASSWORD': 'chezz@2025',
+        'PASSWORD': 'chezzion@2025',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -169,4 +169,3 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-

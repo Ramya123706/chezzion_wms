@@ -8,15 +8,17 @@ YES_NO_CHOICES = [
     ('No', 'No'),
 ]
 class YardHdr(models.Model):
-    yard_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
-    truck_no = models.CharField(primary_key=True, max_length=100)
+    id = models.AutoField(primary_key=True)
+    yard_id = models.CharField(max_length=100, null=True, blank=True)
+    truck_no = models.CharField(max_length=100)
     whs_no = models.CharField(max_length=5)
-    truck_type = models.CharField(max_length=20)
+    truck_type = models.CharField(max_length=50, blank=True, null=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
     po_no = models.CharField(max_length=10)
     truck_date = models.DateField()
     truck_time = models.TimeField()
+    truck_state = models.CharField(max_length=50, default='Unknown', blank=True, null=True)
     seal_no = models.CharField(max_length=10)
     yard_scan = models.CharField(max_length=20)
     truck_status = models.CharField(max_length=10, editable=False, default='Not planned')
@@ -32,7 +34,20 @@ class YardHdr(models.Model):
 
     def __str__(self):
         return str(self.truck_no)
-    
+
+# models.py
+from django.db import models
+
+# from django import forms
+
+# class WarehouseQuestion(models.Model):
+#     text = models.CharField(max_length=255, unique=True)
+#     is_active = models.BooleanField(default=True)
+
+#     def __str__(self):
+#         return self.text
+
+
 class TruckLog(models.Model):
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
@@ -55,14 +70,6 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         comment=comment
     )
 
-class PackingMaterial(models.Model):
-    p_mat= models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.p_mat
-
-    
 
 # class StockUpload(models.Model):
 #     whs_no = models.CharField(max_length=20, primary_key=True)
@@ -140,6 +147,7 @@ class Bin(models.Model):
         related_name="bins" 
     )
     bin_id = models.CharField(max_length=50, unique=True) 
+    bin_type = models.CharField(max_length=50)
     capacity = models.IntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
@@ -233,6 +241,13 @@ from django.db import models
 from django.utils.timezone import now
 import uuid
 
+class PackingMaterial(models.Model):
+    material = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.material
+
 class Pallet(models.Model):
     pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
@@ -301,8 +316,8 @@ class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    category = models.CharField(blank=True, null=True) 
-    sub_category = models.CharField(blank=True, null=True) 
+    category = models.CharField(max_length=100, blank=True, null=True)   # ✅ fixed
+    sub_category = models.CharField(max_length=100, blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
     batch = models.CharField(max_length=100, null=True, blank=True)
@@ -311,7 +326,7 @@ class StockUpload(models.Model):
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     inspection = models.CharField(max_length=50)
     stock_type = models.CharField(max_length=50)
-    wps = models.CharField(max_length=50)
+    item_number = models.CharField(max_length=50)
     doc_no = models.CharField(max_length=50)
     pallet_status = models.CharField(max_length=50, default='Not planned')
 
@@ -683,11 +698,11 @@ class OutboundDeliveryItem(models.Model):
     class Meta:
         unique_together = ('delivery', 'dlv_it_no')
 
-    def save(self, *args, **kwargs):
-        # auto-calc totals
-        self.unit_total_price = self.qty_issued * self.unit_price
-        self.net_total_price = self.unit_total_price  # adjust if you need tax/discount later
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # Calculate totals before saving
+    #     self.unit_total_price = self.qty_issued * self.unit_price
+    #     self.net_total_price = self.unit_total_price
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product_name} - Item {self.dlv_it_no}"
@@ -784,3 +799,19 @@ class GoodsReceiptItem(models.Model):
 
     def __str__(self):
         return f"{self.goods_receipt.gr_no} - {self.inbound_delivery_product.product.name}"
+
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    company_name = models.CharField(max_length=100, blank=True, null=True)
+    warehouse = models.CharField(max_length=100, blank=True, null=True)
+    image = models.ImageField(upload_to='profiles/', default='profiles/default.png')
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
