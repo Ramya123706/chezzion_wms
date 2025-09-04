@@ -2962,12 +2962,10 @@ def edit_user(request, user_id):
 
     return render(request, 'account/edit_user.html', {'user': user})
 
-# Delete User
 def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    if request.method == "POST":
-        user.delete()
-        return redirect('user_list')
+    user.delete()
+    return redirect('user_list')
     
 def user_list(request):
     users = User.objects.all().select_related('profile')
