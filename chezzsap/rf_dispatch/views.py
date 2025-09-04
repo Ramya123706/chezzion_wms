@@ -363,14 +363,18 @@ def batch_product_view(request):
         p_mat = request.POST.get('p_mat')
         inspection = request.POST.get('inspection')
         stock_type = request.POST.get('stock_type')
-        item_number = request.POST.get('item_number')  # ✅ renamed
+        item_number = request.POST.get('item_number')  
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
         category = request.POST.get('category')
         sub_category = request.POST.get('sub_category')
 
         try:
-            product_instance = get_object_or_404(Product, product_id=product_id)
+            product_instance, _ = Product.objects.get_or_create(
+                product_id=product_id,
+                defaults={'name': request.POST.get('product', ''), 'description': request.POST.get('description', '')}
+            )
+
             warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
             bin_instance = Bin.objects.filter(bin_id=bin_id).first()
             p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
@@ -380,14 +384,14 @@ def batch_product_view(request):
                 whs_no=warehouse,
                 product=product_instance,
                 description=description,
-                quantity=int(quantity),
+                quantity=int(quantity or 0),
                 batch=batch,
                 bin=bin_instance,
                 pallet=pallet,
                 p_mat=p_mat_instance,
                 inspection=inspection,
                 stock_type=stock_type,
-                item_number=item_number,   # ✅ FIXED
+                item_number=item_number,   
                 doc_no=doc_no,
                 pallet_status=pallet_status,
                 category=category,
@@ -432,23 +436,36 @@ def batch_product_csv_upload(request):
             reader = csv.DictReader(file_data)
 
             for row in reader:
-                product_instance, _ = Product.objects.get_or_create(product_id=row['Product ID'])
-                warehouse = Warehouse.objects.get(whs_no=row['Warehouse'])
+                # Product
+                product_instance, _ = Product.objects.get_or_create(
+                    product_id=row.get('Product ID'),
+                    defaults={'description': row.get('Description', ''), 'category': row.get('Category', '')}
+                )
+
+                # Warehouse
+                warehouse = Warehouse.objects.filter(whs_no=row.get('Warehouse')).first()
+                if not warehouse:
+                    raise ValueError(f"Warehouse '{row.get('Warehouse')}' not found")
+
+                # Bin
                 bin_instance = Bin.objects.filter(bin_id=row.get('Bin')).first()
+
+                # Packing Material
                 p_mat_instance = PackingMaterial.objects.filter(id=row.get('P_Mat')).first()
 
+                # Create StockUpload
                 StockUpload.objects.create(
                     whs_no=warehouse,
                     product=product_instance,
                     description=row.get('Description', ''),
-                    quantity=int(row.get('Quantity', 0)),
+                    quantity=int(row.get('Quantity') or 0),
                     batch=row.get('Batch', ''),
                     bin=bin_instance,
                     pallet=row.get('Pallet', ''),
                     p_mat=p_mat_instance,
                     inspection=row.get('Inspection', ''),
                     stock_type=row.get('Stock Type', 'Unrestricted'),
-                    item_number=row.get('Item Number', ''),  # ✅ FIXED
+                    item_number=row.get('Item Number', ''),
                     doc_no=row.get('Doc No', ''),
                     pallet_status=row.get('Pallet Status', 'Planned'),
                     category=row.get('Category', ''),
@@ -456,10 +473,12 @@ def batch_product_csv_upload(request):
                 )
 
             messages.success(request, "CSV uploaded successfully!")
+
         except Exception as e:
             messages.error(request, f"Error processing CSV: {e}")
 
     return redirect('batch_product')
+
 
 
 
