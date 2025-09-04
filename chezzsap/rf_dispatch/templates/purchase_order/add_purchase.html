@@ -1,164 +1,177 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4 mb-3">
-
-    {% if success %}
-        <div class="alert alert-success">✅ Purchase uploaded successfully!</div>
-    {% endif %}
-
-    {% if error %}
-        <div class="alert alert-danger">❌ {{ error }}</div>
-
-    {% endif %}
-
-    <form method="post" action="{% url 'add_purchase' %}">
-        {% csrf_token %}
-
-        <!-- Purchase Order Title -->
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white text-center">
-                <h4>Purchase Order</h4>
-            </div>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded">
+        <div class="card-header bg-dark text-white text-center">
+            <h2><i class="fas fa-file-invoice-dollar"></i> Purchase Order Entry</h2>
         </div>
+        <div class="card-body">
 
-        <!-- Company & Order Details -->
-        <div class="card mb-4">
-            <div class="card-header bg-light"><strong>Company & Purchase Order Details</strong></div>
-            <div class="card-body row">
-                <div class="col-md-6">
-                    <label><b>Company Name:</b></label>
-                    <input type="text" name="company_name" class="form-control" required>
+            <!-- Success & Error Messages -->
+            {% if success %}
+                <div class="alert alert-success text-center">
+                    ✅ Purchase uploaded successfully!
                 </div>
-                <div class="col-md-6">
-                    <label>Date:</label>
-                    <input type="date" name="po_date" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label><b>Company Address:</b></label>
-                    <input type="text" name="company_address" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label><b>PO No.:</b></label>
-                    <input type="text" name="po_number" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label><b>Phone Number:</b></label>
-                    <input type="text" name="company_phone" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label>Supplier</label>
-                    <input type="text" name="customer_number" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label><b>Website:</b></label>
-                    <input type="text" name="company_website" class="form-control">
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label><b>Email Address:</b></label>
+            {% endif %}
 
-                    <input type="email" name="company_email" class="form-control" required>
+            {% if error %}
+                <div class="alert alert-danger text-center">
+                    ❌ {{ error }}
+                </div>
+            {% endif %}
 
-                </div>
-            </div>
-        </div>
+            <form method="post" action="{% url 'add_purchase' %}">
+                {% csrf_token %}
 
-        <!-- Vendor Information -->
-        <div class="card mb-4">
-            <div class="card-header bg-light"><strong>Vendor Information</strong></div>
-            <div class="card-body row">
-                <div class="col-md-6">
-                    <label>Contact Name:</label>
-                    <input type="text" name="vendor_contact_name" class="form-control" required>
-                </div>
-                <div class="col-md-6">
-                    <label>Company Name:</label>
-                    <input type="text" name="vendor_company_name" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label>Address:</label>
-                    <input type="text" name="vendor_address" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label>Phone Number:</label>
-                    <input type="text" name="vendor_phone" class="form-control" required>
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label>Website:</label>
-                    <input type="text" name="vendor_website" class="form-control">
-                </div>
-                <div class="col-md-6 mt-3">
-                    <label>Email Address:</label>
-                    <input type="email" name="vendor_email" class="form-control" required>
-                </div>
-            </div>
-        </div>
-
-       
-
-        <!-- Product Information -->
-        <div class="card mb-4">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <strong>Product Details</strong>
-                <button type="button" class="btn btn-sm btn-primary" id="addProductRow">➕ Add Product</button>
-            </div>
-            <div class="card-body" id="productRows">
-                <div class="row product-entry mb-3">
-                    <div class="col-md-3">
-                        <label>Item Number:</label>
-                        <input type="text" name="item_number[]" class="form-control" required>
+                <!-- Company & Order Details -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-warning text-dark text-center">
+                        <h5><i class="fas fa-building"></i> Company & Purchase Order Details</h5>
                     </div>
-                    <div class="col-md-5">
-                        <label>Product Name / Description:</label>
-                        <input type="text" name="product_name[]" class="form-control" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label>Quantity:</label>
-                        <input type="number" name="quantity[]" class="form-control" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label>Unit Price:</label>
-                        <input type="number" step="1" name="unit_price[]" class="form-control" required>
-
+                    <div class="card-body row">
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-building"></i> <b>Company Name:</b></label>
+                            <input type="text" name="company_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-calendar-alt"></i> <b>Date:</b></label>
+                            <input type="date" name="po_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-map-marker-alt"></i> <b>Company Address:</b></label>
+                            <input type="text" name="company_address" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-file-alt"></i> <b>PO No.:</b></label>
+                            <input type="text" name="po_number" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-phone"></i> <b>Phone Number:</b></label>
+                            <input type="text" name="company_phone" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-user-tie"></i> <b>Supplier:</b></label>
+                            <input type="text" name="customer_number" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-globe"></i> <b>Website:</b></label>
+                            <input type="text" name="company_website" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-envelope"></i> <b>Email Address:</b></label>
+                            <input type="email" name="company_email" class="form-control" required>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="text-center mb-4">
-            <button type="submit" class="btn btn-success px-4 py-2">Submit Purchase Order</button>
+                <!-- Vendor Information -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-warning text-dark text-center">
+                        <h5><i class="fas fa-truck"></i> Vendor Information</h5>
+                    </div>
+                    <div class="card-body row">
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-id-badge"></i> <b>Contact Name:</b></label>
+                            <input type="text" name="vendor_contact_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-building"></i> <b>Company Name:</b></label>
+                            <input type="text" name="vendor_company_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-map-marker-alt"></i> <b>Address:</b></label>
+                            <input type="text" name="vendor_address" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-phone-alt"></i> <b>Phone Number:</b></label>
+                            <input type="text" name="vendor_phone" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-globe"></i> <b>Website:</b></label>
+                            <input type="text" name="vendor_website" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label><i class="fas fa-envelope"></i> <b>Email Address:</b></label>
+                            <input type="email" name="vendor_email" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Information -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-boxes"></i> Product Details</h5>
+                        <button type="button" class="btn btn-sm btn-primary" id="addProductRow">
+                            ➕ Add Product
+                        </button>
+                    </div>
+                    <div class="card-body" id="productRows">
+                        <div class="row product-entry mb-3">
+                            <div class="col-md-3">
+                                <label><i class="fas fa-barcode"></i> <b>Item Number:</b></label>
+                                <input type="text" name="item_number[]" class="form-control" required>
+                            </div>
+                            <div class="col-md-5">
+                                <label><i class="fas fa-tag"></i> <b>Product Name / Description:</b></label>
+                                <input type="text" name="product_name[]" class="form-control" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label><i class="fas fa-sort-numeric-up"></i> <b>Quantity:</b></label>
+                                <input type="number" name="quantity[]" class="form-control" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label><i class="fas fa-rupee-sign"></i> <b>Unit Price:</b></label>
+                                <input type="number" step="1" name="unit_price[]" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-success px-4 py-2">
+                        <i class="fas fa-paper-plane"></i> Submit Purchase Order
+                    </button>
+                    <a href="{% url 'purchase_list' %}" class="btn btn-secondary px-4 py-2">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
+
+<!-- Font Awesome (for icons) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 <script>
 document.getElementById("addProductRow").addEventListener("click", function () {
     const container = document.getElementById("productRows");
-
     const newRow = document.createElement("div");
     newRow.classList.add("row", "product-entry", "mb-3");
-
     newRow.innerHTML = `
         <div class="col-md-3">
-            <input type="text" name="item_number[]" class="form-control" placeholder="Item Number" required>
+            <label><i class="fas fa-barcode"></i> <b>Item Number:</b></label>
+            <input type="text" name="item_number[]" class="form-control" required>
         </div>
         <div class="col-md-5">
-            <input type="text" name="product_name[]" class="form-control" placeholder="Product Name / Description" required>
+            <label><i class="fas fa-tag"></i> <b>Product Name / Description:</b></label>
+            <input type="text" name="product_name[]" class="form-control" required>
         </div>
         <div class="col-md-2">
-            <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" required>
+            <label><i class="fas fa-sort-numeric-up"></i> <b>Quantity:</b></label>
+            <input type="number" name="quantity[]" class="form-control" required>
         </div>
         <div class="col-md-2 d-flex align-items-center">
-            <input type="text" name="unit_price[]" class="form-control" placeholder="Unit Price" required>
+            <label><i class="fas fa-rupee-sign"></i> <b>Unit Price:</b></label>
+            <input type="text" name="unit_price[]" class="form-control" required>
             <button type="button" class="btn btn-danger btn-sm ms-2 remove-product">✖</button>
         </div>
     `;
-
     container.appendChild(newRow);
 });
 
-// Remove row handler
 document.addEventListener("click", function (e) {
     if (e.target && e.target.classList.contains("remove-product")) {
         e.target.closest(".product-entry").remove();

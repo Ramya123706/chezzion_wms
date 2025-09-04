@@ -347,9 +347,13 @@ from django.contrib import messages
 import csv
 
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
+
+
 from django.shortcuts import render, get_object_or_404
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
 
+ 
+ 
 def batch_product_view(request):
     query = ""
  
@@ -423,7 +427,7 @@ def batch_product_view(request):
         'stocks': stock_uploads,
         'query': query,
     })
- 
+
 
 
 def batch_product_csv_upload(request):
@@ -1295,21 +1299,32 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder
 
-def purchase_edit(request, po_number):
-    po = get_object_or_404(PurchaseOrder, po_number=po_number)
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseItem, Product
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseItem, Product
+
+
+from decimal import Decimal
+
+def purchase_edit(request, po_id):
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    item = PurchaseItem.objects.filter(purchase_order=po).first()
 
     if request.method == 'POST':
-        
+        # --- update purchase order ---
         po.company_name = request.POST.get('company_name')
         po.company_address = request.POST.get('company_address')
         po.company_phone = request.POST.get('company_phone')
         po.company_email = request.POST.get('company_email')
         po.company_website = request.POST.get('company_website')
-
         po.po_date = request.POST.get('po_date')
         po.po_number = request.POST.get('po_number')
         po.customer_number = request.POST.get('customer_number')
-
         po.vendor_company_name = request.POST.get('vendor_company_name')
         po.vendor_contact_name = request.POST.get('vendor_contact_name')
         po.vendor_phone = request.POST.get('vendor_phone')
@@ -1317,17 +1332,41 @@ def purchase_edit(request, po_number):
         po.vendor_email = request.POST.get('vendor_email')
         po.vendor_website = request.POST.get('vendor_website')
 
-        po.item_number = request.POST.get('item_number')
-        po.product_name = request.POST.get('product_name')
-        po.product_quantity = request.POST.get('product_quantity')
-        po.unit_price = request.POST.get('unit_price')
-        po.total_price = request.POST.get('total_price')
+        # --- update item ---
+        if item:
+            product_id = request.POST.get('product_id')
+            if product_id:
+                item.product = get_object_or_404(Product, id=product_id)
+
+            # convert values safely
+            quantity = request.POST.get('product_quantity')
+            unit_price = request.POST.get('unit_price')
+
+            if quantity:
+                item.quantity = int(quantity)   # quantity should be integer
+            if unit_price:
+                item.unit_price = Decimal(unit_price)  # unit price as decimal
+
+            # calculate total automaticallypurchase_detail
+            
+            item.total_price = item.quantity * item.unit_price
+            item.save()
 
         po.save()
         messages.success(request, "Purchase order updated successfully.")
         return redirect('purchase_detail', pk=po.id)
 
-    return render(request, 'purchase_order/purchase_edit.html', {'po': po})
+
+    # send product list to template for dropdown
+    products = Product.objects.all()
+    return render(request, 'purchase_order/purchase_edit.html', {
+        'po': po,
+        'item': item,
+        'products': products,
+    })
+
+
+
 
 
 def rf_ptl(request):
@@ -2762,7 +2801,6 @@ def search(request):
     
     return render(request, "search.html", {"query": query, "results": results})
 
-
  
 def bulk_upload_bins(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
@@ -2817,72 +2855,85 @@ def bulk_upload_bins(request):
  
     return redirect("create_bin")
  
-  
+ 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
- 
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+
+        if not username or not password:
+            messages.error(request, "Please enter both username and password")
+            return redirect("login")  
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect("home")  
+            messages.success(request, f"Welcome back, {user.username}")
+            return redirect("home")
         else:
             messages.error(request, "Invalid username or password")
+            return redirect("login") 
+
     return render(request, "account/login.html")
- 
+
+
 @login_required
 def profile_detail_view(request):
     user = request.user
-    profile = getattr(user, 'profile', None)  # in case user has a related profile
+    profile = getattr(user, 'profile', None)  
     return render(request, 'account/profile_detail.html', {
         'user': user,
         'profile': profile,
     })
-   
+    
 from .models import Profile
- 
+
 @login_required
 def edit_profile(request):
     user = request.user
-    profile, created = Profile.objects.get_or_create(user=user)  # ✅ safe lookup
- 
+    profile, created = Profile.objects.get_or_create(user=user)  
+
     if request.method == 'POST':
         user.first_name = request.POST.get('first_name', user.first_name)
         user.last_name = request.POST.get('last_name', user.last_name)
         user.email = request.POST.get('email', user.email)
- 
+
         profile.phone = request.POST.get('phone', profile.phone)
         profile.company_name = request.POST.get('company_name', profile.company_name)
         profile.warehouse = request.POST.get('warehouse', profile.warehouse)
- 
+
         if 'image' in request.FILES:
             profile.image = request.FILES['image']
- 
+
         user.save()
         profile.save()
- 
+
         return redirect('profile_detail')
- 
+
     return render(request, 'account/profile_edit.html', {'profile': profile})
- 
- 
+
+
 from django.contrib.auth import authenticate, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
- 
+
 @login_required
 def change_password(request):
     if request.method == 'POST':
         old_password = request.POST.get('old_password')
         new_password = request.POST.get('new_password')
         confirm_password = request.POST.get('confirm_password')
- 
+
         user = request.user
         if not user.check_password(old_password):
             messages.error(request, "Old password is incorrect.")
@@ -2893,16 +2944,151 @@ def change_password(request):
         user.set_password(new_password)
         user.save()
         update_session_auth_hash(request, user)
- 
+
         messages.success(request, "Your password has been changed successfully.")
         return redirect('profile_detail')
- 
+
     return render(request, 'account/change_password.html')
- 
- 
+
+
 def logout_view(request):
     logout(request)
     return render(request, 'account/logout.html')
- 
- 
- 
+
+import csv
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from .models import Bin, Category, SubCategory
+
+def bulk_upload_bins(request):
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "File must be a CSV.")
+            return redirect("create_bin")
+
+        file_data = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(file_data)
+
+        created, skipped = 0, 0
+        for row in reader:
+            try:
+                warehouse_code = row["Warehouse"]
+                bin_id = row["Bin ID"]
+                bin_type = row["Bin Type"]
+                capacity = row["Capacity"]
+                existing_quantity = row.get("Existing Quantity", 0)
+                category_name = row["Category"]
+                subcategory_name = row["Sub Category"]
+
+                # ✅ Get or create Warehouse
+                warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
+
+                # ✅ Get or create Category
+                category, _ = Category.objects.get_or_create(category=category_name)
+
+                # ✅ Get or create Subcategory
+                subcategory, _ = SubCategory.objects.get_or_create(
+                    name=subcategory_name, category=category
+                )
+
+                # ✅ Create Bin
+                Bin.objects.create(
+                    whs_no=warehouse,
+                    bin_id=bin_id,
+                    bin_type=bin_type,
+                    capacity=capacity,
+                    existing_quantity=existing_quantity,
+                    category=category,
+                    sub_category=subcategory,
+                )
+                created += 1
+            except Exception as e:
+                print("Skipping row:", row, "Error:", e)
+                skipped += 1
+
+        messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
+        return redirect("create_bin")
+
+    return redirect("create_bin")
+
+
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib import messages
+from .models import Profile  # import your Profile model
+
+# views.py
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from .models import Profile
+
+def add_user(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        phone = request.POST.get('phn_no')
+        company_name = request.POST.get('company_name')
+        warehouse = request.POST.get('warehouse')
+        image = request.FILES.get('image')
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password
+        )
+
+        # Create a profile automatically
+        Profile.objects.get_or_create(
+            user=user,
+            phone=phone,
+            company_name=company_name,
+            warehouse=warehouse,
+            image=image)
+
+        return redirect('user_list')  # or wherever you want
+    return render(request, 'account/add_user.html')
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.models import User
+from .models import Profile
+
+# User Detail
+def user_detail(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'account/user_detail.html', {'user': user})
+
+
+# Edit User
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        user.first_name = request.POST.get('first_name')
+        user.last_name = request.POST.get('last_name')
+        user.email = request.POST.get('email')
+        user.save()
+
+        profile, created = Profile.objects.get_or_create(user=user)
+        profile.phn_no = request.POST.get('phn_no')
+        profile.company_name = request.POST.get('company_name')
+        profile.warehouse = request.POST.get('warehouse')
+        if request.FILES.get('image'):
+            profile.image = request.FILES['image']
+        profile.save()
+
+        return redirect('user_detail', user_id=user.id)
+
+    return render(request, 'account/edit_user.html', {'user': user})
+
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    return redirect('user_list')
+    
+def user_list(request):
+    users = User.objects.all().select_related('profile')
+    return render(request, 'account/user_list.html', {'users': users})

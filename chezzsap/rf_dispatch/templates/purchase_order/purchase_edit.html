@@ -86,7 +86,7 @@
                     </div>
 
                     <!-- Shipping Details -->
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label><b>Ship To Name</b></label>
                         <input type="text" name="ship_to_name" class="form-control" value="{{ po.ship_to_name }}">
                     </div>
@@ -114,33 +114,36 @@
                     <div class="form-group">
                         <label><b>Ship To Website</b></label>
                         <input type="text" name="ship_to_website" class="form-control" value="{{ po.ship_to_website }}">
-                    </div>
+                    </div> -->
 
                     <!-- Product Details -->
-                    <div class="form-group">
-                        <label><b>Item Number</b></label>
-                        <input type="text" name="item_number" class="form-control" value="{{ po.item_number }}">
-                    </div>
+<div class="form-group">
+    <label><b>Product</b></label>
+    <select name="product_id" class="form-control">
+        {% for product in products %}
+            <option value="{{ product.id }}" 
+                {% if item.product.id == product.id %}selected{% endif %}>
+                {{ product.name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
 
-                    <div class="form-group">
-                        <label><b>Product Name</b></label>
-                        <input type="text" name="product_name" class="form-control" value="{{ po.product_name }}">
-                    </div>
+<div class="form-group">
+    <label><b>Quantity</b></label>
+    <input type="number" name="product_quantity" class="form-control" value="{{ item.quantity }}">
+</div>
 
-                    <div class="form-group">
-                        <label><b>Quantity</b></label>
-                        <input type="number" name="product_quantity" class="form-control" value="{{ po.product_quantity }}">
-                    </div>
+<div class="form-group">
+    <label><b>Unit Price</b></label>
+    <input type="text" name="unit_price" class="form-control" value="{{ item.unit_price }}">
+</div>
 
-                    <div class="form-group">
-                        <label><b>Unit Price</b></label>
-                        <input type="text" name="unit_price" class="form-control" value="{{ po.unit_price }}">
-                    </div>
+<div class="form-group">
+    <label><b>Total Price</b></label>
+    <input type="text" name="total_price" class="form-control" value="{{ item.total_price }}">
+</div>
 
-                    <div class="form-group">
-                        <label><b>Total Price</b></label>
-                        <input type="text" name="total_price" class="form-control" value="{{ po.total_price }}">
-                    </div>
 
                     <div class="text-center mt-4">
                         <button type="submit" class="btn btn-primary">Save</button>
