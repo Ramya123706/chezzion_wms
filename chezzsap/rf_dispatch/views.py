@@ -2761,3 +2761,60 @@ def search(request):
         results = []
     
     return render(request, "search.html", {"query": query, "results": results})
+
+
+ 
+def bulk_upload_bins(request):
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+ 
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "File must be a CSV.")
+            return redirect("create_bin")
+ 
+        file_data = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(file_data)
+ 
+        created, skipped = 0, 0
+        for row in reader:
+            try:
+                warehouse_code = row["Warehouse"]
+                bin_id = row["Bin ID"]
+                bin_type = row["Bin Type"]
+                capacity = row["Capacity"]
+                existing_quantity = row.get("Existing Quantity", 0)
+                category_name = row["Category"]
+                subcategory_name = row["Sub Category"]
+ 
+                # ✅ Get or create Warehouse
+                warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
+ 
+                # ✅ Get or create Category
+                category, _ = Category.objects.get_or_create(category=category_name)
+ 
+                # ✅ Get or create Subcategory
+                subcategory, _ = SubCategory.objects.get_or_create(
+                    name=subcategory_name, category=category
+                )
+ 
+                # ✅ Create Bin
+                Bin.objects.create(
+                    whs_no=warehouse,
+                    bin_id=bin_id,
+                    bin_type=bin_type,
+                    capacity=capacity,
+                    existing_quantity=existing_quantity,
+                    category=category,
+                    sub_category=subcategory,
+                )
+                created += 1
+            except Exception as e:
+                print("Skipping row:", row, "Error:", e)
+                skipped += 1
+ 
+        messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
+        return redirect("create_bin")
+ 
+    return redirect("create_bin")
+ 
+ 
