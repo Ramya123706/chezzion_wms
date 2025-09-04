@@ -204,4 +204,11 @@ urlpatterns = [
     path('bulk-upload-products/', views.bulk_upload_products, name='bulk_upload_products'),
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
+
+    path("login/", views.login_view, name="login"),
+    path("profile_detail/", views.profile_detail_view, name="profile_detail"),
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path('logout/', views.logout_view, name='logout'), 
+    path('profile/change-password/', views.change_password, name='change_password'),
+
  ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

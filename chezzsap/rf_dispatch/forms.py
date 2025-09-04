@@ -315,3 +315,6 @@ class GoodsReceiptForm(forms.ModelForm):
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
+
+
+    
