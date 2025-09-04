@@ -226,9 +226,9 @@ urlpatterns = [
     path("accounts/password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="account/password_reset_done.html"), name="password_reset_done"),
     path("accounts/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="account/password_reset_confirm.html"), name="password_reset_confirm"),
     path("accounts/reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="account/password_reset_complete.html"), name="password_reset_complete"),
-    path("accounts/login/", views.login_view, name="login"),
+    path("login/", views.login_view, name="login"),
     path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("accounts/profile/edit/", views.edit_profile, name="edit_profile"),
-    path('accounts/logout/', views.logout_view, name='logout'), 
-    path('accounts/profile/change-password/', views.change_password, name='change_password'),
+    path('logout/', views.logout_view, name='logout'), 
+    path('profile/change-password/', views.change_password, name='change_password'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -347,9 +347,13 @@ from django.contrib import messages
 import csv
 
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
+
+
 from django.shortcuts import render, get_object_or_404
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
 
+ 
+ 
 def batch_product_view(request):
     query = ""
  
@@ -434,7 +438,7 @@ def batch_product_view(request):
         'stocks': stock_uploads,
         'query': query,
     })
- 
+
 
 
 def batch_product_csv_upload(request):
@@ -2773,28 +2777,94 @@ def search(request):
     
     return render(request, "search.html", {"query": query, "results": results})
 
-  
+
+ 
+def bulk_upload_bins(request):
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+ 
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "File must be a CSV.")
+            return redirect("create_bin")
+ 
+        file_data = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(file_data)
+ 
+        created, skipped = 0, 0
+        for row in reader:
+            try:
+                warehouse_code = row["Warehouse"]
+                bin_id = row["Bin ID"]
+                bin_type = row["Bin Type"]
+                capacity = row["Capacity"]
+                existing_quantity = row.get("Existing Quantity", 0)
+                category_name = row["Category"]
+                subcategory_name = row["Sub Category"]
+ 
+                # ✅ Get or create Warehouse
+                warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
+ 
+                # ✅ Get or create Category
+                category, _ = Category.objects.get_or_create(category=category_name)
+ 
+                # ✅ Get or create Subcategory
+                subcategory, _ = SubCategory.objects.get_or_create(
+                    name=subcategory_name, category=category
+                )
+ 
+                # ✅ Create Bin
+                Bin.objects.create(
+                    whs_no=warehouse,
+                    bin_id=bin_id,
+                    bin_type=bin_type,
+                    capacity=capacity,
+                    existing_quantity=existing_quantity,
+                    category=category,
+                    sub_category=subcategory,
+                )
+                created += 1
+            except Exception as e:
+                print("Skipping row:", row, "Error:", e)
+                skipped += 1
+ 
+        messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
+        return redirect("create_bin")
+ 
+    return redirect("create_bin")
+ 
+ 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+
+
+        if not username or not password:
+            messages.error(request, "Please enter both username and password")
+            return redirect("login")  
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect("home")   
+            messages.success(request, f"Welcome back, {user.username}")
+            return redirect("home")
         else:
             messages.error(request, "Invalid username or password")
+            return redirect("login") 
+
     return render(request, "account/login.html")
+
 
 @login_required
 def profile_detail_view(request):
     user = request.user
-    profile = getattr(user, 'profile', None)  # in case user has a related profile
+    profile = getattr(user, 'profile', None)  
     return render(request, 'account/profile_detail.html', {
         'user': user,
         'profile': profile,
@@ -2805,7 +2875,8 @@ from .models import Profile
 @login_required
 def edit_profile(request):
     user = request.user
-    profile, created = Profile.objects.get_or_create(user=user)  # ✅ safe lookup
+
+    profile, created = Profile.objects.get_or_create(user=user)  
 
     if request.method == 'POST':
         user.first_name = request.POST.get('first_name', user.first_name)
@@ -2997,4 +3068,3 @@ def delete_user(request, user_id):
 def user_list(request):
     users = User.objects.all().select_related('profile')
     return render(request, 'account/user_list.html', {'users': users})
-
