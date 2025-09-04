@@ -1310,21 +1310,32 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder
 
-def purchase_edit(request, po_number):
-    po = get_object_or_404(PurchaseOrder, po_number=po_number)
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseItem, Product
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseItem, Product
+
+
+from decimal import Decimal
+
+def purchase_edit(request, po_id):
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    item = PurchaseItem.objects.filter(purchase_order=po).first()
 
     if request.method == 'POST':
-        
+        # --- update purchase order ---
         po.company_name = request.POST.get('company_name')
         po.company_address = request.POST.get('company_address')
         po.company_phone = request.POST.get('company_phone')
         po.company_email = request.POST.get('company_email')
         po.company_website = request.POST.get('company_website')
-
         po.po_date = request.POST.get('po_date')
         po.po_number = request.POST.get('po_number')
         po.customer_number = request.POST.get('customer_number')
-
         po.vendor_company_name = request.POST.get('vendor_company_name')
         po.vendor_contact_name = request.POST.get('vendor_contact_name')
         po.vendor_phone = request.POST.get('vendor_phone')
@@ -1332,17 +1343,41 @@ def purchase_edit(request, po_number):
         po.vendor_email = request.POST.get('vendor_email')
         po.vendor_website = request.POST.get('vendor_website')
 
-        po.item_number = request.POST.get('item_number')
-        po.product_name = request.POST.get('product_name')
-        po.product_quantity = request.POST.get('product_quantity')
-        po.unit_price = request.POST.get('unit_price')
-        po.total_price = request.POST.get('total_price')
+        # --- update item ---
+        if item:
+            product_id = request.POST.get('product_id')
+            if product_id:
+                item.product = get_object_or_404(Product, id=product_id)
+
+            # convert values safely
+            quantity = request.POST.get('product_quantity')
+            unit_price = request.POST.get('unit_price')
+
+            if quantity:
+                item.quantity = int(quantity)   # quantity should be integer
+            if unit_price:
+                item.unit_price = Decimal(unit_price)  # unit price as decimal
+
+            # calculate total automaticallypurchase_detail
+            
+            item.total_price = item.quantity * item.unit_price
+            item.save()
 
         po.save()
         messages.success(request, "Purchase order updated successfully.")
         return redirect('purchase_detail', pk=po.id)
 
-    return render(request, 'purchase_order/purchase_edit.html', {'po': po})
+
+    # send product list to template for dropdown
+    products = Product.objects.all()
+    return render(request, 'purchase_order/purchase_edit.html', {
+        'po': po,
+        'item': item,
+        'products': products,
+    })
+
+
+
 
 
 def rf_ptl(request):

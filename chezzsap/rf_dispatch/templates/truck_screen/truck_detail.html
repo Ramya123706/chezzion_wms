@@ -1,169 +1,182 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
-    <div class="card-header text-dark text-center">
-        <h2>Truck Entry Summary</h2>
+    <div class="card shadow-lg border-0 rounded">
+        <div class="card-header bg-dark text-white text-center">
+            <h2><i class="fas fa-truck"></i> Truck Entry Summary</h2>
+        </div>
         <div class="card-body">
             <div class="row">
                 <!-- Truck Details -->
                 <div class="col-md-6 col-sm-12">
-                    <table class="table text-start table-responsive table-striped p-2">
+                    <table class="table table-striped table-hover table-bordered">
                         <tbody>
                             <tr>
-                                <th colspan="2" class="text-center bg-warning">Truck Details</th>
+                                <th colspan="2" class="text-center bg-warning text-dark">
+                                    <i class="fas fa-info-circle"></i> Truck Details
+                                </th>
                             </tr>
                             <tr>
-                                <th>Whs no</th>
+                                <th><i class="fas fa-warehouse"></i> Whs No</th>
                                 <td>{{ truck.whs_no }}</td>
                             </tr>
                             <tr>
-                                <th>Truck Number</th>
+                                <th><i class="fas fa-truck-moving"></i> Truck Number</th>
                                 <td>{{ truck.truck_no }}</td>
                             </tr>
                             <tr>
-                                <th>Truck Type</th>
+                                <th><i class="fas fa-trailer"></i> Truck Type</th>
                                 <td>{{ truck.truck_type }}</td>
                             </tr>
                             <tr>
-                                <th>Driver name</th>
+                                <th><i class="fas fa-user"></i> Driver Name</th>
                                 <td>{{ truck.driver_name }}</td>
                             </tr>
                             <tr>
-                                <th>Phn no</th>
+                                <th><i class="fas fa-phone"></i> Phone No</th>
                                 <td>{{ truck.driver_phn_no }}</td>
                             </tr>
                             <tr>
-                                <th>PO No</th>
+                                <th><i class="fas fa-file-alt"></i> PO No</th>
                                 <td>{{ truck.po_no }}</td>
                             </tr>
                             <tr>
-                                <th>Truck date</th>
+                                <th><i class="fas fa-calendar-day"></i> Truck Date</th>
                                 <td>{{ truck.truck_date }}</td>
                             </tr>
                             <tr>
-                                <th>Truck time</th>
+                                <th><i class="fas fa-clock"></i> Truck Time</th>
                                 <td>{{ truck.truck_time }}</td>
                             </tr>
                             <tr>
-                                <th>Seal No</th>
+                                <th><i class="fas fa-lock"></i> Seal No</th>
                                 <td>{{ truck.seal_no }}</td>
                             </tr>
                             <tr>
-                                <th>Yard scan</th>
+                                <th><i class="fas fa-qrcode"></i> Yard Scan</th>
                                 <td>{{ truck.yard_scan }}</td>
                             </tr>
                             <tr>
-                                <th>Truck Status</th>
+                                <th><i class="fas fa-tasks"></i> Truck Status</th>
                                 <td>
                                     {% if truck.truck_no %}
                                     <form method="post" action="{% url 'update_truck_status' truck.truck_no %}">
                                         {% csrf_token %}
-                                        <select name="new_status" class="form-select d-inline w-auto">
-                                            <option value="Not planned" {% if truck.truck_status=='Not planned'
-                                                %}selected{% endif %}>Not planned</option>
-                                            <option value="gate" {% if truck.truck_status=='gate' %}selected{% endif %}>
-                                                Gate</option>
-                                            <option value="parking" {% if truck.truck_status=='parking' %}selected{%
-                                                endif %}>Parking</option>
-                                            <option value="door" {% if truck.truck_status=='door' %}selected{% endif %}>
-                                                Door</option>
-                                            <option value="Checkin" {% if truck.truck_status=='Checkin' %}selected{%
-                                                endif %}>Check-in</option>
-                                            <option value="checkout" {% if truck.truck_status=='checkout' %}selected{%
-                                                endif %}>Checkout</option>
-                                        </select>
+                                        <div class="input-group">
+                                            <select name="new_status" class="form-select">
+                                                <option value="Not planned" {% if truck.truck_status == 'Not planned' %}selected{% endif %}>Not Planned</option>
+                                                <option value="gate" {% if truck.truck_status == 'gate' %}selected{% endif %}>Gate</option>
+                                                <option value="parking" {% if truck.truck_status == 'parking' %}selected{% endif %}>Parking</option>
+                                                <option value="door" {% if truck.truck_status == 'door' %}selected{% endif %}>Door</option>
+                                                <option value="Checkin" {% if truck.truck_status == 'Checkin' %}selected{% endif %}>Check-in</option>
+                                                <option value="checkout" {% if truck.truck_status == 'checkout' %}selected{% endif %}>Checkout</option>
+                                            </select>
+                                        </div>
                                         <input type="text" name="comment" placeholder="Optional comment"
                                             class="form-control mt-2" />
-                                        <button type="submit" class="btn btn-sm btn-success mt-2">Update</button>
+                                        <button type="submit" class="btn btn-sm btn-success mt-2">
+                                            <i class="fas fa-save"></i> Update
+                                        </button>
                                     </form>
                                     {% else %}
-                                    <p class="text-danger">Truck number not available – cannot update status.</p>
+                                    <p class="text-danger"><i class="fas fa-exclamation-circle"></i> Truck number not
+                                        available – cannot update status.</p>
                                     {% endif %}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="container col-md-6 col-sm-12">
-                    <table class="table text-start table-responsive table-striped p-2">
+ 
+                <!-- Inspection Details -->
+                <div class="col-md-6 col-sm-12">
+                    <table class="table table-striped table-hover table-bordered">
                         <tbody>
                             <tr>
-                                <th colspan="2" class="text-center bg-warning">Truck Inspection Details</th>
+                                <th colspan="2" class="text-center bg-warning text-dark">
+                                    <i class="fas fa-clipboard-check"></i> Truck Inspection Details
+                                </th>
                             </tr>
                             <tr>
-                                <th>Lock secure</th>
+                                <th><i class="fas fa-lock"></i> Lock Secure</th>
                                 <td>{{ truck.is_the_lock_secure }}</td>
                             </tr>
                             <tr>
-                                <th>Truck Clean</th>
+                                <th><i class="fas fa-broom"></i> Truck Clean</th>
                                 <td>{{ truck.is_the_truck_clean }}</td>
                             </tr>
                             <tr>
-                                <th>Driver safe</th>
+                                <th><i class="fas fa-hard-hat"></i> Driver Safe</th>
                                 <td>{{ truck.is_the_driver_safe }}</td>
                             </tr>
                             <tr>
-                                <th>Pallet stable</th>
+                                <th><i class="fas fa-box"></i> Pallet Stable</th>
                                 <td>{{ truck.is_the_pallet_stable }}</td>
                             </tr>
                             <tr>
-                                <th>Temperature ideal</th>
+                                <th><i class="fas fa-thermometer-half"></i> Temperature Ideal</th>
                                 <td>{{ truck.is_the_temperature_ideal }}</td>
                             </tr>
                             <tr>
-                                <th>AC working</th>
+                                <th><i class="fas fa-fan"></i> AC Working</th>
                                 <td>{{ truck.is_the_ac_working }}</td>
                             </tr>
                             <tr>
-                                <th>Good odor</th>
+                                <th><i class="fas fa-wind"></i> Good Odor</th>
                                 <td>{{ truck.does_the_truck_have_a_good_odor }}</td>
                             </tr>
                             <tr>
-                                <th>Dock level OK</th>
+                                <th><i class="fas fa-level-up-alt"></i> Dock Level OK</th>
                                 <td>{{ truck.is_the_truck_dock_level_ok }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-
+ 
             <!-- Back Button -->
             <div class="text-center mt-4">
-                <a href="{% url 'truck_list' %}" class="btn btn-primary">Back to List</a>
+                <a href="{% url 'truck_list' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
             </div>
-
+ 
             <!-- Truck Log -->
-            <div class="container col-md-6 col-sm-12 mt-4">
-                <h5 class="text-center">Truck Log</h5>
+            <div class="container col-md-8 col-sm-12 mt-4">
+                <h5 class="text-center"><i class="fas fa-history"></i> Truck Log</h5>
                 {% if logs %}
-                <table class="table text-start table-bordered table-hover table-striped">
+                <table class="table table-bordered table-hover table-striped text-center">
                     <thead class="table-dark">
                         <tr>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                            <th>Comment</th>
-                            <th>Updated By</th>
+                            <th><i class="fas fa-calendar-day"></i> Date</th>
+                            <th><i class="fas fa-clock"></i> Time</th>
+                            <th><i class="fas fa-tasks"></i> Status</th>
+                            <th><i class="fas fa-comment-dots"></i> Comment</th>
+                            <th><i class="fas fa-user-edit"></i> Updated By</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for log in logs %}
+                        {% if logs %}
                         <tr>
-                            <td>{{ log.truck_date }}</td>
-                            <td>{{ log.truck_time }}</td>
-                            <td>{{ log.status }}</td>
-                            <td>{{ log.comment|default:"-" }}</td>
-                            <td>{{ log.status_changed_by|default:"System" }}</td>
+                        <td>{{ logs.truck_date }}</td>
+                        <td>{{ logs.truck_time }}</td>
+                        <td>{{ logs.status }}</td>
+                        <td>{{ logs.comment|default:"-" }}</td>
+                        <td>{{ logs.status_changed_by|default:"System" }}</td>
                         </tr>
-                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted text-center">No status updates found for this truck.</p>
+                        {% endif %}
+ 
                     </tbody>
                 </table>
                 {% else %}
-                <p class="text-muted text-center">No status updates found for this truck.</p>
+                <p class="text-muted text-center"><i class="fas fa-info-circle"></i> No status updates found for this
+                    truck.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
+ 

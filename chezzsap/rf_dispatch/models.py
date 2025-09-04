@@ -210,11 +210,20 @@ class Product(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
     def save(self, *args, **kwargs):
+        is_new = self._state.adding  # new product?
+        old_quantity = None
+
+        if not is_new:
+            old_quantity = Product.objects.get(pk=self.pk).quantity
+
         super().save(*args, **kwargs)
-        # Sync with inventory automatically
-        inventory, created = Inventory.objects.get_or_create(product=self)
-        inventory.total_quantity = self.quantity
-        inventory.save()
+
+    # ✅ Update inventory only if quantity changed
+        if is_new or (old_quantity != self.quantity):
+            inventory, created = Inventory.objects.get_or_create(product=self)
+            inventory.total_quantity = self.quantity
+            inventory.save()
+
 
     def __str__(self):
         return f"{self.name} ({self.product_id})"
