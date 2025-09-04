@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-
+ 
 <div class="container mt-5">
     <div class="col-md-6 col-sm-12 mx-auto">
         <div class="card shadow-lg">
@@ -9,10 +9,10 @@
                 </h5>
             </div>
             <div class="card-body">
-
-
-
-
+ 
+ 
+ 
+ 
                 <form id="inspectionForm" method="POST">
                     {% csrf_token %}
                     {% if form.errors %}
@@ -20,7 +20,7 @@
                         {{ form.errors }}
                     </div>
                     {% endif %}
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-warehouse"></i> WHS No
@@ -33,7 +33,7 @@
                             </div>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-truck"></i> Truck No
@@ -45,7 +45,7 @@
                                 style="position:absolute; z-index:999; display:none;"></div>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-truck-field"></i> Truck Type
@@ -57,7 +57,7 @@
                             </select>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-user"></i> Driver Name
@@ -66,7 +66,7 @@
                             <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}">
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-phone"></i> Driver Phn No
@@ -76,7 +76,7 @@
                                 value="{{ truck.driver_phn_no }}" required>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-file-invoice"></i> PO No
@@ -85,7 +85,7 @@
                             <input type="text" class="form-control" name="po_no" required>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-calendar-days"></i> Truck Date
@@ -94,7 +94,7 @@
                             <input type="date" class="form-control" name="truck_date">
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-clock"></i> Truck Time
@@ -103,7 +103,7 @@
                             <input type="time" class="form-control" name="truck_time">
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-lock"></i> Seal No
@@ -112,7 +112,7 @@
                             <input type="text" class="form-control" name="seal_no" required>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-qrcode"></i> Yard Scan
@@ -134,7 +134,7 @@
                             </select>
                         </div>
                     </div>
-
+ 
                     <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">
                             <i class="fa-solid fa-truck-ramp-box"></i> Truck Status
@@ -143,7 +143,7 @@
                             <input type="text" class="form-control" id="truckStatusInput" name="truck_status">
                         </div>
                     </div>
-
+ 
                     <div class="d-flex mt-4">
                         <a class="btn btn-secondary m-3">
                             <i class="fa-solid fa-arrow-left"></i> F7 BACK
@@ -153,19 +153,19 @@
                         </button>
                     </div>
                 </form>
-
+ 
             </div>
         </div>
     </div>
 </div>
-
-
+ 
+ 
 <!-- JavaScript to auto-fill Truck Status -->
 <script>
     document.getElementById("yardScanSelect").addEventListener("change", function () {
         const value = this.value.toLowerCase();
         let status = "";
-
+ 
         if (value.startsWith("door")) {
             status = "door";
         } else if (value.startsWith("parkinglot")) {
@@ -179,7 +179,7 @@
         } else {
             status = "";
         }
-
+ 
         document.getElementById("truckStatusInput").value = status;
     });
 </script>
@@ -187,13 +187,13 @@
     // Auto-fill current date and time on page load
     window.addEventListener('DOMContentLoaded', function () {
         const now = new Date();
-
+ 
         // Format date as YYYY-MM-DD
         const dateStr = now.toISOString().split('T')[0];
-
+ 
         // Format time as HH:MM (24-hour format)
         const timeStr = now.toTimeString().split(':').slice(0, 2).join(':');
-
+ 
         // Set values to input fields
         document.querySelector('input[name="truck_date"]').value = dateStr;
         document.querySelector('input[name="truck_time"]').value = timeStr;
@@ -202,7 +202,7 @@
 <script>
     document.querySelector('input[name="truck_no"]').addEventListener('change', function () {
         const truckNo = this.value;
-
+ 
         fetch(`/get-truck-details/?truck_no=${encodeURIComponent(truckNo)}`)
             .then(response => response.json())
             .then(data => {
@@ -215,7 +215,7 @@
     document.getElementById("truck_no_input").addEventListener("keyup", function () {
         const query = this.value;
         const suggestionBox = document.getElementById("truck_suggestions");
-
+ 
         if (query.length > 0) {
             fetch(`/ajax/truck-suggestions/?q=${query}`)
                 .then(response => response.json())
@@ -248,7 +248,7 @@
     document.getElementById("whs_no_input").addEventListener("keyup", function () {
         const query = this.value;
         const suggestionBox = document.getElementById("whs_suggestions");
-
+ 
         if (query.length > 0) {
             fetch(`/ajax/whs-suggestions/?q=${query}`)
                 .then(response => response.json())
@@ -275,7 +275,8 @@
         }
     });
 </script>
-
-
-
+ 
+ 
+ 
 {% endblock %}
+ 
