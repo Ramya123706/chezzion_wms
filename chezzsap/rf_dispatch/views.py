@@ -347,9 +347,13 @@ from django.contrib import messages
 import csv
 
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
+
+
 from django.shortcuts import render, get_object_or_404
 from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
 
+ 
+ 
 def batch_product_view(request):
     query = ""
  
@@ -434,7 +438,7 @@ def batch_product_view(request):
         'stocks': stock_uploads,
         'query': query,
     })
- 
+
 
 
 def batch_product_csv_upload(request):
