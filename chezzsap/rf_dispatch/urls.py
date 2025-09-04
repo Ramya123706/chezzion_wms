@@ -41,7 +41,9 @@ urlpatterns = [
     path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     path('inspection-summary/', views.inspection_summary_view, name='inspection_summary'),
     path('truck_landing/', views.truck_landing, name='truck_landing'),
-
+    # path("questions/", views.question_list, name="question_list"),
+    # path("questions/add/", views.add_question, name="add_question"),
+    # path("questions/delete/<int:pk>/", views.delete_question, name="delete_question"),
     # Truck Logs
     path('status-log/<str:truck_no>/', views.status_log_view, name='status_log'),
     path('truck-log/<str:truck_no>/', views.truck_log_view, name='truck_log_view'),
@@ -198,6 +200,9 @@ urlpatterns = [
     path('create-gr/', views.create_gr, name='create_gr'),
     path("gr_list/", views.gr_list, name="gr_list"),
 
+    path("bulk-upload-bins/", views.bulk_upload_bins, name="bulk_upload_bins"),
+    path('bulk-upload-products/', views.bulk_upload_products, name='bulk_upload_products'),
+    path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
 
     path("accounts/login/", views.login_view, name="login"),

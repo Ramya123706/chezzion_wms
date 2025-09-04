@@ -120,6 +120,41 @@ def yard_checkin_view(request):
     
     return render(request, 'truck_screen/one.html', {'form': form, 'warehouses': warehouses, 'truck': Truck.objects.all()})
 
+
+# from django.shortcuts import render, redirect, get_object_or_404
+# from .models import WarehouseQuestion
+# from .forms import WarehouseQuestionForm
+# from django.contrib.auth.decorators import user_passes_test
+
+# # only superuser can access
+# def superuser_required(view_func):
+#     decorated_view_func = user_passes_test(lambda u: u.is_superuser)(view_func)
+#     return decorated_view_func
+
+# @superuser_required
+# def question_list(request):
+#     questions = WarehouseQuestion.objects.all()
+#     return render(request, "question_list.html", {"questions": questions})
+
+# @superuser_required
+# def add_question(request):
+#     if request.method == "POST":
+#         form = WarehouseQuestionForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect("question_list")
+#     else:
+#         form = WarehouseQuestionForm()
+#     return render(request, "add_question.html", {"form": form})
+
+# @superuser_required
+# def delete_question(request, pk):
+#     question = get_object_or_404(WarehouseQuestion, pk=pk)
+#     question.delete()
+#     return redirect("question_list")
+
+
+
 from django.http import JsonResponse
 from .models import Truck
 
@@ -208,7 +243,7 @@ def truck_log_view(request):
     error_message = ""
 
     if truck_no_query:
-        logs = TruckLog.objects.filter(truck_no__truck_no__icontains=truck_no_query).order_by('-truck_date', '-truck_time')
+        logs = TruckLog.objects.filter(truck_no__truck_no__icontains=truck_no_query).order_by('-truck_date', '-truck_time').first()
         try:
             truck_details = YardHdr.objects.get(truck_no=truck_no_query)
         except YardHdr.DoesNotExist:
@@ -244,7 +279,7 @@ def truck_status_view(request, truck_no):
         'form': form,
         'truck': truck,
         'not_found': not_found,
-        'trucklog':TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time') if truck else None
+        'trucklog':TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time').first() if truck else None
     })
 
 
@@ -263,7 +298,8 @@ from .utils import log_truck_status
 
 def truck_detail(request, truck_no):
     try:
-        truck = YardHdr.objects.get(truck_no=truck_no)
+        truck = YardHdr.objects.filter(truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
+
 
         # Log status only on POST
         if request.method == 'POST':
@@ -272,7 +308,7 @@ def truck_detail(request, truck_no):
             log_truck_status(truck_instance=truck, status=new_status, comment=comment)
 
         # Fetch logs related to this truck
-        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
+        logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time').first()
 
         return render(request, 'truck_screen/truck_detail.html', {
             'truck': truck,
@@ -307,65 +343,64 @@ def update_truck_status(request, truck_no):
 # STOCK UPLOAD
 # -------------
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product, StockUpload
+from django.contrib import messages
+import csv
+
+from .models import Product, StockUpload, Warehouse, Bin, PackingMaterial
 
 
-def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
+def batch_product_view(request):
+    query = ""
+
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
-        product_id = request.POST.get('product')  
+        product_id = request.POST.get('product')
         description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
-        bin = request.POST.get('bin')
+        bin_id = request.POST.get('bin')
         pallet = request.POST.get('pallet')
         p_mat = request.POST.get('p_mat')
         inspection = request.POST.get('inspection')
         stock_type = request.POST.get('stock_type')
-        wps = request.POST.get('wps')
+        item_number = request.POST.get('item_number')  
         doc_no = request.POST.get('doc_no')
         pallet_status = request.POST.get('pallet_status')
         category = request.POST.get('category')
         sub_category = request.POST.get('sub_category')
 
         try:
-            product_instance = get_object_or_404(Product, product_id=product_id)
-            p_mat = get_object_or_404(PackingMaterial, id=p_mat) if p_mat else None
+            product_instance, _ = Product.objects.get_or_create(
+                product_id=product_id,
+                defaults={'name': request.POST.get('product', ''), 'description': request.POST.get('description', '')}
+            )
+
             warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
-            bin_instance = get_object_or_404(Bin, bin_id=bin)  # Correctly fetch Bin object
+            bin_instance = Bin.objects.filter(bin_id=bin_id).first()
+            p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
             batch = request.POST.get('batch_input') or batch or ''
+
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
                 description=description,
-                quantity=int(quantity),
+                quantity=int(quantity or 0),
                 batch=batch,
                 bin=bin_instance,
                 pallet=pallet,
-                p_mat=p_mat,
+                p_mat=p_mat_instance,
                 inspection=inspection,
                 stock_type=stock_type,
-                wps=wps,
+                item_number=item_number,   
                 doc_no=doc_no,
                 pallet_status=pallet_status,
                 category=category,
                 sub_category=sub_category
             )
-            products = Product.objects.all()
+
 
             query = request.GET.get('search', '')
-            stock_uploads = StockUpload.objects.all()
-            return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
-                'success': True,
-                'query': query,
-                'stocks': stock_uploads,
-                'bins': Bin.objects.all(),
-            })
-        except Exception as e:
-            query = request.GET.get('search', '')
+
             stock_uploads = StockUpload.objects.all()
             return render(request, 'stock_upload/batch_product.html', {
                 'products': Product.objects.all(),
@@ -375,9 +410,10 @@ def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
                 'query': query,
                 'stocks': stock_uploads,
             })
-    # GET request
-    query = request.GET.get('search', '')
+
+
     stock_uploads = StockUpload.objects.all()
+    query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
         'products': Product.objects.all(),
         'warehouse': Warehouse.objects.all(),
@@ -385,6 +421,67 @@ def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
         'stocks': stock_uploads,
         'query': query,
     })
+
+
+def batch_product_csv_upload(request):
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "Please upload a CSV file only.")
+            return redirect('batch_product')
+
+        try:
+            file_data = csv_file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(file_data)
+
+            for row in reader:
+                # Product
+                product_instance, _ = Product.objects.get_or_create(
+                    product_id=row.get('Product ID'),
+                    defaults={'description': row.get('Description', ''), 'category': row.get('Category', '')}
+                )
+
+                # Warehouse
+                warehouse = Warehouse.objects.filter(whs_no=row.get('Warehouse')).first()
+                if not warehouse:
+                    raise ValueError(f"Warehouse '{row.get('Warehouse')}' not found")
+
+                # Bin
+                bin_instance = Bin.objects.filter(bin_id=row.get('Bin')).first()
+
+                # Packing Material
+                p_mat_instance = PackingMaterial.objects.filter(id=row.get('P_Mat')).first()
+
+                # Create StockUpload
+                StockUpload.objects.create(
+                    whs_no=warehouse,
+                    product=product_instance,
+                    description=row.get('Description', ''),
+                    quantity=int(row.get('Quantity') or 0),
+                    batch=row.get('Batch', ''),
+                    bin=bin_instance,
+                    pallet=row.get('Pallet', ''),
+                    p_mat=p_mat_instance,
+                    inspection=row.get('Inspection', ''),
+                    stock_type=row.get('Stock Type', 'Unrestricted'),
+                    item_number=row.get('Item Number', ''),
+                    doc_no=row.get('Doc No', ''),
+                    pallet_status=row.get('Pallet Status', 'Planned'),
+                    category=row.get('Category', ''),
+                    sub_category=row.get('Sub Category', '')
+                )
+
+            messages.success(request, "CSV uploaded successfully!")
+
+        except Exception as e:
+            messages.error(request, f"Error processing CSV: {e}")
+
+    return redirect('batch_product')
+
+
+
+
 
 
 # === API: Get Product Description ===
@@ -538,31 +635,31 @@ def product_detail_view(request, product_id):
 
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product
-from django.utils import timezone
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import Product, Category, SubCategory
+# from django.shortcuts import render, redirect, get_object_or_404
+# from .models import Product
+# from django.utils import timezone
+# from django.shortcuts import render, redirect
+# from django.utils import timezone
+# from .models import Product, Category, SubCategory
 
-def add_product(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        product_id = request.POST.get('product_id')   # ✅ fixed key
-        quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
-        sku = request.POST.get('sku')
-        description = request.POST.get('description')
-        unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        # subcategory = request.POST.get('subcategory')
-        re_order_level = request.POST.get('re_order_level')
-        unit_price = request.POST.get('unit_price')
-        images = request.FILES.get('images')
-        sub_category_id = request.POST.get('subcategory')  # get the ID from form
-        sub_category = None
-        if sub_category_id:  # only fetch if a value was submitted
-            sub_category = SubCategory.objects.get(id=sub_category_id)
+# def add_product(request):
+#     if request.method == 'POST':
+#         name = request.POST.get('name')
+#         product_id = request.POST.get('product_id')   # ✅ fixed key
+#         quantity = request.POST.get('quantity')
+#         pallet_no = request.POST.get('pallet_no')
+#         sku = request.POST.get('sku')
+#         description = request.POST.get('description')
+#         unit_of_measure = request.POST.get('unit_of_measure')
+#         category = request.POST.get('category')
+#         # subcategory = request.POST.get('subcategory')
+#         re_order_level = request.POST.get('re_order_level')
+#         unit_price = request.POST.get('unit_price')
+#         images = request.FILES.get('images')
+#         sub_category_id = request.POST.get('subcategory')  # get the ID from form
+#         sub_category = None
+#         if sub_category_id:  # only fetch if a value was submitted
+#             sub_category = SubCategory.objects.get(id=sub_category_id)
 
 
 def product_list(request):
@@ -587,6 +684,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Product
 from django.utils import timezone
 
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.contrib import messages
+from .models import Product, Category, SubCategory
+
+
 def add_product(request):
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -609,45 +712,126 @@ def add_product(request):
                 sub_category = SubCategory.objects.get(id=sub_category_id)
             except Exception:
                 sub_category = None
+
         try:
+            name = request.POST.get('name')
+            product_id = request.POST.get('product_id')
+            quantity = request.POST.get('quantity')
+            pallet_no = request.POST.get('pallet_no')
+            sku = request.POST.get('sku')
+            description = request.POST.get('description')
+            unit_of_measure = request.POST.get('unit_of_measure')
+            category_id = request.POST.get('category')
+            sub_category_id = request.POST.get('subcategory')
+            re_order_level = request.POST.get('re_order_level')
+            unit_price = request.POST.get('unit_price')
+            images = request.FILES.get('images')
+
+            # ✅ Get category
+            category = Category.objects.get(id=category_id)
+
+            # ✅ Get subcategory
+            sub_category = None
+            if sub_category_id:
+                try:
+                    sub_category = SubCategory.objects.get(id=sub_category_id)
+                except SubCategory.DoesNotExist:
+                    sub_category = None
+
+            # ✅ Create product
             product = Product.objects.create(
-            product_id=product_id,
-            name=name,
-            quantity=quantity,
-            pallet_no=pallet_no,
-            sku=sku,
-            description=description,
-            unit_of_measure=unit_of_measure,
-            category=category,       
-            sub_category=sub_category,  # now correctly set
-            re_order_level=re_order_level,
-            images=images,
-            created_at=timezone.now(),
-            updated_at=timezone.now()
-        )
-            
+                product_id=product_id,
+                name=name,
+                quantity=quantity,
+                pallet_no=pallet_no,
+                sku=sku,
+                description=description,
+                unit_of_measure=unit_of_measure,
+                category=category,
+                sub_category=sub_category,
+                re_order_level=re_order_level,
+                unit_price=unit_price,
+                images=images,
+                created_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
+
             return redirect('product_detail', product_id=product.product_id)
 
         except Exception as e:
-            return render(
-                request,
-                'product/add_product.html',
-                {
-                    'error': str(e),
-                    'categories': Category.objects.all(),
-                    'subcategories':SubCategory.objects.all() # ✅ reload dropdowns if error
-                }
-            )
+            messages.error(request, f"Error adding product: {e}")
 
-    # GET request → load form with categories
-    return render(
-        request,
-        'product/add_product.html',
-        {
-            'categories': Category.objects.all(),
-            'subcategories':SubCategory.objects.all()  # ✅ load subcategories too
-        }
-    )
+    return render(request, 'product/add_product.html', {
+        'categories': Category.objects.all(),
+        'subcategories': SubCategory.objects.all(),
+    })
+
+
+import csv
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import Product, Category, SubCategory
+
+
+def bulk_upload_products(request):
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "File must be a CSV.")
+            return redirect("add_product")
+
+        file_data = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(file_data)
+
+        created, skipped = 0, 0
+        for row in reader:
+            try:
+                product_id = row["Product ID"]
+                name = row["Name"]
+                quantity = row["Quantity"]
+                pallet_no = row["Pallet No"]
+                sku = row["SKU"]
+                description = row["Description"]
+                unit_of_measure = row["Unit of Measure"]
+                category_name = row["Category"]
+                subcategory_name = row.get("Sub Category")
+                re_order_level = row["Reorder Level"]
+                unit_price = row["Unit Price"]
+
+                # ✅ Get or create Category
+                category, _ = Category.objects.get_or_create(category=category_name)
+
+                # ✅ Get or create Subcategory
+                sub_category = None
+                if subcategory_name:
+                    sub_category, _ = SubCategory.objects.get_or_create(
+                        name=subcategory_name, category=category
+                    )
+
+                # ✅ Create Product
+                Product.objects.create(
+                    product_id=product_id,
+                    name=name,
+                    quantity=quantity,
+                    pallet_no=pallet_no,
+                    sku=sku,
+                    description=description,
+                    unit_of_measure=unit_of_measure,
+                    category=category,
+                    sub_category=sub_category,
+                    re_order_level=re_order_level,
+                    unit_price=unit_price,
+                )
+                created += 1
+            except Exception as e:
+                print("Skipping row:", row, "Error:", e)
+                skipped += 1
+
+        messages.success(request, f"Uploaded {created} products, skipped {skipped}.")
+        return redirect("add_product")
+
+    return redirect("add_product")
 
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -1128,9 +1312,10 @@ def rf_ptl(request):
 # BIN
 # -----------------
 
+import csv
 from django.shortcuts import render, redirect
-from .models import Bin, Warehouse, Category
-from django.http import JsonResponse
+from django.contrib import messages
+from .models import Warehouse, Bin, Category, SubCategory
 from .forms import CategoryForm
 
 
@@ -1141,17 +1326,19 @@ def create_bin(request):
             warehouse = Warehouse.objects.get(whs_no=whs_key)
 
             category = Category.objects.get(id=request.POST.get('category'))
-            sub_category_name = request.POST.get('subcategory')  # FIX ✅
+            sub_category_id = request.POST.get('subcategory')
             sub_category = None
-            if sub_category_name:
-                sub_category = SubCategory.objects.get(id=sub_category_name)
-                
+            if sub_category_id:
+                sub_category = SubCategory.objects.get(id=sub_category_id)
+
             Bin.objects.create(
                 whs_no=warehouse,
                 bin_id=request.POST.get('bin_id'),
+                bin_type=request.POST.get('bin_type'),
                 capacity=int(request.POST.get('capacity')),
-                category=category,                
-                sub_category=sub_category, 
+                existing_quantity=request.POST.get('existing_quantity') or 0,
+                category=category,
+                sub_category=sub_category,
                 updated_by=request.POST.get('updated_by'),
                 created_by=request.POST.get('created_by')
             )
@@ -1163,27 +1350,13 @@ def create_bin(request):
                 'error': str(e),
                 'warehouse': Warehouse.objects.all(),
                 'bins': Bin.objects.all(),
-                'categories': Category.objects.all(), 
+                'categories': Category.objects.all(),
             })
 
     return render(request, 'bin/create_bin.html', {
         'warehouse': Warehouse.objects.all(),
         'bins': Bin.objects.all(),
-        'categories': Category.objects.all(), 
-    })
-
-def add_category(request):
-    if request.method == 'POST':
-        form = CategoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('create_bin')  
-    else:
-        form = CategoryForm()
-    categories = Category.objects.all()
-    return render(request, 'bin/create_bin.html', {
-        'categories': categories,
-        'category_form': form,
+        'categories': Category.objects.all(),
     })
 
 # -----------------
@@ -1581,16 +1754,18 @@ def inbound_delivery(request):
     if request.method == 'POST':
         inbound_delivery_number = generate_inbound_delivery_number()
         vendor_id = request.POST.get('vendor')
-        vendor_obj = Vendor.objects.get(pk=vendor_id)
+        supplier_obj = Vendor.objects.filter(pk=vendor_id).first()
         delivery = InboundDelivery.objects.create(
             inbound_delivery_number=inbound_delivery_number,
             delivery_date=request.POST.get('delivery_date'),
             document_date=request.POST.get('document_date'),
-            gr_date=request.POST.get('gr_date'),
-            supplier=vendor_obj,   
+            # gr_date=request.POST.get('gr_date'),
+            supplier=supplier_obj,
             purchase_order_number_id=request.POST.get('po_number'),
             whs_no_id=request.POST.get('whs_no'),
+            # storage_location=request.POST.get('storage_location'),
             delivery_status=request.POST.get('delivery_status'),
+            # carrier_info=request.POST.get('carrier_info'),
             remarks=request.POST.get('remarks')
         )
 
@@ -2361,11 +2536,11 @@ from .models import PackingMaterial
 
 def material_create(request):
     if request.method == "POST":
-        p_mat = request.POST.get("p_mat")
+        material= request.POST.get("p_mat")
         description = request.POST.get("description")
 
-        if p_mat:  
-            PackingMaterial.objects.create(p_mat=p_mat, description=description)
+        if material:  
+            PackingMaterial.objects.create(material=material, description=description)
             messages.success(request, "Packing material created successfully!")
             return redirect("material_list")
         else:
@@ -2648,6 +2823,66 @@ def change_password(request):
 def logout_view(request):
     logout(request)
     return render(request, 'account/logout.html')
+
+import csv
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.files.storage import FileSystemStorage
+from .models import Bin, Category, SubCategory
+
+def bulk_upload_bins(request):
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+
+        if not csv_file.name.endswith('.csv'):
+            messages.error(request, "File must be a CSV.")
+            return redirect("create_bin")
+
+        file_data = csv_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(file_data)
+
+        created, skipped = 0, 0
+        for row in reader:
+            try:
+                warehouse_code = row["Warehouse"]
+                bin_id = row["Bin ID"]
+                bin_type = row["Bin Type"]
+                capacity = row["Capacity"]
+                existing_quantity = row.get("Existing Quantity", 0)
+                category_name = row["Category"]
+                subcategory_name = row["Sub Category"]
+
+                # ✅ Get or create Warehouse
+                warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
+
+                # ✅ Get or create Category
+                category, _ = Category.objects.get_or_create(category=category_name)
+
+                # ✅ Get or create Subcategory
+                subcategory, _ = SubCategory.objects.get_or_create(
+                    name=subcategory_name, category=category
+                )
+
+                # ✅ Create Bin
+                Bin.objects.create(
+                    whs_no=warehouse,
+                    bin_id=bin_id,
+                    bin_type=bin_type,
+                    capacity=capacity,
+                    existing_quantity=existing_quantity,
+                    category=category,
+                    sub_category=subcategory,
+                )
+                created += 1
+            except Exception as e:
+                print("Skipping row:", row, "Error:", e)
+                skipped += 1
+
+        messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
+        return redirect("create_bin")
+
+    return redirect("create_bin")
+
 
 def add_user(request):
     if request.method == 'POST':
