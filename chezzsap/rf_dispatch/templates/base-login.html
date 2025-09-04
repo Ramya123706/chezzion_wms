@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>RF Dispatch - Login</title>
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg bg-light shadow-sm">
+            <div class="container d-flex justify-content-between align-items-center">
+                <!-- Logo -->
+                <a class="navbar-brand" href="{% url 'index' %}">
+                    <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="120"
+                        alt="navbar">
+                </a>
+
+                <!-- Contact Us -->
+                <a href="https://chezzion.com" class="btn btn-primary">
+                    <i class="fa-solid fa-envelope me-1"></i> Contact Us
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Page Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5 fixed-bottom w-100">
+        <div class="footer bg-dark text-white text-center py-3">
+            &copy; 2025 Chezzion. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- JS files -->
+    <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+</body>
+
+</html>

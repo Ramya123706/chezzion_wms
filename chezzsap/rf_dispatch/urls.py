@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from .views import yard_checkin_view, truck_inspection_view, update_truck_status
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     # General
@@ -205,10 +206,19 @@ urlpatterns = [
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
 
-    path("login/", views.login_view, name="login"),
-    path("profile_detail/", views.profile_detail_view, name="profile_detail"),
-    path("profile/edit/", views.edit_profile, name="edit_profile"),
-    path('logout/', views.logout_view, name='logout'), 
-    path('profile/change-password/', views.change_password, name='change_password'),
 
- ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Change password
+    path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),
+    path("password_change/done/", auth_views.PasswordChangeDoneView.as_view(template_name="account/change_password_done.html"), name="password_change_done"),
+
+    # Reset password
+    path("accounts/password_reset/", auth_views.PasswordResetView.as_view(template_name="account/password_reset.html"), name="password_reset"),
+    path("accounts/password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="account/password_reset_done.html"), name="password_reset_done"),
+    path("accounts/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="account/password_reset_confirm.html"), name="password_reset_confirm"),
+    path("accounts/reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="account/password_reset_complete.html"), name="password_reset_complete"),
+    path("accounts/login/", views.login_view, name="login"),
+    path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
+    path("accounts/profile/edit/", views.edit_profile, name="edit_profile"),
+    path('accounts/logout/', views.logout_view, name='logout'), 
+    path('accounts/profile/change-password/', views.change_password, name='change_password'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
