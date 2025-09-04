@@ -308,15 +308,22 @@ from .models import Product, StockUpload
 
 
 def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
+    products = Product.objects.all()
+    warehouses = Warehouse.objects.all()
+    materials = PackingMaterial.objects.all()
+    bins = Bin.objects.all()
+    stock_uploads = StockUpload.objects.all()
+    query = request.GET.get('q', '')  # Example query handling (you can adjust)
+
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
         product_id = request.POST.get('product')  
         description = request.POST.get('description')
         quantity = request.POST.get('quantity')
         batch = request.POST.get('batch')
-        bin = request.POST.get('bin')
+        bin_id = request.POST.get('bin')
         pallet = request.POST.get('pallet')
-        p_mat = request.POST.get('p_mat')
+        p_mat_id = request.POST.get('p_mat')
         inspection = request.POST.get('inspection')
         stock_type = request.POST.get('stock_type')
         wps = request.POST.get('wps')
@@ -327,15 +334,18 @@ def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
 
         try:
             product_instance = get_object_or_404(Product, product_id=product_id)
-            p_mat = get_object_or_404(PackingMaterial, id=p_mat) if p_mat else None
+            p_mat = get_object_or_404(PackingMaterial, id=p_mat_id) if p_mat_id else None
             warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
-            bin_ = get_object_or_404(Bin, bin_id=bin_)
+            bin_instance = get_object_or_404(Bin, bin_id=bin_id)
+
             batch = request.POST.get('batch_input') or batch or ''
+            qty = int(quantity) if quantity and quantity.isdigit() else 0
+
             StockUpload.objects.create(
                 whs_no=warehouse,
                 product=product_instance,
                 description=description,
-                quantity=int(quantity),
+                quantity=qty,
                 batch=batch,
                 bin=bin_instance,
                 pallet=pallet,
@@ -348,32 +358,34 @@ def batch_product_view(request):  # sourcery skip: avoid-builtin-shadow
                 category=category,
                 sub_category=sub_category
             )
-            products = Product.objects.all()
 
             return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
-                'success': True,
+                'products': products,
+                'warehouse': warehouses,
+                'materials': materials,
+                'bins': bins,
+                'stocks': stock_uploads,
                 'query': query,
-                'stocks': stock_uploads
-                'bins': Bin.objects.all(),
+                'success': True,
             })
 
         except Exception as e:
             return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
-                'error': str(e),
+                'products': products,
+                'warehouse': warehouses,
+                'materials': materials,
+                'bins': bins,
+                'stocks': stock_uploads,
                 'query': query,
-                'stocks': stock_uploads
+                'error': str(e),
             })
+
     # GET request
     return render(request, 'stock_upload/batch_product.html', {
-        'products': Product.objects.all(),
-        'warehouse': Warehouse.objects.all(),
-        'materials': PackingMaterial.objects.all(),
+        'products': products,
+        'warehouse': warehouses,
+        'materials': materials,
+        'bins': bins,
         'stocks': stock_uploads,
         'query': query,
     })
