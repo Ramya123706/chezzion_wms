@@ -541,20 +541,33 @@ def stock_edit(request, pk):
     materials = PackingMaterial.objects.all()
 
     if request.method == "POST":
-        stock.whs_no = request.POST.get("whs_no")
-        stock.product = request.POST.get("product")
+        # ForeignKey fields must be assigned with objects, not raw values
+        whs_no_id = request.POST.get("whs_no")
+        if whs_no_id:
+            stock.whs_no = get_object_or_404(Warehouse, pk=whs_no_id)
+
+        product_name = request.POST.get("product")
+        if product_name:
+            stock.product = get_object_or_404(Product, product_name=product_name)
+
+
         stock.category = request.POST.get("category")
         stock.sub_category = request.POST.get("sub_category")
         stock.description = request.POST.get("description")
         stock.quantity = request.POST.get("quantity")
         stock.bin = request.POST.get("bin")
         stock.pallet = request.POST.get("pallet")
-        stock.p_mat = request.POST.get("p_mat")  # foreign key ID
+
+        p_mat_id = request.POST.get("p_mat")
+        if p_mat_id:
+            stock.p_mat = get_object_or_404(PackingMaterial, pk=p_mat_id)
+
         stock.inspection = request.POST.get("inspection")
         stock.stock_type = request.POST.get("stock_type")
         stock.wps = request.POST.get("wps")
         stock.doc_no = request.POST.get("doc_no")
         stock.pallet_status = request.POST.get("pallet_status")
+
         stock.save()
         return redirect("stock_list")
 
@@ -564,7 +577,6 @@ def stock_edit(request, pk):
         "materials": materials,
     }
     return render(request, "stock_upload/stock_edit.html", context)
-
 
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -2039,19 +2051,16 @@ def get_warehouse_address(request, whs_id):
         return JsonResponse({"error": "Warehouse not found"}, status=404)
     
 
+# views.py
 from django.http import JsonResponse
 from .models import Product
 
 def product_autocomplete(request):
-    term = request.GET.get('term', '')  
-    products = Product.objects.filter(name__icontains=term)[:10]  
-    suggestions = []
-    for p in products:
-        suggestions.append({
-            'id': p.id,
-            'name': p.name,
-        })
-    return JsonResponse(suggestions, safe=False)
+    term = request.GET.get("term", "")
+    products = Product.objects.filter(name__icontains=term)[:10]  # limit 10 results
+    results = [{"id": p.product_id, "name": p.name} for p in products]
+    return JsonResponse(results, safe=False)
+
 
   
 from decimal import Decimal
@@ -2078,6 +2087,7 @@ def sales_order_creation(request):
 
             product_ids = request.POST.getlist('product_id[]')
             product_names = request.POST.getlist('product_name[]')
+            existing_quantities = request.POST.getlist('existing_qty[]')
             quantities = request.POST.getlist('quantity[]')
             unit_prices = request.POST.getlist('unit_price[]')
             unit_total_price = request.POST.getlist('unit_total_price[]')
@@ -2116,6 +2126,7 @@ def sales_order_creation(request):
                         so_no=so_no_obj,
                         product_id=product_ids[i].strip(),
                         product_name=product_names[i].strip(),
+                        existing_quantity=existing_quantities[i],
                         quantity=quantity,
                         unit_price=unit_price,
                         unit_total_price=unit_total_price
@@ -2123,6 +2134,7 @@ def sales_order_creation(request):
                     product_rows.append({
                         'product': product_ids[i],
                         'product_name': product_names[i],
+                        'existing_quantity': existing_quantities[i],
                         'quantity': quantities[i],
                         'unit_price': unit_prices[i],
                         'unit_total_price': str(unit_total_price)
@@ -2161,16 +2173,16 @@ def sales_order_edit(request, so_no):
     warehouses = Warehouse.objects.all()
     products = Product.objects.all()
 
-    
     so_obj = get_object_or_404(SalesOrderCreation, so_no=so_no)
     so_items = SalesOrderItem.objects.filter(so_no=so_obj)
 
     if request.method == 'POST':
-        
         so_obj.so_no = request.POST.get("so_no")
-        whs_id = request.POST.get("whs_no")
-        so_obj.whs_no = get_object_or_404(Warehouse, id=whs_id)
+
+        whs_no = request.POST.get("whs_no")
+        so_obj.whs_no = get_object_or_404(Warehouse, whs_no=whs_no)
         so_obj.whs_address = getattr(so_obj.whs_no, 'address', "Unknown")
+
         so_obj.customer_id = request.POST.get("customer_id")
         so_obj.customer_code = request.POST.get("customer_code")
         so_obj.order_date = request.POST.get("order_date")
@@ -2179,7 +2191,7 @@ def sales_order_edit(request, so_no):
         so_obj.status = request.POST.get("status") or "Draft"
         so_obj.save()
 
-
+        # Delete existing items and re-add
         SalesOrderItem.objects.filter(so_no=so_obj).delete()
 
         product_ids = request.POST.getlist("product_id[]")
@@ -2199,12 +2211,14 @@ def sales_order_edit(request, so_no):
                         price = float(prices[i]) if prices[i] else 0
                     except ValueError:
                         price = 0
+
                     product_obj = None
                     if product_ids[i]:
                         try:
-                            product_obj = Product.objects.get(id=product_ids[i])
+                            product_obj = Product.objects.get(product_id=product_ids[i])
                         except Product.DoesNotExist:
                             pass
+
                     try:
                         unit_total = float(unit_totals[i]) if unit_totals[i] else qty * price
                     except ValueError:
@@ -2229,6 +2243,7 @@ def sales_order_edit(request, so_no):
     })
 
 
+
 def sales_order_delete(request, so_no):
     sales_order = get_object_or_404(SalesOrderCreation, so_no=so_no)
     sales_order.delete()
@@ -2249,11 +2264,13 @@ from django.http import JsonResponse
 from .models import Inventory
 
 def get_total_quantity(request, product_id):
+    from .models import Inventory
     try:
         inventory = Inventory.objects.get(product__product_id=product_id)
         return JsonResponse({"total_quantity": inventory.total_quantity})
     except Inventory.DoesNotExist:
         return JsonResponse({"total_quantity": 0})
+
 
 
 

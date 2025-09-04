@@ -26,13 +26,13 @@
                         <!-- Warehouse -->
                         <div class="form-group">
                             <label><b>Warehouse</b></label>
-                            <select name="whs_no" class="form-control" required>
-                                {% for wh in warehouse %}
-                                    <option value="{{ wh.whs_no }}" {% if wh.whs_no == stock.whs_no %}selected{% endif %}>
-                                        {{ wh.whs_no }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                            <select name="whs_no" class="form-control">
+  {% for wh in warehouse %}
+    <option value="{{ wh.id }}" {% if stock.whs_no.id == wh.id %}selected{% endif %}>
+      {{ wh.whs_no }}
+    </option>
+  {% endfor %}
+</select>
                         </div>
 
                         <!-- Product -->
