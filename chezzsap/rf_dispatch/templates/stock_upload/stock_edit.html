@@ -1,143 +1,135 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="row w-100 justify-content-center">
-        <!-- Main Form Column -->
-        <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-header text-center bg-primary text-white">
-                    <h5>Edit Stock</h5>
-                </div>
-                <div class="card-body">
-                    <!-- <div class="mb-3 text-center">
-                        <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="50" alt="SAP logo">
-                    </div> -->
-
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-
-                    <form method="post">
-                        {% csrf_token %}
-
-                        <!-- Warehouse -->
-                        <div class="form-group">
-                            <label><b>Warehouse</b></label>
-                            <select name="whs_no" class="form-control">
-  {% for wh in warehouse %}
-    <option value="{{ wh.id }}" {% if stock.whs_no.id == wh.id %}selected{% endif %}>
-      {{ wh.whs_no }}
-    </option>
-  {% endfor %}
-</select>
+<div class="container d-flex justify-content-center align-items-center py-5">
+    <div class="col-md-8">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h4><i class="fa-solid fa-boxes-packing me-2"></i>Edit Stock</h4>
+            </div>
+            <div class="card-body">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-circle-info me-2"></i>{{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
+                    {% endfor %}
+                {% endif %}
 
-                        <!-- Product -->
-                        <div class="form-group">
-                            <label for="product"><b>Product</b></label>
-                            <input type="text" class="form-control" id="product" name="product" value="{{ stock.product }}" required>
-                        </div>
+                <form method="post" class="row g-3">
+                    {% csrf_token %}
 
-                        <!-- Category -->
-                        <div class="form-group">
-                            <label for="category"><b>Category</b></label>
-                            <input type="text" id="category" name="category" class="form-control" value="{{ stock.category }}">
-                        </div>
+                    <!-- Warehouse -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-warehouse me-1"></i>Warehouse</label>
+                        <select name="whs_no" id="whs_no" class="form-select" required>
+                            {% for wh in warehouse %}
+                                <option value="{{ wh.pk }}" {% if wh == stock.whs_no %}selected{% endif %}>
+                                    {{ wh.whs_no }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                        <!-- Subcategory -->
-                        <div class="form-group">
-                            <label for="sub_category"><b>Subcategory</b></label>
-                            <input type="text" id="sub_category" name="sub_category" class="form-control" value="{{ stock.sub_category }}">
-                        </div>
+                    <!-- Bin -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-cube me-1"></i>Bin</label>
+                        <select name="bin" id="bin" class="form-select">
+                            <option value="">-- Select Bin --</option>
+                            {% if stock.bin %}
+                                <option value="{{ stock.bin.pk }}" selected>{{ stock.bin.bin_id }} ({{ stock.bin.capacity }} units)</option>
+                            {% endif %}
+                        </select>
+                    </div>
 
-                        <!-- Description -->
-                        <div class="form-group">
-                            <label for="description"><b>Description</b></label>
-                            <input type="text" class="form-control" id="description" name="description" value="{{ stock.description }}" required>
-                        </div>
+                    <!-- Product -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-box me-1"></i>Product</label>
+                        <select name="product" class="form-select" required>
+                            {% for prod in products %}
+                                <option value="{{ prod.pk }}" {% if prod == stock.product %}selected{% endif %}>
+                                    {{ prod.name }} ({{ prod.sku }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                        <!-- Quantity -->
-                        <div class="form-group">
-                            <label for="quantity"><b>Quantity</b></label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" value="{{ stock.quantity }}" required>
-                        </div>
+                    <!-- P_mat -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-layer-group me-1"></i>P_mat</label>
+                        <select name="p_mat" class="form-select" required>
+                            {% for mat in materials %}
+                                <option value="{{ mat.pk }}" {% if mat == stock.p_mat %}selected{% endif %}>
+                                    {{ mat.material }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                        <!-- BIN -->
-                        <div class="form-group">
-                            <label for="bin"><b>BIN</b></label>
-                            <input type="text" class="form-control" id="bin" name="bin" value="{{ stock.bin.bin_id }}">
-                        </div>
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label class="form-label"><i class="fa-solid fa-file-lines me-1"></i>Description</label>
+                        <input type="text" name="description" class="form-control" value="{{ stock.description }}" required>
+                    </div>
 
-                        <!-- Pallet -->
-                        <div class="form-group">
-                            <label for="pallet"><b>Pallet</b></label>
-                            <input type="text" class="form-control" id="pallet" name="pallet" value="{{ stock.pallet }}" required>
-                        </div>
+                    <!-- Quantity & Pallet -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-sort-numeric-up me-1"></i>Quantity</label>
+                        <input type="number" name="quantity" class="form-control" value="{{ stock.quantity }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-pallet me-1"></i>Pallet</label>
+                        <input type="text" name="pallet" class="form-control" value="{{ stock.pallet }}" required>
+                    </div>
 
-                        <!-- P_mat -->
-                        <div class="form-group">
-                            <label for="p_mat"><b>P_mat</b></label>
-                            <select class="form-control" id="p_mat" name="p_mat" required>
-                                {% for mat in materials %}
-                                    <option value="{{ mat.id }}" {% if mat.id == stock.p_mat.id %}selected{% endif %}>
-                                        {{ mat.p_mat }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <!-- Stock Type & Pallet Status -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-tags me-1"></i>Stock Type</label>
+                        <select name="stock_type" class="form-select" required>
+                            <option value="Quality" {% if stock.stock_type == "Quality" %}selected{% endif %}>Quality</option>
+                            <option value="Blocked" {% if stock.stock_type == "Blocked" %}selected{% endif %}>Blocked</option>
+                            <option value="Scrapped" {% if stock.stock_type == "Scrapped" %}selected{% endif %}>Scrapped</option>
+                            <option value="Unrestricted" {% if stock.stock_type == "Unrestricted" %}selected{% endif %}>Unrestricted</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-clipboard-list me-1"></i>Pallet Status</label>
+                        <select name="pallet_status" class="form-select" required>
+                            <option value="Received" {% if stock.pallet_status == "Received" %}selected{% endif %}>Received</option>
+                            <option value="Planned" {% if stock.pallet_status == "Planned" %}selected{% endif %}>Planned</option>
+                            <option value="Damaged" {% if stock.pallet_status == "Damaged" %}selected{% endif %}>Damaged</option>
+                            <option value="Rejected" {% if stock.pallet_status == "Rejected" %}selected{% endif %}>Rejected</option>
+                        </select>
+                    </div>
 
-                        <!-- Inspection -->
-                        <div class="form-group">
-                            <label for="inspection"><b>Inspection</b></label>
-                            <input type="text" class="form-control" id="inspection" name="inspection" value="{{ stock.inspection }}" required>
-                        </div>
+                    <!-- WPS & Doc No -->
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-file-signature me-1"></i>WPS</label>
+                        <input type="text" name="wps" class="form-control" value="{{ stock.wps }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label"><i class="fa-solid fa-file-invoice me-1"></i>Doc No</label>
+                        <input type="text" name="doc_no" class="form-control" value="{{ stock.doc_no }}" required>
+                    </div>
 
-                        <!-- Stock Type -->
-                        <div class="form-group">
-                            <label for="stock_type"><b>Stock Type</b></label>
-                            <select class="form-control" id="stock_type" name="stock_type" required>
-                                <option value="Quality" {% if stock.stock_type == "Quality" %}selected{% endif %}>Quality</option>
-                                <option value="Blocked" {% if stock.stock_type == "Blocked" %}selected{% endif %}>Blocked</option>
-                                <option value="Scrapped" {% if stock.stock_type == "Scrapped" %}selected{% endif %}>Scrapped</option>
-                                <option value="Unrestricted" {% if stock.stock_type == "Unrestricted" %}selected{% endif %}>Unrestricted</option>
-                            </select>
-                        </div>
+                    <!-- Submit -->
+                    <div class="col-12 text-center mt-3">
+                        <a href="{% url 'stock_list' %}" class="btn btn-secondary me-2">
+                            <i class="fa-solid fa-arrow-left me-1"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>Update Stock
+                        </button>
+                    </div>
 
-                        <!-- WPS -->
-                        <div class="form-group">
-                            <label for="wps"><b>WPS</b></label>
-                            <input type="text" class="form-control" id="wps" name="wps" value="{{ stock.wps }}" required>
-                        </div>
-
-                        <!-- Doc No -->
-                        <div class="form-group">
-                            <label for="doc_no"><b>Doc No</b></label>
-                            <input type="text" class="form-control" id="doc_no" name="doc_no" value="{{ stock.doc_no }}" required>
-                        </div>
-
-                        <!-- Pallet Status -->
-                        <div class="form-group">
-                            <label for="pallet_status"><b>Pallet Status</b></label>
-                            <select class="form-control" id="pallet_status" name="pallet_status" required>
-                                <option value="Received" {% if stock.pallet_status == "Received" %}selected{% endif %}>Received</option>
-                                <option value="Planned" {% if stock.pallet_status == "Planned" %}selected{% endif %}>Planned</option>
-                                <option value="Damaged" {% if stock.pallet_status == "Damaged" %}selected{% endif %}>Damaged</option>
-                                <option value="Rejected" {% if stock.pallet_status == "Rejected" %}selected{% endif %}>Rejected</option>
-                            </select>
-                        </div>
-
-                        <!-- Buttons -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'stock_list' %}" class="btn btn-secondary">Back</a>
-                            <button type="submit" class="btn btn-primary">Update Stock</button>
-                        </div>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+
 {% endblock %}

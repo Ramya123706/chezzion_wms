@@ -48,25 +48,7 @@ class TruckInspectionForm(forms.ModelForm):
             'is_the_truck_dock_level_ok': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
         }
 
-# forms.py
-from django import forms
 
-
-# from django import forms
-# from .models import WarehouseQuestion
-
-# class WarehouseQuestionForm(forms.ModelForm):
-#     class Meta:
-#         model = WarehouseQuestion
-#         fields = ['question_text']
-
-# class WarehouseQuestionForm(forms.ModelForm):
-#     class Meta:
-#         model = WarehouseQuestion
-#         fields = ['text']   # ✅ Must exactly match the model field name
-#         widgets = {
-#            'text': forms.TextInput(attrs={'placeholder': 'Enter your question here...'})
-#        }
 
 from django import forms
 class Trucksearchform(forms.Form):
@@ -305,15 +287,24 @@ from .models import GoodsReceipt
 
 
 
+from django import forms
+from .models import GoodsReceipt, InboundDelivery
+
 class GoodsReceiptForm(forms.ModelForm):
     class Meta:
         model = GoodsReceipt
-        fields = ['inbound_delivery', 'posted_by', 'remarks']  # no gr_no
+        # Exclude gr_no because it is auto-generated
+        exclude = ['gr_no']  
         widgets = {
             'inbound_delivery': forms.Select(attrs={'class': 'form-control'}),
             'posted_by': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    # Optional: filter inbound deliveries to only those without a GR yet
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['inbound_delivery'].queryset = InboundDelivery.objects.filter(gr__isnull=True)
 
 
 

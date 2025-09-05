@@ -3,126 +3,135 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row">
+        <!-- Main Form -->
         <div class="col-md-8">
-            <h3 class="text-white bg-primary text-center mb-3">Inbound Delivery Form</h3>
-            <form method="post">
+            <h3 class="text-white bg-primary text-center mb-3 p-3 rounded"> 
+                <i class="fas fa-truck-loading me-2"></i>Inbound Delivery Form
+            </h3>
+            <form method="post" class="needs-validation" novalidate>
                 {% csrf_token %}
                 {% if form.errors %}
-                <div class="alert alert-danger">
-                    {{ form.errors }}
-                </div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-1"></i> {{ form.errors }}
+                    </div>
                 {% endif %}
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="inbound_delivery_number"><b>Inbound Delivery Number</b></label>
+
+                <div class="row g-3">
+                    <!-- Inbound Delivery Number -->
+                    <div class="col-md-6">
+                        <label for="inbound_delivery_number" class="form-label"><i class="fas fa-hashtag me-1"></i>Inbound Delivery Number</label>
                         <input type="text" class="form-control" name="inbound_delivery_number"
-                            id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number }}"
-                            placeholder="Auto generated" readonly>
+                               id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number }}"
+                               placeholder="Auto generated" readonly>
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label for="delivery_date"><b>Delivery Date</b></label>
+                    <!-- Delivery Date -->
+                    <div class="col-md-6">
+                        <label for="delivery_date" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Delivery Date</label>
                         <input type="date" class="form-control" name="delivery_date" id="delivery_date"
-                            value="{{ delivery.delivery_date }}">
+                               value="{{ delivery.delivery_date }}">
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label for="vendor" class="form-label"><b>Supplier (Vendor)</b></label>
-                        <select name="vendor" id="vendor" class="form-select">
-                            <option value=""> Select Supplier </option>
+                    <!-- Supplier -->
+                    <div class="col-md-6">
+                        <label for="vendor" class="form-label"><i class="fas fa-industry me-1"></i>Supplier (Vendor)</label>
+                        <select name="vendor" id="vendor" class="form-select" required>
+                            <option value="">Select Supplier</option>
                             {% for vendor in vendors %}
-                            <option value="{{ vendor.vendor_id }}">{{ vendor.vendor_id }}-{{ vendor.name }}</option>
+                                <option value="{{ vendor.vendor_id }}" {% if delivery.vendor_id == vendor.vendor_id %}selected{% endif %}>
+                                    {{ vendor.vendor_id }} - {{ vendor.name }}
+                                </option>
                             {% endfor %}
                         </select>
-
-
                     </div>
 
-
-
-                    <div class="col-md-6 mb-3">
-                        <label for="purchase_order" class="form-label"><b>PO No</b></label>
-                        <select name="po_number" id="purchase_order" class="form-select">
-                            <option value="">Select PO No </option>
+                    <!-- PO Number -->
+                    <div class="col-md-6">
+                        <label for="purchase_order" class="form-label"><i class="fas fa-file-alt me-1"></i>PO No</label>
+                        <select name="po_number" id="purchase_order" class="form-select" required>
+                            <option value="">Select PO No</option>
                             {% for po in purchase_orders %}
-                            <option value="{{ po.id }}">{{ po.po_number }}</option>
+                                <option value="{{ po.id }}" {% if delivery.po_number == po.id %}selected{% endif %}>
+                                    {{ po.po_number }}
+                                </option>
                             {% endfor %}
                         </select>
-
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label for="esn"><b>ESN</b></label>
+                    <!-- ESN -->
+                    <div class="col-md-6">
+                        <label for="esn" class="form-label"><i class="fas fa-barcode me-1"></i>ESN</label>
                         <input type="text" class="form-control" name="esn" id="esn" value="{{ delivery.esn }}">
                     </div>
 
-
-<div class="col-md-6 mb-3">
-    <label for="whs_no" class="form-label"><b>Warehouse</b></label>
-    <select name="whs_no" id="whs_no" class="form-select" required>
-        <option value="">Select a warehouse</option>
-        {% for wh in warehouses %}
-            <option value="{{ wh.pk }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
-        {% endfor %}
-    </select>
-</div>
-
-
-
-                    <div class="col-md-6 mb-3">
-                        <label for="document_date"><b>Document Date</b></label>
-                        <input type="date" class="form-control" name="document_date" id="document_date"
-                            value="{{ delivery.document_date }}">
-                    </div>
-
-                    
-
-                    <div class="col-md-6 mb-3">
-                          <label for="delivery_status"><b>Delivery Status</b></label>
-                        <select class="form-control" name="delivery_status" id="delivery_status">
-                            <option value="" disabled selected>Select status</option>
-                            <option value="Pending">
-                                Pending</option>
-                            <option value="Completed">
-                                Completed</option>
+                    <!-- Warehouse -->
+                    <div class="col-md-6">
+                        <label for="whs_no" class="form-label"><i class="fas fa-warehouse me-1"></i>Warehouse</label>
+                        <select name="whs_no" id="whs_no" class="form-select" required>
+                            <option value="">Select a warehouse</option>
+                            {% for wh in warehouses %}
+                                <option value="{{ wh.pk }}" {% if delivery.whs_no == wh.pk %}selected{% endif %}>
+                                    {{ wh.whs_no }} - {{ wh.whs_name }}
+                                </option>
+                            {% endfor %}
                         </select>
                     </div>
 
-                   
-
-                    <!-- Material Table -->
-                    <table class="table table-bordered" id="deliveryTable">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Product</th>
-                                <th>Product Description</th>
-                                <th>Quantity Delivered</th>
-                                <th>Quantity Received</th>
-                                <th>Unit of Measure</th>
-                                <th>Batch Number</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><input type="text" class="form-control" name="product[]"></td>
-                                <td><input type="text" class="form-control" name="product_description[]"></td>
-                                <td><input type="text" class="form-control" name="quantity_delivered[]"></td>
-                                <td><input type="text" class="form-control" name="quantity_received[]"></td>
-                                <td><input type="text" class="form-control" name="unit_of_measure[]"></td>
-                                <td><input type="text" class="form-control" name="batch_number[]"
-                                        placeholder="Auto generated" readonly></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <!-- Remarks -->
-                    <div class="col-md-12 mb-3">
-                        <label for="remarks"><b>Remarks</b></label>
-                        <textarea class="form-control" name="remarks" id="remarks">{{ delivery.remarks }}</textarea>
+                    <!-- Document Date -->
+                    <div class="col-md-6">
+                        <label for="document_date" class="form-label"><i class="fas fa-calendar-check me-1"></i>Document Date</label>
+                        <input type="date" class="form-control" name="document_date" id="document_date"
+                               value="{{ delivery.document_date }}">
                     </div>
 
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary px-5 mt-3">Submit</button>
+                    <!-- Delivery Status -->
+                    <div class="col-md-6">
+                        <label for="delivery_status" class="form-label"><i class="fas fa-clipboard-list me-1"></i>Delivery Status</label>
+                        <select class="form-select" name="delivery_status" id="delivery_status">
+                            <option value="" disabled>Select status</option>
+                            <option value="Pending" {% if delivery.delivery_status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Completed" {% if delivery.delivery_status == 'Completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+
+                    <!-- Material Table -->
+                    <div class="col-12">
+                        <div class="table-responsive shadow-sm">
+                            <table class="table table-bordered table-hover" id="deliveryTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Description</th>
+                                        <th>Quantity Delivered</th>
+                                        <th>Quantity Received</th>
+                                        <th>UOM</th>
+                                        <th>Batch Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="text" class="form-control" name="product[]" readonly></td>
+                                        <td><input type="text" class="form-control" name="product_description[]" readonly></td>
+                                        <td><input type="text" class="form-control" name="quantity_delivered[]" readonly></td>
+                                        <td><input type="text" class="form-control" name="quantity_received[]"></td>
+                                        <td><input type="text" class="form-control" name="unit_of_measure[]" readonly></td>
+                                        <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="col-12">
+                        <label for="remarks" class="form-label"><i class="fas fa-comment-alt me-1"></i>Remarks</label>
+                        <textarea class="form-control" name="remarks" id="remarks" placeholder="Add any notes here...">{{ delivery.remarks }}</textarea>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fas fa-paper-plane me-2"></i>Submit
+                        </button>
                     </div>
                 </div>
             </form>
@@ -130,104 +139,104 @@
 
         <!-- Sidebar -->
         <div class="col-md-4">
-            <div class="card shadow">
+            <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0">Search Inbound Deliveries</h4>
+                    <h5 class="mb-0"><i class="fas fa-search me-1"></i>Search Inbound Deliveries</h5>
                 </div>
                 <div class="card-body">
                     <form method="get" class="mb-3">
                         <div class="input-group">
                             <input type="text" name="ibd_no" class="form-control" placeholder="Search by IBD No."
-                                value="{{ request.GET.inbound_delivery_number}}">
-                            <button class="btn btn-primary" type="submit">Search</button>
+                                   value="{{ request.GET.ibd_no }}">
+                            <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
                         </div>
                     </form>
 
                     {% if deliveries %}
-                    <table class="table table-sm table-bordered">
-                        <thead class="thead-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>IBD No.</th>
-                                <th>PO No.</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in deliveries %}
-                            <tr>
-                                <td>{{ entry.delivery_date }}</td>
-                                <td>{{ entry.inbound_delivery_number }}</td>
-                                <td>{{ entry.purchase_order_number.po_number }}</td>
-                                <td>
-                                    <a href="{% url 'delivery_detail' entry.inbound_delivery_number %}"
-                                        class="btn btn-sm btn-info px-3 py-1 fs-6">View Details</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>IBD No.</th>
+                                    <th>PO No.</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in deliveries %}
+                                    <tr>
+                                        <td>{{ entry.delivery_date }}</td>
+                                        <td>{{ entry.inbound_delivery_number }}</td>
+                                        <td>{{ entry.po_number.po_number }}</td>
+                                        <td>
+                                            <a href="{% url 'delivery_detail' entry.inbound_delivery_number %}"
+                                               class="btn btn-info btn-sm px-3 py-1">
+                                               <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
-                    <div class="alert alert-warning text-center">No deliveries found.</div>
+                        <div class="alert alert-warning text-center mt-2">
+                            <i class="fas fa-exclamation-circle me-1"></i>No deliveries found.
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!-- 
-<script>
-    // Function to add a new row to the table
-    function addRow() {
-        const tableBody = document.querySelector('#deliveryTable tbody');
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td><input type="text" class="form-control" name="material_code[]"></td>
-            <td><input type="text" class="form-control" name="material_description[]"></td>
-            <td><input type="text" class="form-control" name="quantity_delivered[]"></td>
-            <td><input type="text" class="form-control" name="quantity_received[]"></td>
-            <td><input type="text" class="form-control" name="unit_of_measure[]"></td>
-            <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
-        `;
-        tableBody.appendChild(newRow);
-    }
 
-    // Set placeholder for first row on page load
-    document.addEventListener("DOMContentLoaded", function () {
-        let firstBatchInput = document.querySelector('#deliveryTable tbody tr td:last-child input');
-        if (firstBatchInput) {
-            firstBatchInput.placeholder = "Auto-generated";
-        }
-    });
-</script> -->
-<!-- <script>
+<!-- JS: Populate products on PO change -->
+<script>
 document.getElementById("purchase_order").addEventListener("change", function() {
     const poId = this.value;
     const tableBody = document.querySelector('#deliveryTable tbody');
     tableBody.innerHTML = "";  // clear previous rows
 
-    if (poId) {
-        fetch(`/get-po-products/${poId}/`)
-            .then(response => response.json())
-            .then(data => {
-                data.products.forEach(p => {
-                    const newRow = document.createElement("tr");
-                    newRow.innerHTML = `
+    if (!poId) return;  // exit if no PO selected
 
-                        <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
-                        <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
-                        <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
-                        <td><input type="text" class="form-control" name="quantity_received[]" ></td>
-                        <td><input type="text" class="form-control" name="unit_of_measure[]" value="${p.uom}" readonly></td>
-                        <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto generated" readonly></td>
-                    `;
-                        tableBody.appendChild(newRow);
-                    });
-                });
-            });
-    }
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(`/get-po-products/${poId}/`, {
+        headers: { "X-CSRFToken": csrftoken }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        return response.json();
+    })
+    .then(data => {
+        if (!data.products || data.products.length === 0) {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td colspan="6" class="text-center">No products found for this PO</td>`;
+            tableBody.appendChild(row);
+            return;
+        }
+
+        data.products.forEach(p => {
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
+                <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
+                <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
+                <td><input type="text" class="form-control" name="quantity_received[]"></td>
+                <td><input type="text" class="form-control" name="unit_of_measure[]" value="${p.uom}" readonly></td>
+                <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching PO products:', error);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="6" class="text-center text-danger">Error fetching products</td>`;
+        tableBody.appendChild(row);
+    });
 });
-</script> -->
-
+</script>
 
 {% endblock %}
