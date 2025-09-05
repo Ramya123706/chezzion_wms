@@ -685,6 +685,7 @@ def stock_edit(request, pk):
     bins = Bin.objects.all()  # for dropdown in template
 
     if request.method == "POST":
+
         try:
             # Fetch ForeignKey instances
             whs_no_instance = Warehouse.objects.get(whs_no=request.POST.get("whs_no"))
@@ -737,9 +738,6 @@ def stock_edit(request, pk):
         "bins": bins,
     }
     return render(request, "stock_upload/stock_edit.html", context)
-
-
-
 
 
 
