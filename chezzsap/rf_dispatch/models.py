@@ -661,8 +661,8 @@ STATUS_CHOICES = [
 
 class SalesOrderCreation(models.Model):
     so_no = models.CharField(max_length=50, editable=False, unique=True)
-    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
-    whs_address = models.CharField(max_length=100, default="Unknown")
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="sales_orders")
+    whs_address = models.TextField(default="Unknown")
     customer_id = models.CharField(max_length=50)
     customer_code = models.CharField(max_length=50)
     order_date = models.DateField()
@@ -670,6 +670,10 @@ class SalesOrderCreation(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Draft')
     remarks = models.TextField(blank=True, null=True)
     net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return f"{self.so_no} - {self.status}"
@@ -678,7 +682,7 @@ class SalesOrderCreation(models.Model):
         # Auto-generate SO number if not exists
         if not self.so_no:
             last_so = SalesOrderCreation.objects.all().order_by('id').last()
-            if last_so:
+            if last_so and last_so.so_no.startswith('SO'):
                 last_no = int(last_so.so_no.split('SO')[-1])
                 self.so_no = f"SO{last_no + 1:05d}"
             else:
@@ -686,22 +690,26 @@ class SalesOrderCreation(models.Model):
         super().save(*args, **kwargs)
 
 
+
+
 class SalesOrderItem(models.Model):
     so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, default=None)  # ForeignKey instead of product_id/product_name
-    product_name = models.CharField(max_length=50)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, default=None) 
+    product_name = models.CharField(max_length=200)
     existing_quantity = models.IntegerField(default=0)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
+    def __str__(self):
+        return f"{self.product_name} ({self.quantity}) - {self.so_no.so_no}"
+
     def save(self, *args, **kwargs):
         # Auto-calculate unit_total_price
         self.unit_total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
 
 # outbound delivery
-
 class OutboundDelivery(models.Model):
     dlv_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
     so_no = models.ForeignKey(

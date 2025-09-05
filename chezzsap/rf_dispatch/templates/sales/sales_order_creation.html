@@ -2,17 +2,16 @@
 
 {% block content %}
 <div class="container mt-5">
-    <div class="col-md-8 col-sm-12 mx-auto">
-        <div class="card shadow-lg">
+    <div class="col-md-10 col-sm-12 mx-auto">
+        <div class="card shadow-lg rounded-4">
             <div class="card-header text-center text-white bg-primary">
-                <h3>Create Sales Order</h3>
+                <h3><i class="fas fa-file-invoice"></i> Create Sales Order</h3>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-
                     {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
+                        <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> {{ error }}</div>
                     {% endif %}
 
                     <div class="mb-3">
@@ -20,9 +19,9 @@
                         <input type="text" name="so_no" value="{{ so_no }}" class="form-control" readonly>
                     </div>
 
-                 <div class="mb-3">
-                        <label for="whs_no"><b>Warehouse</b></label>
-                        <select name="whs_no" id="whs_no" class="form-select" required>
+                    <div class="mb-3">
+                        <label for="whs_no" class="form-label"><b>Warehouse</b></label>
+                        <select name="whs_no" id="id_whs_no" class="form-select" required>
                             <option value="">Select Warehouse</option>
                             {% for warehouse in warehouses %}
                                 <option value="{{ warehouse.whs_no }}"
@@ -32,122 +31,111 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="id_address">Warehouse Address</label>
+
+                    <div class="mb-3">
+                        <label for="id_address" class="form-label"><b>Warehouse Address</b></label>
                         <input type="text" id="id_address" name="whs_address" class="form-control" readonly>
                     </div>
 
-                    <h5 class="text-primary  mt-4 mb-3"><b>Customer Details</b></h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <h5 class="text-primary mt-4 mb-3"><i class="fas fa-user"></i> Customer Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
                             <label class="form-label"><b>Customer ID</b></label>
                             <input type="text" name="customer_id" class="form-control"
                                    value="{{ data.customer_id }}" required>
-
                         </div>
-
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <label class="form-label"><b>Customer Code</b></label>
                             <input type="text" name="customer_code" class="form-control"
-                                value="{{ data.customer_code }}" required>
+                                   value="{{ data.customer_code }}" required>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
                             <label class="form-label"><b>Order Date</b></label>
-                            <input type="date" name="order_date" class="form-control" value="{{ data.order_date }}"
-                                required>
+                            <input type="date" name="order_date" class="form-control" value="{{ data.order_date }}" required>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6">
                             <label class="form-label"><b>Delivery Date</b></label>
-                            <input type="date" name="delivery_date" class="form-control"
-                                value="{{ data.delivery_date }}" required>
+                            <input type="date" name="delivery_date" class="form-control" value="{{ data.delivery_date }}" required>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center col-md-12 mb-3">
-                        <h5 class="text-primary m-0"><b>Product Details</b></h5>
+                    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                        <h5 class="text-primary m-0"><i class="fas fa-box"></i> Product Details</h5>
+                        <button type="button" class="btn btn-success btn-sm" onclick="addRow()">
+                            <i class="fas fa-plus"></i> Add Product
+                        </button>
                     </div>
 
                     <div class="table-responsive">
                         <table class="table table-bordered align-middle" id="productTable">
-                            <thead class="table-light">
-                                <tr class="text-center">
+                            <thead class="table-light text-center">
+                                <tr>
                                     <th>Product Name</th>
-                                    <th>Existing Quantity</th>
                                     <th>Product ID</th>
-
                                     <th>Quantity</th>
                                     <th>Unit Price</th>
-                                    <th>Unit Total Price</th>
+                                    <th>Unit Total</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% if product_rows %}
-
-                                {% for row in product_rows %}
-                                <tr>
-                                    <td>
-                                        <input type="text" class="product_name form-control"
-                                            placeholder="Type product name" value="{{ row.product_name }}"
-                                            name="product_name[]">
-                                        <div class="suggestions"
-                                            style="border:1px solid #ccc; background:white; position:absolute;"></div>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="product_id form-control" name="product_id[]"
-                                            value="{{ row.product }}" name="product_id[]" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="quantity[]" class="form-control text-end" min="1"
-                                            oninput="calculateRowTotal(this)" value="{{ row.quantity }}" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="unit_price[]"
-                                            class="form-control text-end" oninput="calculateRowTotal(this)"
-                                            value="{{ row.unit_price }}" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="unit_total_price[]"
-                                            class="form-control text-end" readonly value="{{ row.unit_total_price }}">
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                                    {% for row in product_rows %}
+                                        <tr>
+                                            <td class="position-relative">
+                                                <input type="text" class="product_name form-control" placeholder="Type product name" value="{{ row.product_name }}" name="product_name[]">
+                                                <div class="suggestions position-absolute w-100 bg-white border"></div>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="product_id form-control" name="product_id[]" value="{{ row.product }}" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="number" name="quantity[]" class="form-control text-end" min="1" value="{{ row.quantity }}" oninput="calculateRowTotal(this)" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" name="unit_price[]" class="form-control text-end" value="{{ row.unit_price }}" oninput="calculateRowTotal(this)" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly value="{{ row.unit_total_price }}">
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
                                 {% else %}
-                                <tr>
-                                    <td>
-                                        <input type="text" class="product_name form-control"
-                                            placeholder="Type product name" name="product_name[]">
-                                        <div class="suggestions"
-                                            style="border:1px solid #ccc; background:white; position:absolute;"></div>
-                                    </td>
-                                    <td>
-                                        <input type="text" class="product_id form-control" name="product_id[]" readonly>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="quantity[]" class="form-control text-end" min="1"
-                                            value="1" oninput="calculateRowTotal(this)" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="unit_price[]"
-                                            class="form-control text-end" oninput="calculateRowTotal(this)" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" name="unit_total_price[]"
-                                            class="form-control text-end" readonly placeholder="Auto-calculated">
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td class="position-relative">
+                                            <input type="text" class="product_name form-control" placeholder="Type product name" name="product_name[]">
+                                            <div class="suggestions position-absolute w-100 bg-white border"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="product_id form-control" name="product_id[]" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="quantity[]" class="form-control text-end" min="1" value="1" oninput="calculateRowTotal(this)" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="unit_price[]" class="form-control text-end" oninput="calculateRowTotal(this)" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly placeholder="Auto-calculated">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
                                 {% endif %}
                             </tbody>
-
                         </table>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 mt-3">
                         <label class="form-label"><b>Net Total Price</b></label>
-                        <input type="text" id="net_total_price" name="net_total_price" class="form-control" readonly
-                            value="{{ data.net_total_price }}">
+                        <input type="text" id="net_total_price" name="net_total_price" class="form-control text-end" readonly value="{{ data.net_total_price }}">
                     </div>
 
                     <div class="mb-3">
@@ -155,9 +143,9 @@
                         <textarea name="remarks" class="form-control" rows="3">{{ data.remarks }}</textarea>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="d-flex justify-content-end">
                         <input type="hidden" name="status" id="statusInput" value="Draft">
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
                     </div>
                 </form>
             </div>
@@ -178,130 +166,80 @@ function calculateNetTotal() {
     let total = 0;
     document.querySelectorAll('input[name="unit_total_price[]"]').forEach(input => {
         total += parseFloat(input.value) || 0;
-    function addRow() {
-        const tableBody = document.querySelector('#productTable tbody');
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-        <td>
+    });
+    document.getElementById('net_total_price').value = total.toFixed(2);
+}
+
+function addRow() {
+    const tableBody = document.querySelector('#productTable tbody');
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td class="position-relative">
             <input type="text" class="product_name form-control" placeholder="Type product name" name="product_name[]">
-            <div class="suggestions" style="border:1px solid #ccc; background:white; position:absolute;"></div>
+            <div class="suggestions position-absolute w-100 bg-white border"></div>
         </td>
-        <td>
-            <input type="text" class="product_id form-control" name="product_id[]" readonly>
-        </td>
-        <td>
-            <input type="number" name="quantity[]" class="form-control text-end" min="1" value="1" oninput="calculateRowTotal(this)" required>
-        </td>
-        <td>
-            <input type="number" step="0.01" name="unit_price[]" class="form-control text-end" oninput="calculateRowTotal(this)" required>
-        </td>
-        <td>
-            <input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly placeholder="Auto-calculated">
+        <td><input type="text" class="product_id form-control" name="product_id[]" readonly></td>
+        <td><input type="number" name="quantity[]" class="form-control text-end" min="1" value="1" oninput="calculateRowTotal(this)" required></td>
+        <td><input type="number" step="0.01" name="unit_price[]" class="form-control text-end" oninput="calculateRowTotal(this)" required></td>
+        <td><input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly placeholder="Auto-calculated"></td>
+        <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button>
         </td>
     `;
-        tableBody.appendChild(newRow);
-        setupAutocomplete(newRow); // attach autocomplete for new row
-    }
+    tableBody.appendChild(newRow);
+    setupAutocomplete(newRow);
+}
 
+function deleteRow(btn) {
+    const row = btn.closest('tr');
+    row.remove();
+    calculateNetTotal();
+}
 
+// Warehouse address fetch
+document.getElementById("id_whs_no").addEventListener("change", function () {
+    const whsId = this.value;
+    const addressInput = document.getElementById("id_address");
+    if (!whsId) return addressInput.value = "";
 
-    function calculateRowTotal(element) {
-        const row = element.closest('tr');
-        const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
-        const unitPrice = parseFloat(row.querySelector('input[name="unit_price[]"]').value) || 0;
-        row.querySelector('input[name="unit_total_price[]"]').value = (quantity * unitPrice).toFixed(2);
-        calculateNetTotal();
-    }
-
-    function calculateNetTotal() {
-        let total = 0;
-        document.querySelectorAll('input[name="unit_total_price[]"]').forEach(input => {
-            total += parseFloat(input.value) || 0;
-        });
-        document.getElementById('net_total_price').value = total.toFixed(2);
-    }
-</script>
-<script>
-    document.getElementById("id_whs_no").addEventListener("change", function () {
-        var whsId = this.value;
-
-        if (whsId) {
-            fetch(`/get-warehouse-address/${whsId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.address) {
-                        document.getElementById("id_address").value = data.address;
-                    } else {
-                        document.getElementById("id_address").value = "Address not found";
-                    }
-                });
-        } else {
-            document.getElementById("id_address").value = "";
-        }
-    });
-</script>
-
-// Auto-fetch existing quantity when Product ID is entered
-<script>
-document.addEventListener("input", function(e) {
-    if (e.target.classList.contains("product-id")) {
-        const row = e.target.closest("tr");
-        const productId = e.target.value.trim();
-
-        if (productId) {
-            fetch(`/get-total-quantity/${productId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    row.querySelector(".total-qty").value = data.total_quantity;
-                })
-                .catch(err => {
-                    console.error("Error fetching inventory:", err);
-                    row.querySelector(".total-qty").value = 0;
-                });
-        } else {
-            row.querySelector(".total-qty").value = "";
-        }
-    }
+    fetch(`/get-warehouse-address/${whsId}/`)
+        .then(res => res.json())
+        .then(data => addressInput.value = data.address || "Address not found");
 });
-</script>
 
-{% endblock %}
-<script>
-    function setupAutocomplete(row) {
-        const input = row.querySelector('.product_name');
-        const productIdInput = row.querySelector('.product_id'); // visible column
-        const suggestions = row.querySelector('.suggestions');
+// Autocomplete setup
+function setupAutocomplete(row) {
+    const input = row.querySelector('.product_name');
+    const productIdInput = row.querySelector('.product_id');
+    const suggestions = row.querySelector('.suggestions');
 
-        input.addEventListener('keyup', function () {
-            if (input.value.length === 0) {
+    input.addEventListener('keyup', function () {
+        if (!input.value) {
+            suggestions.innerHTML = '';
+            productIdInput.value = '';
+            return;
+        }
+        fetch(`/product-autocomplete/?term=${input.value}`)
+            .then(res => res.json())
+            .then(data => {
                 suggestions.innerHTML = '';
-                productIdInput.value = '';
-                return;
-            }
-            fetch(`/product-autocomplete/?term=${input.value}`)
-                .then(res => res.json())
-                .then(data => {
-                    suggestions.innerHTML = '';
-                    data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.textContent = item.name;
-                        div.style.cursor = 'pointer';
-                        div.addEventListener('click', function () {
-                            input.value = item.name;
-                            productIdInput.value = item.id;
-                            suggestions.innerHTML = '';
-                        });
-                        suggestions.appendChild(div);
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.textContent = item.name;
+                    div.classList.add('p-1');
+                    div.style.cursor = 'pointer';
+                    div.addEventListener('click', () => {
+                        input.value = item.name;
+                        productIdInput.value = item.id;
+                        suggestions.innerHTML = '';
                     });
+                    suggestions.appendChild(div);
                 });
-        });
-    }
+            });
+    });
+}
 
-    // attach to all existing rows
-    document.querySelectorAll('#productTable tbody tr').forEach(row => setupAutocomplete(row));
-
-
+// Attach autocomplete to existing rows
+document.querySelectorAll('#productTable tbody tr').forEach(row => setupAutocomplete(row));
 </script>
-
-
 {% endblock %}
