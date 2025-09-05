@@ -1,81 +1,87 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mx-auto my-4">
-    <h2 class="mb-4 text-center">Inventory Summary</h2>
+<div class="container my-4">
+    <h2 class="mb-4 text-center">
+        <i class="fas fa-warehouse me-2"></i>Inventory Summary
+    </h2>
 
     <!-- Filters & Search -->
     <form method="get" class="row g-2 mb-3">
-        <!-- Search -->
-        <div class="col-md-4">
-            <input type="text" name="search" class="form-control" placeholder="Search by Product ID or Name"
-                value="{{ search_query }}">
+        <div class="col-md-3">
+            <input type="text" name="search" class="form-control" placeholder="Search Product ID or Name" value="{{ search_query }}">
         </div>
-
-        <!-- Category Filter -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <select name="category" class="form-select">
                 <option value="">-- All Categories --</option>
                 {% for cat in categories %}
-                <option value="{{ cat.id }}" {% if category_filter|stringformat:"s" == cat.id|stringformat:"s" %} selected
-                    {% endif %}>
-                    {{ cat.category }}
-                </option>
+                    <option value="{{ cat.id }}" {% if category_filter|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.category }}</option>
                 {% endfor %}
-
             </select>
         </div>
-
-        <!-- Filter button -->
-        <div class="col-md-2">
+        <div class="col-md-3">
+            <select name="subcategory" class="form-select">
+                <option value="">-- All Subcategories --</option>
+                {% for sub in subcategories %}
+                    <option value="{{ sub.id }}" {% if subcategory_filter|stringformat:"s" == sub.id|stringformat:"s" %}selected{% endif %}>{{ sub.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-1">
             <button type="submit" class="btn btn-primary w-100">Filter</button>
         </div>
-
-        <!-- Reset button -->
         <div class="col-md-2">
             <a href="{% url 'inventory' %}" class="btn btn-secondary w-100">Reset</a>
         </div>
     </form>
 
     {% if inventory_data %}
-    <table class="table table-bordered table-striped table-hover shadow-sm">
-        <thead class="bg-warning text-dark text-center">
-            <tr>
-                <th>Product ID</th>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>PO Number</th>
-                <th>GR No</th>
-                <th>Unit of Measure</th>
-                <th>Total Quantity</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in inventory_data %}
-            <tr>
-                <td class="text-center">{{ row.inventory.product.product_id }}</td>
-                <td>
-                    <a href="{% url 'product_detail' row.inventory.product.product_id %}" class="text-decoration-none">
-                        {{ row.inventory.product.name }}
-                    </a>
-                </td>
-                <td class="text-center">
-                    {{ row.inventory.product.category.category|default:"-" }}
-                </td>
-                <td class="text-center fw-bold">{{ row.inventory.created_at|date:"Y-m-d" }}</td>
-                <td class="text-center fw-bold">
-                    {% if row.po_number %}{{ row.po_number }}{% else %}-{% endif %}
-                </td>
-                <td class="text-center fw-bold">
-                    {% if row.gr_no %}{{ row.gr_no }}{% else %}-{% endif %}
-                </td>
-                <td class="text-center">{{ row.inventory.product.unit_of_measure }}</td>
-                <td class="text-center fw-bold">{{ row.inventory.total_quantity }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-bordered table-hover align-middle text-center">
+            <thead class="bg-warning text-dark">
+                <tr>
+                    <th>Image</th>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Subcategory</th>
+                    <th>Total Qty</th>
+                    <th>PO Number</th>
+                    <th>GR Number</th>
+                    <th>UOM</th>
+                    <th>Stock Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in inventory_data %}
+                <tr class="{% if row.inventory.is_low_stock %}table-danger{% elif row.inventory.is_medium_stock %}table-warning{% else %}table-success{% endif %}">
+                    <td>
+                        {% if row.inventory.product.images %}
+                            <a class="text-decoration-none fw-bold" href="{% url 'product_detail' row.inventory.product.product_id %}">
+                            <img src="{{ row.inventory.product.images.url }}" style="width:50px;height:50px;" class="img-thumbnail">
+                            </a>
+                        {% else %}
+                            <i class="fas fa-box fa-2x text-muted"></i>
+                        {% endif %}
+                    </td>
+<td>
+    <a class="text-decoration-none fw-bold" href="{% url 'product_detail' row.inventory.product.product_id %}">
+        {{ row.inventory.product.product_id }}
+    </a>
+</td>
+                    <td>{{ row.inventory.product.name }}</td>
+                    <td>{{ row.inventory.product.category.category|default:"-" }}</td>
+                    <td>{{ row.inventory.product.sub_category.name|default:"-" }}</td>
+                    <td>{{ row.inventory.total_quantity }}</td>
+                    <td>{{ row.po_number }}</td>
+                    <td>{{ row.gr_number }}</td>
+                    <td>{{ row.inventory.product.unit_of_measure }}</td>
+                    <td>{{ row.inventory.stock_status_badge|safe }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <div class="alert alert-info text-center">
         No inventory records found.

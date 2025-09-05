@@ -1,101 +1,116 @@
 {% extends "base.html" %}
- 
+{% load static %}
+
 {% block content %}
- 
 <div class="container mt-5">
-    <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card">
-            <div class="card-header text-white bg-primary">
-                <h5>Edit product</h5>
+    <div class="col-md-8 col-sm-12 mx-auto">
+        <div class="card shadow-lg border-0 rounded-4">
+            
+            <!-- Header -->
+            <div class="card-header bg-primary text-white text-center rounded-top">
+                <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Product</h4>
             </div>
-            <div class="card-body">
-                <form action="" method="post" enctype="multipart/form-data">
-                    
+
+            <!-- Body -->
+            <div class="card-body p-4">
+                <form action="" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                     {% csrf_token %}
-                    
- 
-                    <div class="form-group">
-                        <label for="name"><b>Product Name</b></label>
-                        <input type="text" id="name" name="name" class="form-control" value="{{ product.name }}" required>
+
+                    <!-- Product Name -->
+                    <div class="form-group mb-3">
+                        <label for="name"><i class="fas fa-box me-2 text-primary"></i><b>Product Name</b></label>
+                        <input type="text" id="name" name="name" class="form-control rounded-pill" 
+                               value="{{ product.name }}" required>
                     </div>
- 
-                    <div class="form-group">
-                        <label for="product_id"><b>Product Id</b></label>
-                        <input type="text" id="product_id" name="product_id" class="form-control" value="{{ product.product_id }}" readonly>
+
+                    <!-- Product ID -->
+                    <div class="form-group mb-3">
+                        <label for="product_id"><i class="fas fa-hashtag me-2 text-secondary"></i><b>Product ID</b></label>
+                        <input type="text" id="product_id" name="product_id" class="form-control rounded-pill bg-light" 
+                               value="{{ product.product_id }}" readonly>
                     </div>
- 
-                    <div class="form-group">
-                        <label for="quantity"><b>Quantity</b></label>
-                        <input type="text" id="quantity" name="quantity" class="form-control" value="{{ product.quantity }}" required>    
+
+                    <!-- Quantity -->
+                    <div class="form-group mb-3">
+                        <label for="quantity"><i class="fas fa-cubes me-2 text-success"></i><b>Quantity</b></label>
+                        <input type="number" id="quantity" name="quantity" class="form-control rounded-pill" 
+                               value="{{ product.quantity }}" required>
                     </div>
-                    <div class="form-group">
-                        <label for="unit_price"><b>Unit Price</b></label>
-                        <input type="number" 
-                            id="unit_price" 
-                            name="unit_price" 
-                            class="form-control" 
-                            step="0.01" value="{{ product.unit_price }}" required>    
+
+                    <!-- Unit Price -->
+                    <div class="form-group mb-3">
+                        <label for="unit_price"><i class="fas fa-rupee-sign me-2 text-warning"></i><b>Unit Price</b></label>
+                        <input type="number" step="0.01" id="unit_price" name="unit_price" 
+                               class="form-control rounded-pill" value="{{ product.unit_price }}" required>
                     </div>
- 
-                    <div class="form-group">    
-                        <label for="pallet_no"><b>Pallet no</b></label>
-                        <input type="text" id="pallet_no" name="pallet_no" class="form-control" value="{{ product.pallet_no }}" required>  
+
+                    <!-- Pallet No -->
+                    <div class="form-group mb-3">
+                        <label for="pallet_no"><i class="fas fa-pallet me-2 text-info"></i><b>Pallet No</b></label>
+                        <input type="text" id="pallet_no" name="pallet_no" class="form-control rounded-pill" 
+                               value="{{ product.pallet_no }}" required>
                     </div>
- 
-                    <div class="form-group">    
-                        <label for="sku"><b>SKU</b></label>
-                        <input type="text" id="sku" name="sku" class="form-control" value="{{ product.sku }}" required>
+
+                    <!-- SKU -->
+                    <div class="form-group mb-3">
+                        <label for="sku"><i class="fas fa-barcode me-2 text-dark"></i><b>SKU</b></label>
+                        <input type="text" id="sku" name="sku" class="form-control rounded-pill" 
+                               value="{{ product.sku }}" required>
                     </div>
- 
-                    <div class="form-group">
-                        <label for="description"><b>Description</b></label>
-                        <input type="text" id="description" name="description" class="form-control" value="{{ product.description }}" required>
+
+                    <!-- Description -->
+                    <div class="form-group mb-3">
+                        <label for="description"><i class="fas fa-align-left me-2 text-secondary"></i><b>Description</b></label>
+                        <textarea id="description" name="description" class="form-control rounded-3" rows="3" required>{{ product.description }}</textarea>
                     </div>
- 
-                    <div class="form-group">    
-                        <label for="unit_of_measure"><b>Unit of Measure</b></label>
-                        <input type="text" id="unit_of_measure" name="unit_of_measure" class="form-control" value="{{ product.unit_of_measure }}" required>
+
+                    <!-- Unit of Measure -->
+                    <div class="form-group mb-3">
+                        <label for="unit_of_measure"><i class="fas fa-balance-scale me-2 text-primary"></i><b>Unit of Measure</b></label>
+                        <input type="text" id="unit_of_measure" name="unit_of_measure" class="form-control rounded-pill" 
+                               value="{{ product.unit_of_measure }}" required>
                     </div>
- 
-                    <div class="form-group">
-                        <label for="category"><b>Category</b></label>
-                        <select id="category" name="category" class="form-control" required>
+
+                    <!-- Category -->
+                    <div class="form-group mb-3">
+                        <label for="category"><i class="fas fa-tags me-2 text-danger"></i><b>Category</b></label>
+                        <select id="category" name="category" class="form-select rounded-pill" required>
                             {% for cat in categories %}
                                 <option value="{{ cat.id }}" {% if product.category.id == cat.id %}selected{% endif %}>
-                                    {{ cat.name }}
+                                    {{ cat.category }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group">    
-                        <label for="sub_category"><b>Sub Category</b></label>
-                        <input type="text" id="sub_category" name="sub_category" class="form-control" value="{{ product.sub_category }}" required>
+
+                    <!-- Sub Category -->
+                    <div class="form-group mb-3">
+                        <label for="sub_category"><i class="fas fa-tag me-2 text-muted"></i><b>Sub Category</b></label>
+                        <input type="text" id="sub_category" name="sub_category" class="form-control rounded-pill" 
+                               value="{{ product.sub_category }}" required>
                     </div>
-                    
- 
-                    <div class="form-group">    
-                        <label for="re_order_level"><b>Reorder Level</b></label>
-                        <input type="text" id="re_order_level" name="re_order_level" class="form-control" value="{{ product.re_order_level }}" required>
+
+                    <!-- Reorder Level -->
+                    <div class="form-group mb-3">
+                        <label for="re_order_level"><i class="fas fa-level-down-alt me-2 text-success"></i><b>Reorder Level</b></label>
+                        <input type="number" id="re_order_level" name="re_order_level" class="form-control rounded-pill" 
+                               value="{{ product.re_order_level }}" required>
                     </div>
-                    <!-- <div class="form-group">    
-                        <label for="images"><b>Image</b></label>
-                        <div class="mb-2">
-                    {% if product.images %}
-                    <img src="{{ product.images.url }}" alt="Product Image" width="200">
-                    {% else %}
-                    <p>No image available</p>     
-                    {% endif %}
-                    </div>
-                    </div> -->
+
+                    <!-- Buttons -->
                     <div class="text-center mt-4">
-                        <button type="submit " class="btn btn-primary">Save</button>
-                        <a href="{% url 'product_detail' product.product_id %}" class="btn btn-secondary">F7 BACK</a>
+                        <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm me-2">
+                            <i class="fas fa-save me-1"></i> Save
+                        </button>
+                        <a href="{% url 'product_detail' product.product_id %}" 
+                           class="btn btn-outline-secondary px-4 rounded-pill shadow-sm">
+                            <i class="fas fa-arrow-left me-1"></i> F7 BACK
+                        </a>
                     </div>
+
                 </form>
             </div>
         </div>  
     </div>
 </div>
- 
 {% endblock %}
- 
