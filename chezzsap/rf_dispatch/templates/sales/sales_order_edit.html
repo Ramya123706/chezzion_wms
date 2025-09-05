@@ -63,8 +63,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-    {% if product_rows %}
-        {% for row in product_rows %}
+    {% if so_items %}
+        {% for row in so_items %}
             <tr>
                 <td>
                     <input type="text" class="product_name form-control" placeholder="Type product name" value="{{ row.product_name }}" name="product_name[]">
