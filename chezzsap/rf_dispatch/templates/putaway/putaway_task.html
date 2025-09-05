@@ -140,7 +140,7 @@
                 <select name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
-                  <option value="{{ p.id }}">{{ p.pallet }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  <option value="{{ p.id }}">{{ p.pallet_no }} {% if p.description %}- {{ p.description }}{% endif %}</option>
                   {% endfor %}
                 </select>
               </div>
