@@ -11,7 +11,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('start/', views.first, name='first'),
     path('six/', views.sixth, name='sixth'),
-    path("search/", views.search, name="search"),
+    path('search/', views.search, name='search'),
 
     # Outbound steps
     path('outbound1/', views.outbound1, name='outbound1'),
@@ -133,6 +133,8 @@ urlpatterns = [
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
     path('customer/', views.customer, name='customer'),
+    path('putaway/tasks/', views.all_putaway_tasks, name='all_tasks'),
+
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),

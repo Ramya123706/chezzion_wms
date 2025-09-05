@@ -118,10 +118,6 @@ class Warehouse(models.Model):
         return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
 
 
-class Inventory(models.Model):
-    product = models.CharField(max_length=50, unique=True)
-    total_quantity = models.IntegerField(default=0)
-
 class Category(models.Model):
     
     category = models.CharField(max_length=100, unique=True)
@@ -232,12 +228,22 @@ class Product(models.Model):
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-@receiver(post_save, sender=Product)
-def update_inventory(sender, instance, **kwargs):
-    inventory, created = Inventory.objects.get_or_create(product=instance)
-    inventory.total_quantity = instance.quantity
-    inventory.save()
 
+
+
+# -----------------------------
+# POST SAVE SIGNAL
+# -----------------------------
+@receiver(post_save, sender=Product)
+def create_or_update_inventory(sender, instance, **kwargs):
+    """
+    Ensure every Product always has an Inventory,
+    and sync total_quantity automatically.
+    """
+    inventory, created = Inventory.objects.get_or_create(product=instance)
+    if inventory.total_quantity != instance.quantity:
+        inventory.total_quantity = instance.quantity
+        inventory.save()
 
 from django.utils import timezone
 from django.utils.timezone import now
@@ -374,14 +380,35 @@ class StockUpload(models.Model):
 
 
 
+from django.db import models
+from django.utils.html import format_html
+
 class Inventory(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
+    min_quantity = models.IntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.product.name} - {self.total_quantity} units"
+    def is_low_stock(self):
+        return self.total_quantity < self.min_quantity
+
+    def is_medium_stock(self):
+        return self.total_quantity >= self.min_quantity and self.total_quantity < self.min_quantity * 2
+
+    def stock_status_badge(self):
+        if self.is_low_stock():
+            color = "danger"
+            text = "Low"
+        elif self.is_medium_stock():
+            color = "warning"
+            text = "Medium"
+        else:
+            color = "success"
+            text = "Sufficient"
+        return format_html('<span class="badge bg-{}">{}</span>', color, text)
+
+
    
 class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
@@ -431,42 +458,59 @@ class PurchaseOrder(models.Model):
     
 
 class Putaway(models.Model):
-    putaway_id = models.CharField(max_length=50, unique=True, editable=False)   
-    pallet = models.CharField(max_length=100)
+    putaway_id = models.CharField(max_length=50, unique=True, editable=False)
+    pallet = models.ForeignKey(
+        Pallet, on_delete=models.SET_NULL, null=True, blank=True
+    )
     location = models.CharField(max_length=100)
+
     PUTAWAY_TASK_TYPE_CHOICES = [
         ("Putaway by HU", "Putaway by HU"),
         ("Putaway by Warehouse", "Putaway by Warehouse"),
         ("Putaway by Product", "Putaway by Product"),
         ("Putaway by Bin", "Putaway by Bin"),
     ]
-    putaway_task_type = models.CharField(max_length=100, null=True, blank=True , choices= PUTAWAY_TASK_TYPE_CHOICES ) 
-    created_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(auto_now_add=True)
-   
+    putaway_task_type = models.CharField(
+        max_length=100, null=True, blank=True, choices=PUTAWAY_TASK_TYPE_CHOICES
+    )
 
     STATUS_CHOICES = [
-        ('In Progress', 'In Progress'),
-        ('Completed', 'Completed'),
+        ("In Progress", "In Progress"),
+        ("Completed", "Completed"),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    confirmed_at = models.DateTimeField(auto_now_add=True)
+
+    # Optional foreign keys
+    warehouse = models.ForeignKey(
+        "Warehouse", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    product = models.ForeignKey(
+        "Product", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    bin = models.ForeignKey(
+        "Bin", on_delete=models.SET_NULL, null=True, blank=True
+    )
+
     def save(self, *args, **kwargs):
-        if not self.putaway_id:  
-           
+        if not self.putaway_id:
             date_str = now().strftime("%Y%m%d")
-            last_id = Putaway.objects.filter(putaway_id__startswith=f"PUT{date_str}") \
-                                      .order_by("-putaway_id") \
-                                      .first()
+            last_id = Putaway.objects.filter(
+                putaway_id__startswith=f"PUT{date_str}"
+            ).order_by("-putaway_id").first()
             if last_id:
                 last_number = int(last_id.putaway_id[-4:])
                 new_number = last_number + 1
             else:
-                new_number=1
+                new_number = 1
             self.putaway_id = f"PUT{date_str}{new_number:04d}"
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.putaway_id} - {self.pallet} ({self.status})"
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
@@ -769,7 +813,7 @@ class GoodsReceipt(models.Model):
         related_name="gr"
     )
     posting_date = models.DateField(auto_now_add=True)
-    posted_by = models.CharField(max_length=100)  # user/employee
+    posted_by = models.CharField(max_length=100)
     remarks = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -779,11 +823,12 @@ class GoodsReceipt(models.Model):
                 number = int(last_gr.gr_no.replace("GR", "")) + 1
             else:
                 number = 1
-            self.gr_no = f"GR{number:05d}"  # GR00001, GR00002...
+            self.gr_no = f"GR{number:05d}"
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.gr_no} - {self.inbound_delivery.inbound_delivery_number}"
+
 
 
 class GoodsReceiptItem(models.Model):
