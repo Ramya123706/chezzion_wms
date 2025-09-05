@@ -11,53 +11,81 @@
           <form action="{% url 'add_vendor' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <div class="form-group mb-3">
-              <label for="name"><i class="fas fa-user me-2 text-primary"></i><b>Name</b></label>
-              <input type="text" class="form-control rounded-pill" id="name" name="name" required />
+            <!-- Name -->
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="name" name="name" placeholder="Name" required value="{{ vendor.name }}" />
+              <label for="name"><i class="fas fa-user me-1"></i> Name</label>
             </div>
 
-            <div class="form-group mb-3">
-              <label for="vendor_id"><i class="fas fa-id-card me-2 text-secondary"></i><b>Vendor ID</b></label>
+            <!-- Vendor ID (readonly) -->
+            <div class="form-floating mb-3">
               <input
                 type="text"
+                class="form-control bg-light"
                 id="vendor_id"
                 name="vendor_id"
-                class="form-control rounded-pill bg-light"
                 value="{{ vendor.vendor_id }}"
-                placeholder="Auto Generates"
+                placeholder="Vendor ID"
                 readonly />
+              <label for="vendor_id"><i class="fas fa-lock me-1"></i> Vendor ID</label>
             </div>
 
-            <div class="form-group mb-3">
-              <label for="vendor_code"><i class="fas fa-barcode me-2 text-dark"></i><b>Vendor Code</b></label>
-              <input type="text" id="vendor_code" name="vendor_code" class="form-control rounded-pill" required />
+            <!-- Vendor Code -->
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                id="vendor_code"
+                name="vendor_code"
+                class="form-control"
+                placeholder="Vendor Code"
+                required
+                value="{{ vendor.vendor_code }}" />
+              <label for="vendor_code"><i class="fas fa-barcode me-1"></i> Vendor Code</label>
             </div>
 
-            <div class="form-group mb-3">
-              <label for="email"><i class="fas fa-envelope me-2 text-danger"></i><b>Email</b></label>
-              <input type="email" id="email" name="email" class="form-control rounded-pill" required />
+            <!-- Email -->
+            <div class="form-floating mb-3">
+              <input type="email" id="email" name="email" class="form-control" placeholder="Email" required value="{{ vendor.email }}" />
+              <label for="email"><i class="fas fa-envelope me-1"></i> Email</label>
             </div>
 
-            <div class="form-group mb-3">
-              <label for="phone_no"><i class="fas fa-phone me-2 text-success"></i><b>Phone Number</b></label>
-              <input type="text" name="phone_no" class="form-control rounded-pill" required />
+            <!-- Phone -->
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                id="phone_no"
+                name="phone_no"
+                class="form-control"
+                placeholder="Phone Number"
+                required
+                value="{{ vendor.phone_no }}" />
+              <label for="phone_no"><i class="fas fa-phone me-1"></i> Phone Number</label>
             </div>
 
-            <div class="form-group mb-3">
-              <label for="address"><i class="fas fa-map-marker-alt me-2 text-info"></i><b>Address</b></label>
-              <input type="text" id="address" name="address" class="form-control rounded-pill" required />
+            <!-- Address -->
+            <div class="form-floating mb-3">
+              <input type="text" id="address" name="address" class="form-control" placeholder="Address" required value="{{ vendor.address }}" />
+              <label for="address"><i class="fas fa-map-marker-alt me-1"></i> Address</label>
             </div>
 
-            <div class="form-group mb-3">
-              <label for="profile_image"><i class="fas fa-image me-2 text-warning"></i><b>Profile Image</b></label>
-              <input type="file" id="profile_image" name="profile_image" class="form-control rounded-pill" required onchange="previewImage(event)" />
+            <!-- Profile Image -->
+            <div class="mb-3">
+              <label for="profile_image" class="form-label"><i class="fas fa-image me-1"></i> Profile Image</label>
+              <input type="file" id="profile_image" name="profile_image" class="form-control" onchange="previewImage(event)" />
               <div class="text-center mt-2">
-                <img id="preview" src="#" alt="Preview" class="img-thumbnail d-none" style="max-width: 150px" />
+                <img
+                  id="preview"
+                  src="#"
+                  alt="Preview"
+                  class="img-thumbnail d-none"
+                  style="max-width: 150px; border-radius: 50%; object-fit: cover" />
               </div>
             </div>
 
             <div class="text-center mt-4">
-              <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm"><i class="fas fa-save me-1"></i> Save Vendor</button>
+              <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm hover-scale">
+                <i class="fas fa-save me-1"></i> Save Vendor
+              </button>
             </div>
           </form>
         </div>
@@ -71,6 +99,7 @@
           <h5><i class="fas fa-search me-2"></i> Search Vendor</h5>
         </div>
         <div class="card-body">
+          <!-- Search Form -->
           <form method="get" class="mb-4 text-center">
             <div class="input-group mx-auto px-3">
               <input type="text" name="search" class="form-control rounded-pill" placeholder="Enter Vendor ID" />
@@ -81,11 +110,11 @@
           {% if vendors %}
           <!-- Desktop Table View -->
           <div class="d-none d-md-block px-3 pb-3">
-            <table class="table table-bordered text-center align-middle shadow-sm">
+            <table class="table table-bordered text-center align-middle shadow-sm table-hover">
               <thead class="table-light">
                 <tr>
                   <th><i class="fas fa-user"></i> Name</th>
-                  <th><i class="fas fa-id-card"></i> ID</th>
+                  <th><i class="fas fa-id-card"></i> Vendor ID</th>
                   <th><i class="fas fa-cogs"></i> Action</th>
                 </tr>
               </thead>
@@ -138,4 +167,12 @@
     preview.classList.remove("d-none");
   }
 </script>
+
+<!-- Optional Hover Scale Effect -->
+<style>
+  .hover-scale:hover {
+    transform: scale(1.05);
+    transition: 0.2s ease-in-out;
+  }
+</style>
 {% endblock %}

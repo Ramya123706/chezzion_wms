@@ -1,83 +1,86 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+  <div class="row justify-content-center">
+    <div class="col-md-10">
+      <!-- Delivery Header -->
+      <h3 class="text-white bg-primary text-center mb-4 p-2"><i class="fas fa-truck-loading"></i> Inbound Delivery Information</h3>
 
-            <!-- Delivery Header Table -->
-            <h3 class="text-white bg-primary text-center mb-4 p-2">Inbound Delivery Information</h3>
-            <table class="table table-bordered table-striped">
-                <tbody>
-                    <tr>
-                        <th>Inbound Delivery Number</th>
-                        <td>{{ delivery.inbound_delivery_number }}</td>
-                    </tr>
-                    <tr>
-                        <th>Delivery Date</th>
-                        <td>{{ delivery.delivery_date }}</td>
-                    </tr>
-                    <tr>
-                    <th>Vendor</th>
-                          <td>{{ delivery.supplier_id }} - {{ delivery.supplier.name }}</td>
-                    </tr>
-                    <tr>
-                        <th>Purchase Order Number</th>
-                        <td>{{ delivery.purchase_order_number }}</td>
-                    </tr>
-                    <tr>
-                        <th>ESN</th>
-                        <td>{{ delivery.esn }}</td>
-                    </tr>
-                    <tr>
-                        <th>Warehouse No</th>
-                        <td>{{ delivery.whs_no }}</td>
-                    </tr>
-                    <tr>
-                        <th>Delivery Status</th>
-                        <td>{{ delivery.delivery_status }}</td>
-                    </tr>
-                </tbody>
-            </table>
+      <table class="table table-bordered table-striped">
+        <tbody>
+          <tr>
+            <th><i class="fas fa-hashtag"></i> Delivery Number</th>
+            <td>{{ delivery.inbound_delivery_number }}</td>
+          </tr>
+          <tr>
+            <th><i class="fas fa-calendar-alt"></i> Delivery Date</th>
+            <td>{{ delivery.delivery_date }}</td>
+          </tr>
+          <tr>
+            <th><i class="fas fa-user"></i> Vendor</th>
+            <td>{{ delivery.supplier.name }}</td>
+          </tr>
+          <tr>
+            <th><i class="fas fa-file-invoice"></i> Purchase Order Number</th>
+            <td>{{ delivery.purchase_order_number }}</td>
+          </tr>
+          <tr>
+            <th><i class="fas fa-warehouse"></i> Warehouse</th>
+            <td>{{ delivery.whs_no }}</td>
+          </tr>
+          <tr>
+            <th><i class="fas fa-info-circle"></i> Status</th>
+            <td>{{ delivery.delivery_status }}</td>
+          </tr>
+          <tr>
+            <th><i class="fas fa-sticky-note"></i> Remarks</th>
+            <td>{{ delivery.remarks }}</td>
+          </tr>
+        </tbody>
+      </table>
 
-            <!-- Products Table -->
-            <h3 class="text-white bg-secondary text-center mb-4 p-2">Product Details</h3>
-            <table class="table table-bordered table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Product</th>
-                        <th>Product Description</th>
-                        <th>Quantity Delivered</th>
-                        <th>Quantity Received</th>
-                        <th>Unit of Measure</th>
-                        <th>Batch Number</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in ibdproducts %}
-                    <tr>
-                        <td>{{ product.product }}</td>
-                        <td>{{ product.product_description }}</td>
-                        <td>{{ product.quantity_delivered }}</td>
-                        <td>{{ product.quantity_received }}</td>
-                        <td>{{ product.unit_of_measure }}</td>
-                        <td>{{ product.batch_number }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center">No products found</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      <!-- Products Table -->
+      <h3 class="text-white bg-secondary text-center mb-4 p-2"><i class="fas fa-boxes"></i> Products Delivered</h3>
 
-            <!-- Buttons -->
-            <div class="text-center mt-4">
-                <a href="{% url 'edit_inbound_delivery' delivery.inbound_delivery_number %}" class="btn btn-warning">Edit</a>
-                <a href="{% url 'inbound_delivery' %}?ibd_no={{ delivery.inbound_delivery_number }}" class="btn btn-secondary">Back</a>
-            </div>
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th><i class="fas fa-barcode"></i> Product</th>
+            <th><i class="fas fa-tag"></i> Description</th>
+            <th><i class="fas fa-sort-numeric-up"></i> Qty Delivered</th>
+            <th><i class="fas fa-check"></i> Qty Received</th>
+            <th><i class="fas fa-ruler"></i> Unit</th>
+            <th><i class="fas fa-cube"></i> Batch Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in ibdproducts %}
+          <tr>
+            <td>{{ product.product }}</td>
+            <td>{{ product.product_description }}</td>
+            <td>{{ product.quantity_delivered }}</td>
+            <td>{{ product.quantity_received }}</td>
+            <td>{{ product.unit_of_measure }}</td>
+            <td>{{ product.batch_number }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center">No products found</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-        </div>
+      <!-- Buttons -->
+      <div class="text-center mt-4">
+        <a href="{% url 'edit_inbound_delivery' delivery.inbound_delivery_number %}" class="btn btn-warning me-2">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'inbound_delivery' %}" class="btn btn-secondary"> <i class="fas fa-arrow-left"></i> Back </a>
+      </div>
     </div>
+  </div>
 </div>
+
+<!-- FontAwesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
 {% endblock %}

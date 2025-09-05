@@ -1,52 +1,69 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-3">Goods Receipt (GR) List</h2>
+  <h2 class="mb-4 text-center"><i class="fas fa-clipboard-list me-2"></i>Goods Receipts (GR)</h2>
 
-    <!-- Search -->
-    <form method="get" class="mb-3 d-flex">
-        <input type="text" name="search" class="form-control me-2" placeholder="Search GR by Number">
-        <button type="submit" class="btn btn-primary">Search</button>
-    </form>
+  <!-- 🔍 Search Form -->
+  <form method="get" class="mb-3 d-flex justify-content-between">
+    <input type="text" name="q" class="form-control me-2" placeholder="Search GR Number or Inbound Delivery..." value="{{ search_query }}" />
+    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+  </form>
 
-    <table class="table table-bordered table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>GR No</th>
-                <th>Delivery Date</th>
-                <th>GR Date</th>
-                <th>Supplier</th>
-                <th>Warehouse</th>
-                <th>PO Number</th>
-                <th>Status</th>
-                <th>Remarks</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for gr in grs %}
-            <tr>
-                <td>{{ gr.inbound_delivery_number }}</td>
-                <td>{{ gr.delivery_date }}</td>
-                <td>{{ gr.gr_date }}</td>
-                <td>{{ gr.supplier.name }}</td>
-                <td>{{ gr.whs_no.whs_no }}</td>
-                <td>{{ gr.purchase_order_number.po_number }}</td>
-                <td>
-                    {% if gr.delivery_status == "Completed" %}
-                    <span class="badge bg-success">{{ gr.delivery_status }}</span>
-                    {% else %}
-                    <span class="badge bg-warning">{{ gr.delivery_status }}</span>
-                    {% endif %}
-                </td>
-                <td>{{ gr.remarks }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8" class="text-center">No GR records found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+  <!-- GR Table -->
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>GR No.</th>
+          <th>Inbound Delivery</th>
+          <th>Supplier</th>
+          <th>Posting Date</th>
+          <th>Posted By</th>
+          <th>Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for gr in gr_list %}
+        <tr>
+          <td>{{ gr.gr_no }}</td>
+          <td>{{ gr.inbound_delivery.inbound_delivery_number }}</td>
+          <td>{{ gr.inbound_delivery.supplier.name }}</td>
+          <td>{{ gr.posting_date }}</td>
+          <td>{{ gr.posted_by }}</td>
+          <td>{{ gr.remarks|default:"-" }}</td>
+          <td>
+            <a href="{% url 'gr_detail' gr.gr_no %}" class="btn btn-sm btn-info"> <i class="fas fa-eye"></i> View </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No Goods Receipts found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
+  </div>
+
+  <!-- 📄 Pagination -->
+  {% if gr_list.has_other_pages %}
+  <nav class="mt-3">
+    <ul class="pagination justify-content-center">
+      {% if gr_list.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ search_query }}&page={{ gr_list.previous_page_number }}"><i class="fas fa-chevron-left"></i> Previous</a>
+      </li>
+      {% endif %} {% for num in gr_list.paginator.page_range %} {% if gr_list.number == num %}
+      <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% else %}
+      <li class="page-item"><a class="page-link" href="?q={{ search_query }}&page={{ num }}">{{ num }}</a></li>
+      {% endif %} {% endfor %} {% if gr_list.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ search_query }}&page={{ gr_list.next_page_number }}">Next <i class="fas fa-chevron-right"></i></a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
 </div>
+
 {% endblock %}

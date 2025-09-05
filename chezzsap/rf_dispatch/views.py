@@ -422,6 +422,17 @@ def batch_product_view(request):
                 sub_category=sub_category
             )
 
+
+        except Exception as e:
+            query = request.GET.get('search', '')
+            stock_uploads = StockUpload.objects.all()
+            return render(request, 'stock_upload/batch_product.html', {
+                'products': Product.objects.all(),
+                'warehouse': Warehouse.objects.all(),
+                'materials': PackingMaterial.objects.all(),
+                'stocks': stock_uploads,
+                'query': query,
+            })
         except Exception as e:
             query = request.GET.get('search', '')
             stock_uploads = StockUpload.objects.all()
@@ -555,31 +566,65 @@ def stock_edit(request, pk):
     stock = get_object_or_404(StockUpload, pk=pk)
     warehouse = Warehouse.objects.all()
     materials = PackingMaterial.objects.all()
+    products = Product.objects.all()
+    bins = Bin.objects.all()  # for dropdown in template
 
     if request.method == "POST":
-        stock.whs_no = request.POST.get("whs_no")
-        stock.product = request.POST.get("product")
-        stock.category = request.POST.get("category")
-        stock.sub_category = request.POST.get("sub_category")
-        stock.description = request.POST.get("description")
-        stock.quantity = request.POST.get("quantity")
-        stock.bin = request.POST.get("bin")
-        stock.pallet = request.POST.get("pallet")
-        stock.p_mat = request.POST.get("p_mat")  # foreign key ID
-        stock.inspection = request.POST.get("inspection")
-        stock.stock_type = request.POST.get("stock_type")
-        stock.wps = request.POST.get("wps")
-        stock.doc_no = request.POST.get("doc_no")
-        stock.pallet_status = request.POST.get("pallet_status")
-        stock.save()
-        return redirect("stock_list")
+        try:
+            # Fetch ForeignKey instances
+            whs_no_instance = Warehouse.objects.get(whs_no=request.POST.get("whs_no"))
+            p_mat_instance = PackingMaterial.objects.get(id=request.POST.get("p_mat"))
+            product_instance = Product.objects.get(product_id=request.POST.get("product"))
+
+            # Bin (optional)
+            bin_id = request.POST.get("bin")
+            if bin_id:
+                bin_instance = Bin.objects.get(pk=bin_id)
+            else:
+                bin_instance = None
+
+            # Assign all fields
+            stock.whs_no = whs_no_instance
+            stock.p_mat = p_mat_instance
+            stock.product = product_instance
+            stock.bin = bin_instance
+            stock.category = request.POST.get("category") or ""
+            stock.sub_category = request.POST.get("sub_category") or ""
+            stock.description = request.POST.get("description") or ""
+            stock.quantity = int(request.POST.get("quantity") or 0)
+            stock.pallet = request.POST.get("pallet") or ""
+            stock.inspection = request.POST.get("inspection") or "Not Inspected"
+            stock.stock_type = request.POST.get("stock_type") or "Unrestricted"
+            stock.wps = request.POST.get("wps") or ""
+            stock.doc_no = request.POST.get("doc_no") or ""
+            stock.pallet_status = request.POST.get("pallet_status") or "Planned"
+
+            stock.save()
+            messages.success(request, "Stock updated successfully!")
+            return redirect("stock_list")
+
+        except Warehouse.DoesNotExist:
+            messages.error(request, "Selected warehouse does not exist.")
+        except Product.DoesNotExist:
+            messages.error(request, "Selected product does not exist.")
+        except PackingMaterial.DoesNotExist:
+            messages.error(request, "Selected packing material does not exist.")
+        except Bin.DoesNotExist:
+            messages.error(request, "Selected bin does not exist.")
+        except Exception as e:
+            messages.error(request, f"Error updating stock: {str(e)}")
 
     context = {
         "stock": stock,
         "warehouse": warehouse,
         "materials": materials,
+        "products": products,
+        "bins": bins,
     }
     return render(request, "stock_upload/stock_edit.html", context)
+
+
+
 
 
 
@@ -962,59 +1007,36 @@ def get_product_description(request, product_id):
 
 
 # views.py
-from .models import Inventory
+
 
 from django.shortcuts import render
-from .models import Inventory, Category, PurchaseItem, GoodsReceiptItem
-
-def inventory_view(request):
-    search_query = request.GET.get("search", "")
-    category_filter = request.GET.get("category")
-
-    # Base inventory query
-    inventory = Inventory.objects.select_related("product", "product__category").all()
-
-    # Search filter
-    if search_query:
-        inventory = inventory.filter(
-            product__name__icontains=search_query
-        ) | Inventory.objects.filter(
-            product__product_id__icontains=search_query
-        )
-
-    # Category filter
-    if category_filter:
-        inventory = inventory.filter(product__category__id=category_filter)
-
-    categories = Category.objects.all()
-
-    # Attach PO number & GR number for each inventory item
-    inventory_data = []
-    for item in inventory:
-        # Purchase order lookup (assuming PurchaseItem has product FK)
-        po_item = PurchaseItem.objects.filter(
-            product=item.product
-        ).select_related("purchase_order").first()
-
-        # Goods receipt lookup (via inbound_delivery_product → product)
-        gr_item = GoodsReceiptItem.objects.filter(
-            inbound_delivery_product__product=item.product
-        ).select_related("goods_receipt").first()
-
-        inventory_data.append({
-            "inventory": item,
-            "po_number": po_item.purchase_order.po_number if po_item and po_item.purchase_order else None,
-            "gr_no": gr_item.goods_receipt.gr_no if gr_item and gr_item.goods_receipt else None,
-        })
+from django.db.models import Q, Prefetch
+from .models import Inventory, Category, SubCategory, Product, PurchaseItem, GoodsReceiptItem
 
 
-    context = {
-        "inventory_data": inventory_data,
-        "categories": categories,
-        "search_query": search_query,
-        "category_filter": int(category_filter) if category_filter else None,
-    }
-    return render(request, "inventory/inventory_list.html", context)
+
+from decimal import Decimal
+from django.shortcuts import render
+from django.db.models import Q
+from .models import (
+    Inventory, Category, SubCategory, Product, 
+    PurchaseItem, GoodsReceiptItem
+)
+
+from django.shortcuts import render
+from .models import Inventory  # important: relative import from same app
+
+from django.shortcuts import render
+from .models import Inventory
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1029,9 +1051,65 @@ def product_delete(request, product_id):
 # --------
 from .models import Inventory
 
+from django.http import HttpResponse
+
+from django.shortcuts import render
+from rf_dispatch.models import Inventory
+
+from django.shortcuts import render
+from django.db.models import Q
+from rf_dispatch.models import Inventory, Product, Category, SubCategory, PurchaseItem, GoodsReceiptItem
+
 def inventory_view(request):
-    inventory = Inventory.objects.select_related('product').all()
-    return render(request, 'inventory/inventory_list.html', {'inventory': inventory})
+    search_query = request.GET.get("search", "").strip()
+    category_filter = request.GET.get("category", "")
+    subcategory_filter = request.GET.get("subcategory", "")
+
+    inventory_qs = Inventory.objects.select_related(
+        "product", "product__category", "product__sub_category"
+    )
+
+    # Search filter
+    if search_query:
+        inventory_qs = inventory_qs.filter(
+            Q(product__name__icontains=search_query) |
+            Q(product__product_id__icontains=search_query)
+        )
+
+    # Category filter
+    if category_filter:
+        inventory_qs = inventory_qs.filter(product__category__id=category_filter)
+
+    # Subcategory filter
+    if subcategory_filter:
+        inventory_qs = inventory_qs.filter(product__sub_category__id=subcategory_filter)
+
+    # Build inventory data with latest PO and GR
+    inventory_data = []
+    for item in inventory_qs:
+        po_item = PurchaseItem.objects.filter(product=item.product).select_related("purchase_order").order_by("-purchase_order__po_date").first()
+        gr_item = GoodsReceiptItem.objects.filter(
+            inbound_delivery_product__product=item.product
+        ).select_related("goods_receipt").order_by("-goods_receipt__posting_date").first()
+        inventory_data.append({
+            "inventory": item,
+            "po_number": po_item.purchase_order.po_number if po_item and po_item.purchase_order else "-",
+            "gr_number": gr_item.goods_receipt.gr_no if gr_item and gr_item.goods_receipt else "-",
+        })
+
+    context = {
+        "inventory_data": inventory_data,
+        "categories": Category.objects.all(),
+        "subcategories": SubCategory.objects.all(),
+        "search_query": search_query,
+        "category_filter": category_filter,
+        "subcategory_filter": subcategory_filter,
+    }
+
+    return render(request, "inventory/inventory_list.html", context)
+
+
+
 
    
 # .........
@@ -1315,21 +1393,32 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder
 
-def purchase_edit(request, po_number):
-    po = get_object_or_404(PurchaseOrder, po_number=po_number)
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseItem, Product
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseItem, Product
+
+
+from decimal import Decimal
+
+def purchase_edit(request, po_id):
+    po = get_object_or_404(PurchaseOrder, id=po_id)
+    item = PurchaseItem.objects.filter(purchase_order=po).first()
 
     if request.method == 'POST':
-        
+        # --- update purchase order ---
         po.company_name = request.POST.get('company_name')
         po.company_address = request.POST.get('company_address')
         po.company_phone = request.POST.get('company_phone')
         po.company_email = request.POST.get('company_email')
         po.company_website = request.POST.get('company_website')
-
         po.po_date = request.POST.get('po_date')
         po.po_number = request.POST.get('po_number')
         po.customer_number = request.POST.get('customer_number')
-
         po.vendor_company_name = request.POST.get('vendor_company_name')
         po.vendor_contact_name = request.POST.get('vendor_contact_name')
         po.vendor_phone = request.POST.get('vendor_phone')
@@ -1337,17 +1426,41 @@ def purchase_edit(request, po_number):
         po.vendor_email = request.POST.get('vendor_email')
         po.vendor_website = request.POST.get('vendor_website')
 
-        po.item_number = request.POST.get('item_number')
-        po.product_name = request.POST.get('product_name')
-        po.product_quantity = request.POST.get('product_quantity')
-        po.unit_price = request.POST.get('unit_price')
-        po.total_price = request.POST.get('total_price')
+        # --- update item ---
+        if item:
+            product_id = request.POST.get('product_id')
+            if product_id:
+                item.product = get_object_or_404(Product, id=product_id)
+
+            # convert values safely
+            quantity = request.POST.get('product_quantity')
+            unit_price = request.POST.get('unit_price')
+
+            if quantity:
+                item.quantity = int(quantity)   # quantity should be integer
+            if unit_price:
+                item.unit_price = Decimal(unit_price)  # unit price as decimal
+
+            # calculate total automaticallypurchase_detail
+            
+            item.total_price = item.quantity * item.unit_price
+            item.save()
 
         po.save()
         messages.success(request, "Purchase order updated successfully.")
         return redirect('purchase_detail', pk=po.id)
 
-    return render(request, 'purchase_order/purchase_edit.html', {'po': po})
+
+    # send product list to template for dropdown
+    products = Product.objects.all()
+    return render(request, 'purchase_order/purchase_edit.html', {
+        'po': po,
+        'item': item,
+        'products': products,
+    })
+
+
+
 
 
 def rf_ptl(request):
@@ -1474,6 +1587,8 @@ from .models import Vendor
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import VendorForm
 
+from django.db.models import Q
+
 def add_vendor(request, vendor_id=None):
     vendor = None
     if vendor_id:
@@ -1485,16 +1600,23 @@ def add_vendor(request, vendor_id=None):
         saved_vendor = form.save()
         return redirect('vendor_detail', vendor_id=saved_vendor.vendor_id)
 
-    
     search_query = request.GET.get('search', '')
-    vendors = Vendor.objects.filter(vendor_id__icontains=search_query) if search_query else Vendor.objects.none()
+    if search_query:
+        vendors = Vendor.objects.filter(
+            Q(vendor_id__icontains=search_query) |
+            Q(name__icontains=search_query)
+        )
+    else:
+        vendors = Vendor.objects.all()  # or Vendor.objects.none() if you want empty initially
 
     context = {
         'form': form,
         'vendors': vendors,
-        'vendor':vendor,
+        'vendor': vendor,
     }
     return render(request, 'vendor/add_vendor.html', context)
+
+
 
 def vendor_list(request):
     search_query = request.GET.get('search')
@@ -1558,28 +1680,73 @@ from .models import Putaway
 from django.shortcuts import render, redirect
 
 
+from django.shortcuts import render, redirect
+from .models import Putaway
+import uuid
+
+from django.shortcuts import render, redirect
+from .models import Putaway
+
+from django.shortcuts import render, redirect
+from .models import Putaway, Product, Warehouse, Bin
+from django.utils.timezone import now
+
+from django.shortcuts import render, redirect
+from django.utils.timezone import now
+from .models import Putaway, Product, Warehouse, Bin, Pallet  # Make sure Pallet model exists
+
 def putaway_task(request):
-    if request.method == 'POST':
-     
-        putaway_id = request.POST.get('putaway_id')
-        pallet = request.POST.get('pallet')
-        location = request.POST.get('location')
-        putaway_task_type = request.POST.get('putaway_task_type')
-        status = request.POST.get('status')
+    products = Product.objects.all()
+    warehouses = Warehouse.objects.all()
+    bins = Bin.objects.all()
+    pallets = Pallet.objects.all()  # Load pallets for dropdown
+
+    if request.method == "POST":
+        putaway_id = request.POST.get("putaway_id")
+        pallet_id = request.POST.get("pallet")
+        location = request.POST.get("location")
+        putaway_task_type = request.POST.get("putaway_task_type")
+        status = request.POST.get("status")
+
+        # Optional fields
+        warehouse_id = request.POST.get("warehouse")
+        product_id = request.POST.get("product")
+        bin_id = request.POST.get("bin")
+
         putaway = Putaway(
             putaway_id=putaway_id,
-            pallet=pallet,
             location=location,
-            status = status,
-            putaway_task_type=putaway_task_type
-            
+            putaway_task_type=putaway_task_type,
+            status=status,
         )
+
+        # Set foreign keys
+        if pallet_id:
+            putaway.pallet_id = pallet_id
+        if warehouse_id:
+            putaway.warehouse_id = warehouse_id
+        if product_id:
+            putaway.product_id = product_id
+        if bin_id:
+            putaway.bin_id = bin_id
+
         putaway.save()
+        return redirect("putaway_pending")  # Adjust your redirect
 
-        return redirect('putaway_pending')
+    # Generate a temporary Putaway ID for the form
+    temp_putaway_id = f"TEMP-{now().strftime('%Y%m%d%H%M%S')}"
 
-    return render(request, 'putaway/putaway_task.html')
-    
+    context = {
+        "putaway_id": temp_putaway_id,
+        "products": products,
+        "warehouses": warehouses,
+        "bins": bins,
+        "pallets": pallets,
+    }
+    return render(request, "putaway/putaway_task.html", context)
+
+
+
 def putaway_pending(request):
     pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
     return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
@@ -1783,6 +1950,16 @@ def generate_inbound_delivery_number():
 
 from django.utils.dateparse import parse_date
 
+from django.shortcuts import render, redirect
+from django.utils.dateparse import parse_date
+from decimal import Decimal
+import uuid
+from .models import (
+    InboundDelivery, InboundDeliveryproduct,
+    Product, Warehouse, Vendor, PurchaseOrder, Inventory
+)
+
+
 def inbound_delivery(request):
     search_term = request.GET.get('inbound_delivery_number')
     if search_term:
@@ -1802,7 +1979,6 @@ def inbound_delivery(request):
         vendor_id = request.POST.get('vendor')
         supplier_obj = Vendor.objects.filter(pk=vendor_id).first()
 
-        # Safely parse dates, default to None if empty
         delivery_date = parse_date(request.POST.get('delivery_date')) or None
         document_date = parse_date(request.POST.get('document_date')) or None
 
@@ -1825,16 +2001,36 @@ def inbound_delivery(request):
         batch_number = request.POST.getlist('batch_number[]')
 
         for i in range(len(product_ids)):
-            if product_ids[i].strip():
-                product_obj = Product.objects.get(pk=product_ids[i])
-                InboundDeliveryproduct.objects.create(
-                    delivery=delivery,
-                    product=product_obj,
-                    quantity_delivered=int(qty_delivered[i]) if qty_delivered[i] else 0,
-                    quantity_received=int(qty_received[i]) if qty_received[i] else 0,
-                    unit_of_measure=unit_of_measure[i],
-                    batch_number=batch_number[i] if batch_number[i] else str(uuid.uuid4())[:8]
-                )
+            pid = product_ids[i].strip()
+            if not pid:
+                continue
+
+            try:
+                product_obj = Product.objects.get(product_id=pid)
+            except Product.DoesNotExist:
+                continue  # skip invalid products
+
+            delivered_qty = int(qty_delivered[i]) if qty_delivered[i] else 0
+            received_qty = int(qty_received[i]) if qty_received[i] else 0
+            uom = unit_of_measure[i] or product_obj.unit_of_measure
+            batch = batch_number[i] if batch_number[i] else str(uuid.uuid4())[:8]
+
+            # Create inbound delivery product record
+            inbound_item = InboundDeliveryproduct.objects.create(
+                delivery=delivery,
+                product=product_obj,
+                product_description=product_obj.name,
+                quantity_delivered=int(qty_delivered[i]) if qty_delivered[i] else 0,
+                quantity_received=int(qty_received[i]) if qty_received[i] else 0,
+                unit_of_measure=unit_of_measure[i],
+                batch_number=batch_number[i] if batch_number[i] else None
+            )
+    
+
+            # Update Inventory
+            inventory, created = Inventory.objects.get_or_create(product=product_obj)
+            inventory.total_quantity += received_qty
+            inventory.save()
 
         return redirect('inbound_delivery')
 
@@ -1850,17 +2046,32 @@ from django.shortcuts import render, get_object_or_404
 from .models import InboundDelivery, InboundDeliveryproduct,  PurchaseOrder, Product
 from django.http import JsonResponse
 
+from django.shortcuts import get_object_or_404, render
+from .models import InboundDelivery
+
+from django.shortcuts import render, get_object_or_404
+
 def delivery_detail(request, inbound_delivery_number):
-    # Get the delivery
     delivery = get_object_or_404(InboundDelivery, inbound_delivery_number=inbound_delivery_number)
-    
-    # Get related products (uses related_name='products' in InboundDeliveryProduct model)
-    ibdproducts = delivery.products.all()
+
+    ibdproducts = []
+    for p in delivery.products.all():  
+        product_obj = p.product
+        ibdproducts.append({
+            "product": product_obj.product_id or product_obj.name,
+            "product_description": p.product_description or product_obj.name,
+            "quantity_delivered": p.quantity_delivered,
+            "quantity_received": p.quantity_received or 0,
+            "unit_of_measure": p.unit_of_measure or product_obj.unit_of_measure or "",
+            "batch_number": p.batch_number or "",
+        })
 
     return render(request, 'inbound/delivery_detail.html', {
         'delivery': delivery,
         'ibdproducts': ibdproducts,
     })
+
+
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import InboundDelivery
@@ -2737,31 +2948,57 @@ def gr_detail(request, gr_no):
 from django.shortcuts import render, redirect
 from .forms import GoodsReceiptForm
 
+from django.shortcuts import render, redirect
+from .models import GoodsReceipt, InboundDelivery
+from .forms import GoodsReceiptForm
+
 def create_gr(request):
     if request.method == "POST":
         form = GoodsReceiptForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('inventory')  # After GR, go back to inventory
+            gr = form.save(commit=False)
+
+            # Auto-generate GR number
+            if not gr.gr_no:
+                last_gr = GoodsReceipt.objects.order_by("-id").first()
+                if last_gr and last_gr.gr_no.startswith("GR"):
+                    number = int(last_gr.gr_no.replace("GR", "")) + 1
+                else:
+                    number = 1
+                gr.gr_no = f"GR{number:05d}"  # GR00001, GR00002, etc.
+
+            gr.save()
+            return redirect('inventory')  # After GR creation, go back to inventory
     else:
         form = GoodsReceiptForm()
-    return render(request, 'gr/create_gr.html', {'form': form})
+
+    # Optional: list all inbound deliveries without GR yet
+    pending_deliveries = InboundDelivery.objects.filter(gr__isnull=True)
+
+    return render(
+        request,
+        'gr/create_gr.html',
+        {
+            'form': form,
+            'pending_deliveries': pending_deliveries
+        }
+    )
+
 
 
 from django.shortcuts import render
 from .models import InboundDelivery
 
 def gr_list(request):
-    # Filter only completed or all GRs
-    search_term = request.GET.get("search")
-    if search_term:
-        grs = InboundDelivery.objects.filter(
-            inbound_delivery_number__icontains=search_term
-        ).order_by("-gr_date")
-    else:
-        grs = InboundDelivery.objects.all().order_by("-gr_date")
-
-    return render(request, "gr/gr_list.html", {"grs": grs})
+    search_query = request.GET.get('q', '')
+    gr_list = GoodsReceipt.objects.all().order_by('-posting_date')
+    if search_query:
+        gr_list = gr_list.filter(gr_no__icontains=search_query)
+    paginator = Paginator(gr_list, 10)  # 10 per page
+    page = request.GET.get('page')
+    gr_list = paginator.get_page(page)
+    
+    return render(request, 'gr/gr_list.html', {'gr_list': gr_list, 'search_query': search_query})
 
 
 from django.shortcuts import render
@@ -2783,6 +3020,7 @@ def search(request):
         results = []
     
     return render(request, "search.html", {"query": query, "results": results})
+
 
  
 def bulk_upload_bins(request):
@@ -2844,14 +3082,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
 
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+
 
         if not username or not password:
             messages.error(request, "Please enter both username and password")
@@ -2883,6 +3119,7 @@ from .models import Profile
 @login_required
 def edit_profile(request):
     user = request.user
+
     profile, created = Profile.objects.get_or_create(user=user)  
 
     if request.method == 'POST':
@@ -3075,3 +3312,41 @@ def delete_user(request, user_id):
 def user_list(request):
     users = User.objects.all().select_related('profile')
     return render(request, 'account/user_list.html', {'users': users})
+
+
+
+
+from django.http import JsonResponse
+from .models import PurchaseItem
+
+def get_po_products(request, po_id):
+    try:
+        items = PurchaseItem.objects.filter(purchase_order_id=po_id)
+        products = []
+
+        for item in items:
+            product = item.product
+            products.append({
+                "code": getattr(product, "code", product.name),  # fallback to name if code not exist
+                "description": product.name,
+                "quantity": item.quantity,
+                "uom": getattr(product, "unit_of_measure", ""),  # make sure Product model has uom
+            })
+
+        return JsonResponse({"products": products})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Putaway
+
+def all_putaway_tasks(request):
+    """
+    View to display all putaway tasks in a table.
+    """
+    tasks = Putaway.objects.all().order_by('-created_at')  # newest first
+    context = {
+        'tasks': tasks
+    }
+    return render(request, 'putaway/all_tasks.html', context)

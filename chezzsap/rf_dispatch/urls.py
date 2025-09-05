@@ -11,7 +11,7 @@ urlpatterns = [
     path('home/', views.home, name='home'),
     path('start/', views.first, name='first'),
     path('six/', views.sixth, name='sixth'),
-    path("search/", views.search, name="search"),
+    path('search/', views.search, name='search'),
 
     # Outbound steps
     path('outbound1/', views.outbound1, name='outbound1'),
@@ -133,6 +133,8 @@ urlpatterns = [
     path('add_picking/', views.add_picking, name='add_picking'),
     path('pending_task/', views.pending_task, name='pending_task'),
     path('customer/', views.customer, name='customer'),
+    path('putaway/tasks/', views.all_putaway_tasks, name='all_tasks'),
+
 
     path('ajax/whs-suggestions/', views.whs_suggestions, name='whs_suggestions'),
     path('ajax/category-suggestions/', views.category_suggestions, name='category_suggestions'),
@@ -206,6 +208,16 @@ urlpatterns = [
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
 
+    path("accounts/login/", views.login_view, name="login"),
+    path("profile_detail/", views.profile_detail_view, name="profile_detail"),
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path('logout/', views.logout_view, name='logout'), 
+    path('profile/change-password/', views.change_password, name='change_password'),
+    path('add_user/', views.add_user, name='add_user'),
+    path('users/', views.user_list, name='user_list'),
+    path('users/<int:user_id>/', views.user_detail, name='user_detail'),
+    path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
+    path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
 
     # Change password
     path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),

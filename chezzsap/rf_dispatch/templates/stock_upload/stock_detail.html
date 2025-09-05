@@ -1,28 +1,75 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-5">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6 col-sm-12 mx-auto">
-                <table class="table text-start table-responsive table-striped p-2 ">
-                    <tbody>
-                        <tr><th colspan="2" class="text-center bg-warning"> Stock Info</th></tr>
-                        <tr><th>Product</th><td>{{ stock.product}}</td></tr>
-                        <tr><th>Quantity</th><td>{{ stock.quantity }}</td></tr>
-                        <tr><th>Batch</th><td>{{ stock.batch }}</td></tr>
-                        <tr><th>BIN</th><td>{{ stock.bin.bin_id }}</td></tr>
-                        <tr><th>Pallet</th><td>{{ stock.pallet }}</td></tr>
-                        <tr><th>P_mat</th><td>{{ stock.p_mat }}</td></tr>
-                        <tr><th>Category</th><td>{{ stock.category }}</td></tr>
-                        <tr><th>Inspection</th><td>{{ stock.inspection }}</td></tr>
-                        <tr><th>Stock Type</th><td>{{ stock.stock_type }}</td></tr>
-                        <tr><th>item_number</th><td>{{ stock.item_number }}</td></tr>
-                        <tr><th>Doc No</th><td>{{ stock.doc_no }}</td></tr>
-                        <tr><th>Pallet Status</th><td>{{ stock.pallet_status }}</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-5 mb-5">
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white text-center">
+      <h4><i class="fas fa-boxes me-2"></i>Stock Details</h4>
     </div>
+    <div class="card-body">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-sm-12">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered">
+              <tbody>
+                <tr>
+                  <th colspan="2" class="text-center bg-warning"><i class="fas fa-info-circle me-1"></i>Stock Info</th>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-barcode me-1"></i> Product</th>
+                  <td>{{ stock.product }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-sort-numeric-up me-1"></i> Quantity</th>
+                  <td>{{ stock.quantity }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-box me-1"></i> Batch</th>
+                  <td>{{ stock.batch }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-warehouse me-1"></i> BIN</th>
+                  <td>{{ stock.bin.bin_id }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-cube me-1"></i> Pallet</th>
+                  <td>{{ stock.pallet }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-clipboard-list me-1"></i> P_mat</th>
+                  <td>{{ stock.p_mat }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-tags me-1"></i> Category</th>
+                  <td>{{ stock.category }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-search me-1"></i> Inspection</th>
+                  <td>{{ stock.inspection }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-layer-group me-1"></i> Stock Type</th>
+                  <td>{{ stock.stock_type }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-hashtag me-1"></i> Item Number</th>
+                  <td>{{ stock.item_number }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-file-alt me-1"></i> Doc No</th>
+                  <td>{{ stock.doc_no }}</td>
+                </tr>
+                <tr>
+                  <th><i class="fas fa-check-square me-1"></i> Pallet Status</th>
+                  <td>{{ stock.pallet_status }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="text-center mt-3">
+            <a href="{% url 'stock_list' %}" class="btn btn-primary"> <i class="fas fa-arrow-left me-1"></i>Back to Stock List </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
