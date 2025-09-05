@@ -165,8 +165,8 @@ urlpatterns = [
     path('get-po-products/<int:po_id>/', views.get_po_products, name='get_po_products'),
     path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
     path('sales/', views.sales_order_list, name='sales_order_list'),
-    path("get-warehouse-address/<int:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
-    path('product-autocomplete/', views.product_autocomplete, name='product-autocomplete'),
+    path("get-warehouse-address/<str:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
+    # path('product-autocomplete/', views.product_autocomplete, name='product-autocomplete'),
 
     path('sales/<str:so_no>/', views.sales_order_detail, name='sales_order_detail'),
     path('sales-order/edit/<str:so_no>/', views.sales_order_edit, name='sales_order_edit'),
@@ -190,8 +190,10 @@ urlpatterns = [
     path("material/", views.material_list, name="material_list"),  
     path("material/<int:id>/edit/", views.material_edit, name="material_edit"), 
     path("material/<int:id>/delete/", views.material_delete, name="material_delete"),
+    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
     path("get-total-quantity/<str:product_id>/", views.get_total_quantity, name="get_total_quantity"),
     path("outbound/<str:delivery_no>/", views.outbound_detail, name="outbound_detail"),
+    
 # Outbound → PGI
     path("pgi/<str:delivery_no>/", views.post_goods_issue, name="post_goods_issue"),
     path("pgi/detail/<str:pgi_no>/", views.pgi_detail, name="pgi_detail"),
