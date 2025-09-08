@@ -48,25 +48,7 @@ class TruckInspectionForm(forms.ModelForm):
             'is_the_truck_dock_level_ok': forms.Select(choices=YES_NO_CHOICES, attrs={'class': 'form-select'}),
         }
 
-# forms.py
-from django import forms
 
-
-# from django import forms
-# from .models import WarehouseQuestion
-
-# class WarehouseQuestionForm(forms.ModelForm):
-#     class Meta:
-#         model = WarehouseQuestion
-#         fields = ['question_text']
-
-# class WarehouseQuestionForm(forms.ModelForm):
-#     class Meta:
-#         model = WarehouseQuestion
-#         fields = ['text']   # ✅ Must exactly match the model field name
-#         widgets = {
-#            'text': forms.TextInput(attrs={'placeholder': 'Enter your question here...'})
-#        }
 
 from django import forms
 class Trucksearchform(forms.Form):

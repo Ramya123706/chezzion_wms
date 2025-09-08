@@ -112,7 +112,7 @@ def yard_checkin_view(request):
                 except YardHdr.DoesNotExist:
                     print(f"YardHdr with truck_no {truck_no} does not exist.")
 
-            return redirect('truck_inspection', truck_no=instance.truck_no)
+            return redirect('inspection', truck_no=instance.truck_no)
 
     else:
         form = YardHdrForm()
@@ -153,6 +153,121 @@ def yard_checkin_view(request):
 #     question.delete()
 #     return redirect("question_list")
 
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import user_passes_test
+from .models import InspectionQuestion
+
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render, redirect
+from .models import InspectionQuestion
+
+@user_passes_test(lambda u: u.is_superuser)
+def add_questions(request):
+    old_questions = InspectionQuestion.objects.all().order_by("id")  # fetch all existing
+
+    if request.method == "POST":
+        if "count" in request.POST:  # Step 1 submitted
+            count = int(request.POST["count"])
+            return render(
+                request,
+                "truck_screen/add_question.html",
+                {"count": count, "old_questions": old_questions},
+            )
+        else:  # Step 2 submitted
+            questions = []
+            for key, value in request.POST.items():
+                if key.startswith("question") and value.strip():
+                    questions.append(value.strip())
+            # Save questions into DB
+            for q in questions:
+                InspectionQuestion.objects.create(text=q)
+
+            return redirect("add_questions")  # redirect back so old+new show
+
+    return render(
+        request,
+        "truck_screen/add_question.html",
+        {"old_questions": old_questions},
+    )
+
+from django.shortcuts import get_object_or_404
+
+@user_passes_test(lambda u: u.is_superuser)
+def delete_question(request, pk):
+    question = get_object_or_404(InspectionQuestion, pk=pk)
+    question.delete()
+    return redirect("add_questions")
+
+from django.http import JsonResponse
+
+@user_passes_test(lambda u: u.is_superuser)
+def edit_question(request, pk):
+    question = get_object_or_404(InspectionQuestion, pk=pk)
+
+    if request.method == "POST":
+        new_text = request.POST.get("text", "").strip()
+        if new_text:
+            question.text = new_text
+            question.save()
+
+            return JsonResponse({"success": True, "text": new_text})
+        return JsonResponse({"success": False, "error": "Empty text"})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+from .models import YardHdr, InspectionQuestion, InspectionResponse
+
+from django.contrib import messages
+
+def inspection_view(request, truck_no):
+    # Get existing truck
+    truck = YardHdr.objects.filter(truck_no=truck_no).last()
+    if not truck:
+        return redirect("one")  # safety redirect
+
+    questions = InspectionQuestion.objects.all()
+
+    if request.method == "POST":
+        all_yes = True
+        responses = {}
+
+        for q in questions:
+            ans = request.POST.get(f"question_{q.id}")
+            if ans is None:
+                all_yes = False  # missing answer
+            responses[q] = ans
+            if ans == "No":
+                all_yes = False
+
+        if not all_yes:
+            # Don’t save, show error message
+            messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
+            return render(
+                request,
+                "truck_screen/two.html",
+                {"questions": questions, "truck_no": truck_no},
+            )
+
+        # ✅ Save only if all answers are Yes
+        for q, ans in responses.items():
+            InspectionResponse.objects.create(
+                yard=truck,
+                question=q,
+                answer=ans
+            )
+
+        truck.truck_status = "Inspected"
+        truck.save()
+
+        messages.success(request, "Truck inspection completed successfully!")
+        return redirect("one")
+
+    return render(
+        request,
+        "truck_screen/two.html",
+        {"questions": questions, "truck_no": truck_no},
+    )
 
 
 from django.http import JsonResponse

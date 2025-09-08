@@ -39,13 +39,15 @@ urlpatterns = [
     path('four/', views.four, name='four'),
     path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
     path('get-truck-details/', views.get_truck_details, name='get_truck_details'),
-    path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
+    # path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     path('inspection-summary/', views.inspection_summary_view, name='inspection_summary'),
     path('truck_landing/', views.truck_landing, name='truck_landing'),
     # path("questions/", views.question_list, name="question_list"),
     # path("questions/add/", views.add_question, name="add_question"),
     # path("questions/delete/<int:pk>/", views.delete_question, name="delete_question"),
     # Truck Logs
+    path("delete-question/<int:pk>/", views.delete_question, name="delete_question"),
+    path("edit-question/<int:pk>/", views.edit_question, name="edit_question"),
     path('status-log/<str:truck_no>/', views.status_log_view, name='status_log'),
     path('truck-log/<str:truck_no>/', views.truck_log_view, name='truck_log_view'),
     path('truck-status/', views.truck_status_view, name='truck_status'),
@@ -53,6 +55,13 @@ urlpatterns = [
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
     path('trucks/', views.truck_list, name='truck_list'),
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
+
+    path("inspection/", views.inspection_view, name="inspection"),   # 2nd HTML
+    path("add-questions/", views.add_questions, name="add_questions"),  # superadmin add questions
+    # urls.py
+    path("inspection/<str:truck_no>/", views.inspection_view, name="inspection"),
+
+
 
     # Product Management
     path('product/', views.product_view, name='add_product'),
