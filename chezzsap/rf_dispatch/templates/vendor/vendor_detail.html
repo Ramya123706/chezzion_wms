@@ -1,59 +1,56 @@
-
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container">
-    <div class="card mx-auto shadow-lg p-4" style="max-width: 600px;">
-        <div class="card-header text-center bg-primary text-white">
-            <h5>Vendor details</h5>
-        </div>
-        
-        <table class="table table-bordered">
-            <tbody>
-                <tr>
-                    <th> Name</th>
-                    <td>{{ vendor.name }}</td>
-                </tr>
-                <tr>
-                    <th> Vendor ID</th>
-                    <td>{{ vendor.vendor_id }}</td>
-                </tr>
-                <tr>
-                    <th>Vendor code</th>
-                    <td>{{ vendor.vendor_code }}</td>
-                </tr>
-                <tr>
-                    <th>Email</th>
-                    <td>{{ vendor.email }}</td>
-                </tr>
-                <tr>
-                    <th>Phone Number</th>
-                    <td>{{vendor.phone_no }}</td>
-                </tr>
-                <tr>
-                    <th>Address</th>
-                    <td>{{vendor.address }}</td>
-                </tr>
-                
-                <tr>
-                    <th>Profile image</th>
-                    <td> {% load static %}
-                        {% if vendor.profile_image %}
-                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="200">
-                        {% else %}
-                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="200">
-                        {% endif %}</td>
-                </tr>
-
-            </tbody>
-        </table>
-
-        <div class="text-center mt-4">
-            <a href="{% url 'vendor_edit' vendor.vendor_id %}" class="btn btn-primary">Edit</a>
-            
-            <a href="{% url 'add_vendor' %}" class="btn btn-secondary">F7 BACK</a>
-                
-        </div>
+{% extends "base.html" %} {% load static %} {% block content %}
+<div class="container py-5">
+  <div class="card mx-auto shadow-lg border-0 rounded-4 p-4" style="max-width: 650px">
+    <div class="card-header text-center bg-primary text-white rounded-top">
+      <h5><i class="fas fa-id-card me-2"></i> Vendor Details</h5>
     </div>
+
+    <table class="table table-bordered align-middle mt-3">
+      <tbody>
+        <tr>
+          <th><i class="fas fa-user text-primary me-2"></i> Name</th>
+          <td>{{ vendor.name }}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-hashtag text-secondary me-2"></i> Vendor ID</th>
+          <td>{{ vendor.vendor_id }}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-barcode text-dark me-2"></i> Vendor Code</th>
+          <td>{{ vendor.vendor_code }}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-envelope text-danger me-2"></i> Email</th>
+          <td>{{ vendor.email }}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-phone text-success me-2"></i> Phone Number</th>
+          <td>{{ vendor.phone_no }}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-map-marker-alt text-info me-2"></i> Address</th>
+          <td>{{ vendor.address }}</td>
+        </tr>
+        <tr>
+          <th><i class="fas fa-image text-warning me-2"></i> Profile Image</th>
+          <td class="text-center">
+            {% if vendor.profile_image %}
+            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" class="img-thumbnail rounded-circle shadow-sm" style="max-width: 150px" />
+            {% else %}
+            <i class="fas fa-user-circle fa-5x text-muted"></i><br />
+            <span class="text-muted small">No image available</span>
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="text-center mt-4">
+      <a href="{% url 'vendor_edit' vendor.vendor_id %}" class="btn btn-primary rounded-pill px-4 shadow-sm me-2">
+        <i class="fas fa-edit me-1"></i> Edit
+      </a>
+      <a href="{% url 'add_vendor' %}" class="btn btn-secondary rounded-pill px-4 shadow-sm"> <i class="fas fa-arrow-left me-1"></i> F7 BACK </a>
+    </div>
+  </div>
 </div>
 {% endblock %}

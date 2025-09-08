@@ -1,56 +1,71 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% load static %} {% block content %}
+<div class="container py-5">
+  <div class="col-md-8 col-lg-6 mx-auto">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-header text-center text-white bg-primary rounded-top">
+        <h5><i class="fas fa-user-edit me-2"></i> Edit Vendor</h5>
+      </div>
+      <div class="card-body p-4">
+        <form action="" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card">
-            <div class="card-header text-center text-white bg-primary">
-                <h5>Edit Vendor</h5>
-            </div>
-            <div class="card-body">
-                <form action="" method="post">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="name"><b>Name</b></label>
-                        <input type="text" id="name" name="name" class="form-control" value="{{ vendor.name }}" >
-                    </div>
-                    <div class="form-group">
-                        <label for="vendor_id"><b>Vendor ID</b></label>
-                        <input type="text" id="name" name="vendor_id" class="form-control" value="{{ vendor.vendor_id }}" >
-                    </div>
-                    <div class="form-group">
-                        <label for="vendor_code"><b>Vendor Code</b></label> 
-                        <input type="text" id="vendor_code" name="vendor_code" class="form-control" value="{{ vendor.vendor_code }}" >
-                    </div>
-                    <div class="form-group">
-                        <label for="email"><b>Email</b></label>
-                        <input type="email" id="email" name="email" class="form-control" value="{{ vendor.email }}">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone"><b>Phone</b></label>
-                        <input type="text" id="phone" name="phone_no" class="form-control" value="{{ vendor.phone_no }}" >
-                    </div>
-                    <div class="form-group">
-                        <label for="address"><b>Address</b></label>
-                        <input type="text" id="address" name="address" class="form-control" value="{{ vendor.address }}">
-                    </div>
-                    
-                    <div class="form-group mt-4">
-                        <label for="profile"><b>Profile Image</b></label>
-                        {% load static %}
-                        {% if vendor.profile_image %}
-                            <img src="{{ vendor.profile_image.url }}" alt="Profile Image" width="200">
-                        {% else %}
-                            <img src="{% static 'images/default-profile.png' %}" alt="Default Image" width="200">
-                        {% endif %}
-                    </div>
+          <div class="mb-3">
+            <label for="name" class="form-label"> <i class="fas fa-user text-primary me-2"></i><b>Name</b> </label>
+            <input type="text" id="name" name="name" class="form-control rounded-pill shadow-sm" value="{{ vendor.name }}" />
+          </div>
 
-                    <div class="form-group text-center mt-5">
-                        <button class="btn btn-primary" type="submit">Update</button>
-                                        </div>
-                </form>
-            </div>
-        </div>
+          <div class="mb-3">
+            <label for="vendor_id" class="form-label"> <i class="fas fa-hashtag text-secondary me-2"></i><b>Vendor ID</b> </label>
+            <input type="text" id="vendor_id" name="vendor_id" class="form-control rounded-pill shadow-sm" value="{{ vendor.vendor_id }}" />
+          </div>
+
+          <div class="mb-3">
+            <label for="vendor_code" class="form-label"> <i class="fas fa-barcode text-dark me-2"></i><b>Vendor Code</b> </label>
+            <input type="text" id="vendor_code" name="vendor_code" class="form-control rounded-pill shadow-sm" value="{{ vendor.vendor_code }}" />
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label"> <i class="fas fa-envelope text-danger me-2"></i><b>Email</b> </label>
+            <input type="email" id="email" name="email" class="form-control rounded-pill shadow-sm" value="{{ vendor.email }}" />
+          </div>
+
+          <div class="mb-3">
+            <label for="phone" class="form-label"> <i class="fas fa-phone text-success me-2"></i><b>Phone</b> </label>
+            <input type="text" id="phone" name="phone_no" class="form-control rounded-pill shadow-sm" value="{{ vendor.phone_no }}" />
+          </div>
+
+          <div class="mb-3">
+            <label for="address" class="form-label"> <i class="fas fa-map-marker-alt text-info me-2"></i><b>Address</b> </label>
+            <input type="text" id="address" name="address" class="form-control rounded-pill shadow-sm" value="{{ vendor.address }}" />
+          </div>
+
+          <div class="mb-4 text-center">
+            <label for="profile" class="form-label d-block"> <i class="fas fa-image text-warning me-2"></i><b>Profile Image</b> </label>
+            {% if vendor.profile_image %}
+            <img
+              src="{{ vendor.profile_image.url }}"
+              alt="Profile Image"
+              class="rounded-circle shadow-sm mb-3"
+              style="width: 120px; height: 120px; object-fit: cover" />
+            {% else %}
+            <img
+              src="{% static 'images/default-profile.png' %}"
+              alt="Default Image"
+              class="rounded-circle shadow-sm mb-3"
+              style="width: 120px; height: 120px; object-fit: cover" />
+            {% endif %}
+            <input type="file" id="profile" name="profile_image" class="form-control mt-2 rounded-pill shadow-sm" />
+          </div>
+
+          <div class="text-center">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" type="submit"><i class="fas fa-save me-2"></i> Update</button>
+            <a href="{% url 'vendor_detail' vendor.vendor_id %}" class="btn btn-secondary rounded-pill px-4 shadow-sm ms-2">
+              <i class="fas fa-times me-2"></i> Cancel
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

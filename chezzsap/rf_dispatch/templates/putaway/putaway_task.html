@@ -1,222 +1,176 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-5">
-    <div class="col-md-8 col-sm-12 mx-auto">
-        <div class="card">
-            <div class="card-header text-center text-white bg-primary">
-                <h3>Putaway</h3>
-            </div>
-            <div class="card-body">
+  <div class="col-md-8 col-sm-12 mx-auto">
+    <div class="card">
+      <div class="card-header text-center text-white bg-primary">
+        <h3>Putaway Task</h3>
+      </div>
+      <div class="card-body">
+        <ul class="nav nav-tabs" id="putawayTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" id="hu-tab" data-bs-toggle="tab" data-bs-target="#hu" type="button">By HU</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="warehouse-tab" data-bs-toggle="tab" data-bs-target="#warehouse" type="button">By Warehouse</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="product-tab" data-bs-toggle="tab" data-bs-target="#product" type="button">By Product</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="bin-tab" data-bs-toggle="tab" data-bs-target="#bin" type="button">By Bin</button>
+          </li>
+        </ul>
 
-                <!-- Bootstrap Nav Tabs -->
-                <ul class="nav nav-tabs" id="putawayTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="hu-tab" data-bs-toggle="tab" data-bs-target="#hu" type="button" role="tab">Putaway by HU</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="warehouse-tab" data-bs-toggle="tab" data-bs-target="#warehouse" type="button" role="tab">Putaway by Warehouse</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="product-tab" data-bs-toggle="tab" data-bs-target="#product" type="button" role="tab">Putaway by Product</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="bin-tab" data-bs-toggle="tab" data-bs-target="#bin" type="button" role="tab">Putaway by Bin</button>
-                    </li>
-                </ul>
+        <div class="tab-content mt-3">
+          {% comment %} By HU {% endcomment %}
+          <div class="tab-pane fade show active" id="hu">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="putaway_task_type" value="Putaway by HU" />
+              <div class="mb-3">
+                <label>Pallet</label>
+                <select name="pallet" class="form-select" required>
+                  <option value="">--Select Pallet--</option>
+                  {% for p in pallets %}
+                  <option value="{{ p.id }}">{{ p.pallet_id }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Location</label>
+                <input type="text" name="location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label>Status</label>
+                <select name="status" class="form-select">
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
+              <button type="submit" class="btn btn-primary">Submit HU</button>
+            </form>
+          </div>
 
-                <!-- Tab Content -->
-                <div class="tab-content mt-3" id="putawayTabsContent">
+          {% comment %} By Warehouse {% endcomment %}
+          <div class="tab-pane fade" id="warehouse">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="putaway_task_type" value="Putaway by Warehouse" />
+              <div class="mb-3">
+                <label>Pallet</label>
+                <select name="pallet" class="form-select" required>
+                  <option value="">--Select Pallet--</option>
+                  {% for p in pallets %}
+                  <option value="{{ p.id }}">{{ p.pallet_id }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Location</label>
+                <input type="text" name="location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label>Warehouse</label>
+                <select name="warehouse" class="form-select" required>
+                  <option value="">--Select Warehouse--</option>
+                  {% for wh in warehouses %}
+                  <option value="{{ wh.id }}">{{ wh.whs_no }} - {{ wh.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Status</label>
+                <select name="status" class="form-select">
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
+              <button type="submit" class="btn btn-primary">Submit Warehouse</button>
+            </form>
+          </div>
 
-                    <!-- HU Form -->
-                    <div class="tab-pane fade show active" id="hu" role="tabpanel">
-                        <form method="post">
-                            {% csrf_token %}
-                            <!-- Putaway ID -->
-                            <div class="form-group mb-3">
-                                <label><b>Putaway ID</b></label>
-                                <input type="text" class="form-control" name="putaway_id"
-                                       value="{{ form.instance.putaway_id|default:'' }}"
-                                       placeholder="Auto-generated" readonly>
-                            </div>
+          {% comment %} By Product {% endcomment %}
+          <div class="tab-pane fade" id="product">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="putaway_task_type" value="Putaway by Product" />
+              <div class="mb-3">
+                <label>Pallet</label>
+                <select name="pallet" class="form-select" required>
+                  <option value="">--Select Pallet--</option>
+                  {% for p in pallets %}
+                  <option value="{{ p.id }}">{{ p.pallet_id }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Location</label>
+                <input type="text" name="location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label>Product</label>
+                <select name="product" class="form-select" required>
+                  <option value="">--Select Product--</option>
+                  {% for prod in products %}
+                  <option value="{{ prod.id }}">{{ prod.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Status</label>
+                <select name="status" class="form-select">
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
+              <button type="submit" class="btn btn-primary">Submit Product</button>
+            </form>
+          </div>
 
-                            <!-- Pallet -->
-                            <div class="form-group mb-3">
-                                <label><b>Pallet</b></label>
-                                <input type="text" class="form-control" name="pallet"
-                                       value="{{ form.pallet.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Location -->
-                            <div class="form-group mb-3">
-                                <label><b>Location</b></label>
-                                <input type="text" class="form-control" name="location"
-                                       value="{{ form.location.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Status -->
-                            <div class="form-group mb-3">
-                                <label><b>Status</b></label>
-                                <select name="status" class="form-control" required>
-                                    <option value="In Progress" {% if form.status.value == "In Progress" %}selected{% endif %}>In Progress</option>
-                                    <option value="Completed" {% if form.status.value == "Completed" %}selected{% endif %}>Completed</option>
-                                </select>
-                            </div>
-                            <input type="hidden" name="putaway_task_type" id="taskType" value="Putaway by HU">
-
-                            <button type="submit" class="btn btn-primary">Submit HU</button>
-                        </form>
-                    </div>
-
-                    <!-- Warehouse Form -->
-                    <div class="tab-pane fade" id="warehouse" role="tabpanel">
-                        <form method="post">
-                            {% csrf_token %}
-                            <!-- Putaway ID -->
-                            <div class="form-group mb-3">
-                                <label><b>Putaway ID</b></label>
-                                <input type="text" class="form-control" name="putaway_id"
-                                       value="{{ form.instance.putaway_id|default:'' }}"
-                                       placeholder="Auto-generated" readonly>
-                            </div>
-
-                            <!-- Pallet -->
-                            <div class="form-group mb-3">
-                                <label><b>Pallet</b></label>
-                                <input type="text" class="form-control" name="pallet"
-                                       value="{{ form.pallet.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Location -->
-                            <div class="form-group mb-3">
-                                <label><b>Location</b></label>
-                                <input type="text" class="form-control" name="location"
-                                       value="{{ form.location.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Status -->
-                            <div class="form-group mb-3">
-                                <label><b>Status</b></label>
-                                <select name="status" class="form-control" required>
-                                    <option value="In Progress" {% if form.status.value == "In Progress" %}selected{% endif %}>In Progress</option>
-                                    <option value="Completed" {% if form.status.value == "Completed" %}selected{% endif %}>Completed</option>
-                                </select>
-                            </div>
-
-                            <!-- Warehouse specific -->
-                            <div class="form-group mb-3">
-                                <label><b>Warehouse</b></label>
-                                <input type="text" class="form-control" name="warehouse" required>
-                            </div>
-                            <input type="hidden" name="putaway_task_type" id="taskType" value="Putaway by Warehouse">
-                            <button type="submit" class="btn btn-primary">Submit Warehouse</button>
-                        </form>
-                    </div>
-
-                    <!-- Product Form -->
-                    <div class="tab-pane fade" id="product" role="tabpanel">
-                        <form method="post">
-                            {% csrf_token %}
-                            <!-- Putaway ID -->
-                            <div class="form-group mb-3">
-                                <label><b>Putaway ID</b></label>
-                                <input type="text" class="form-control" name="putaway_id"
-                                       value="{{ form.instance.putaway_id|default:'' }}"
-                                       placeholder="Auto-generated" readonly>
-                            </div>
-
-                            <!-- Pallet -->
-                            <div class="form-group mb-3">
-                                <label><b>Pallet</b></label>
-                                <input type="text" class="form-control" name="pallet"
-                                       value="{{ form.pallet.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Location -->
-                            <div class="form-group mb-3">
-                                <label><b>Location</b></label>
-                                <input type="text" class="form-control" name="location"
-                                       value="{{ form.location.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Status -->
-                            <div class="form-group mb-3">
-                                <label><b>Status</b></label>
-                                <select name="status" class="form-control" required>
-                                    <option value="In Progress" {% if form.status.value == "In Progress" %}selected{% endif %}>In Progress</option>
-                                    <option value="Completed" {% if form.status.value == "Completed" %}selected{% endif %}>Completed</option>
-                                </select>
-                            </div>
-
-                            <!-- Product specific -->
-                            <div class="form-group mb-3">
-                                <label><b>Product</b></label>
-                                <input type="text" class="form-control" name="product" required>
-                            </div>
-                            <input type="hidden" name="putaway_task_type" id="taskType" value="Putaway by Product">
-                            <button type="submit" class="btn btn-primary">Submit Product</button>
-                        </form>
-                    </div>
-
-                    <!-- Bin Form -->
-                    <div class="tab-pane fade" id="bin" role="tabpanel">
-                        <form method="post">
-                            {% csrf_token %}
-                            <!-- Putaway ID -->
-                            <div class="form-group mb-3">
-                                <label><b>Putaway ID</b></label>
-                                <input type="text" class="form-control" name="putaway_id"
-                                       value="{{ form.instance.putaway_id|default:'' }}"
-                                       placeholder="Auto-generated" readonly>
-                            </div>
-
-                            <!-- Pallet -->
-                            <div class="form-group mb-3">
-                                <label><b>Pallet</b></label>
-                                <input type="text" class="form-control" name="pallet"
-                                       value="{{ form.pallet.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Location -->
-                            <div class="form-group mb-3">
-                                <label><b>Location</b></label>
-                                <input type="text" class="form-control" name="location"
-                                       value="{{ form.location.value|default_if_none:'' }}" required>
-                            </div>
-
-                            <!-- Status -->
-                            <div class="form-group mb-3">
-                                <label><b>Status</b></label>
-                                <select name="status" class="form-control" required>
-                                    <option value="In Progress" {% if form.status.value == "In Progress" %}selected{% endif %}>In Progress</option>
-                                    <option value="Completed" {% if form.status.value == "Completed" %}selected{% endif %}>Completed</option>
-                                </select>
-                            </div>
-
-                            <!-- Bin specific -->
-                            <div class="form-group mb-3">
-                                <label><b>Bin</b></label>
-                                <input type="text" class="form-control" name="bin" required>
-                            </div>
-                            <input type="hidden" name="putaway_task_type" id="taskType" value="Putaway by Bin">
-                            <button type="submit" class="btn btn-primary">Submit Bin</button>
-                        </form>
-  
-                    </div>
-
-                </div>
-
-            </div>
+          {% comment %} By Bin {% endcomment %}
+          <div class="tab-pane fade" id="bin">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="putaway_task_type" value="Putaway by Bin" />
+              <div class="mb-3">
+                <label>Pallet</label>
+                <select name="pallet" class="form-select" required>
+                  <option value="">--Select Pallet--</option>
+                  {% for p in pallets %}
+                  <option value="{{ p.id }}">{{ p.pallet }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Location</label>
+                <input type="text" name="location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label>Bin</label>
+                <select name="bin" class="form-select" required>
+                  <option value="">--Select Bin--</option>
+                  {% for b in bins %}
+                  <option value="{{ b.id }}">{{ b.bin_no }} - {{ b.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>Status</label>
+                <select name="status" class="form-select">
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
+              <button type="submit" class="btn btn-primary">Submit Bin</button>
+            </form>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
-<script>
-  // Update hidden input when tab is clicked
-  document.querySelectorAll('#putawayTabs .nav-link').forEach(tab => {
-    tab.addEventListener('click', function() {
-      // Set the hidden input to the text of the clicked tab
-      document.getElementById('taskType').value = this.textContent.trim();
-    });
-  });
-</script>
-
 {% endblock %}

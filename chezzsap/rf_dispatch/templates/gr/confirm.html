@@ -1,29 +1,45 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container mt-4">
-    <h2>Goods Receipt</h2>
+{% extends "base.html" %} {% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4 text-center"><i class="fas fa-receipt me-2"></i>Goods Receipt Confirmation</h2>
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>Inbound Delivery No: {{ inbound.dlv_no }}</h5>
-            <p><strong>Supplier:</strong> {{ inbound.supplier.name }}</p>
-            <p><strong>Order Date:</strong> {{ inbound.ord_date }} | <strong>Delivery Date:</strong> {{ inbound.del_date
-                }}</p>
-        </div>
+  <!-- Inbound Delivery Info -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5><i class="fas fa-truck"></i> Inbound Delivery Details</h5>
+    </div>
+    <div class="card-body">
+      <p>
+        <strong><i class="fas fa-hashtag"></i> Inbound Delivery No:</strong> {{ inbound.dlv_no }}
+      </p>
+      <p>
+        <strong><i class="fas fa-building"></i> Supplier:</strong> {{ inbound.supplier.name }}
+      </p>
+      <p>
+        <strong><i class="fas fa-calendar-alt"></i> Order Date:</strong> {{ inbound.ord_date }} |
+        <strong><i class="fas fa-calendar-check"></i> Delivery Date:</strong> {{ inbound.del_date }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Confirmation Form -->
+  <form method="post" class="card p-4 shadow-sm">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="posted_by" class="form-label"><i class="fas fa-user"></i> Posted By</label>
+      <input type="text" name="posted_by" id="posted_by" class="form-control" placeholder="Enter your name" required />
+    </div>
+    <div class="mb-3">
+      <label for="remarks" class="form-label"><i class="fas fa-sticky-note"></i> Remarks</label>
+      <textarea name="remarks" id="remarks" class="form-control" rows="3" placeholder="Add any remarks"></textarea>
     </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="posted_by" class="form-label">Posted By</label>
-            <input type="text" name="posted_by" id="posted_by" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="remarks" class="form-label">Remarks</label>
-            <textarea name="remarks" id="remarks" class="form-control"></textarea>
-        </div>
-        <button type="submit" class="btn btn-success">Confirm GR</button>
-        <a href="{% url 'inbound_detail' inbound.dlv_no %}" class="btn btn-secondary">Cancel</a>
-    </form>
+    <div class="d-flex justify-content-between">
+      <button type="submit" class="btn btn-success"><i class="fas fa-check-circle"></i> Confirm GR</button>
+      <a href="{% url 'inbound_detail' inbound.dlv_no %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Cancel</a>
+    </div>
+  </form>
 </div>
+
+<!-- Include FontAwesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
 {% endblock %}

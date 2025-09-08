@@ -305,15 +305,24 @@ from .models import GoodsReceipt
 
 
 
+from django import forms
+from .models import GoodsReceipt, InboundDelivery
+
 class GoodsReceiptForm(forms.ModelForm):
     class Meta:
         model = GoodsReceipt
-        fields = ['inbound_delivery', 'posted_by', 'remarks']  # no gr_no
+        # Exclude gr_no because it is auto-generated
+        exclude = ['gr_no']  
         widgets = {
             'inbound_delivery': forms.Select(attrs={'class': 'form-control'}),
             'posted_by': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+    # Optional: filter inbound deliveries to only those without a GR yet
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['inbound_delivery'].queryset = InboundDelivery.objects.filter(gr__isnull=True)
 
 
 

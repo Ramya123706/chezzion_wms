@@ -1,234 +1,227 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container mt-4">
-    <div class="row">
-
-        <!-- LEFT SIDE: Pallet Creation Form -->
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5>Pallet Creation</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary">Create Pallet</button>
-                    </form>
-                </div>
-            </div>
+{% extends "base.html" %} {% block content %}
+<div class="container mt-5">
+  <div class="row g-4">
+    <!-- LEFT SIDE: Pallet Creation Form -->
+    <div class="col-md-5">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+          <h5 class="mb-0"><i class="fa-solid fa-box me-2"></i>Pallet Creation</h5>
         </div>
-
-        <!-- RIGHT SIDE: Search and Display -->
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-secondary text-white text-center">
-                    <h5>Search Pallet</h5>
-                </div>
-                <div class="card-body">
-
-                    <!-- Search Form -->
-                    <form method="get" class="mb-3 text-center">
-                        <div class="input-group">
-                            <input type="text" name="search" class="form-control" placeholder="Enter Pallet Number">
-                            <button type="submit" class="btn btn-primary">Search</button>
-                        </div>
-                    </form>
-
-                    {% if pallets %}
-                        <!-- Desktop Table View -->
-                        <div class="d-none d-md-block">
-                            <table class="table table-bordered table-hover text-center">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Pallet No</th>
-                                        <th>Parent Pallet</th>
-                                        <th>Product</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for parent in pallets %}
-                                        {% if not parent.parent_pallet %}
-                                            <!-- Parent Pallet Row -->
-                                            <tr style="background-color: #d0e7ff; font-weight: bold;">
-                                                <td>
-                                                    <a href="{% url 'pallet_detail' parent.pallet_no %}" class="text-decoration-none">
-                                                        {{ parent.pallet_no }}
-                                                    </a>
-                                                </td>
-                                                <td>Itself parent</td>
-                                                <td>{{ parent.product }}</td>
-                                                <td class="d-flex gap-2 justify-content-center">
-                                                    <a href="{% url 'edit_pallet' parent.pallet_no %}" class="btn btn-sm btn-primary">Edit</a>
-                                                    <button class="btn btn-danger btn-sm" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#deleteModal" 
-                                                            data-pallet="{{ parent.pallet_no }}" 
-                                                            data-children="{% for child in parent.child_pallets.all %}{{ child.pallet_no }}{% if not forloop.last %}, {% endif %}{% endfor %}">
-                                                        Delete
-                                                    </button>
-                                                    <button class="btn btn-success btn-sm" onclick="openChildModal('{{ parent.pallet_no }}')">Add Child</button>
-                                                </td>
-                                            </tr>
-
-                                            <!-- Child Pallets Rows -->
-                                            {% for child in parent.child_pallets.all %}
-                                                <tr style="background-color: #d9f7d9;">
-                                                    <td>
-                                                        ↳ <a href="{% url 'pallet_detail' child.pallet_no %}" class="text-decoration-none">
-                                                            {{ child.pallet_no }}
-                                                        </a>
-                                                    </td>
-                                                    <td>{{ parent.pallet_no }}</td>
-                                                    <td>{{ child.product }}</td>
-                                                    <td>
-                                                        <a href="{% url 'edit_pallet' child.pallet_no %}" class="btn btn-sm btn-primary">Edit</a>
-                                                        <button class="btn btn-danger btn-sm" 
-                                                                data-bs-toggle="modal" 
-                                                                data-bs-target="#deleteModal" 
-                                                                data-pallet="{{ child.pallet_no }}" 
-                                                                data-children="{% for subchild in child.child_pallets.all %}{{ subchild.pallet_no }}{% if not forloop.last %}, {% endif %}{% endfor %}">
-                                                            Delete
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        {% endif %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Mobile Card View -->
-                        <div class="d-md-none">
-                            {% for pallet in pallets %}
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a href="{% url 'pallet_detail' pallet.pallet_no %}" class="text-decoration-none">
-                                                Pallet #{{ pallet.pallet_no }}
-                                            </a>
-                                        </h5>
-                                        <p class="card-text mb-1">
-                                            <strong>Parent:</strong> 
-                                            {% if pallet.parent_pallet %}
-                                                {{ pallet.parent_pallet.pallet_no }}
-                                            {% else %}
-                                                None
-                                            {% endif %}
-                                        </p>
-                                        <p class="card-text mb-1"><strong>Product:</strong> {{ pallet.product }}</p>
-                                        
-                                        <a href="{% url 'edit_pallet' pallet.pallet_no %}" class="btn btn-sm btn-primary">Edit</a>
-                                        <button class="btn btn-danger btn-sm" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteModal"
-                                                data-pallet="{{ pallet.pallet_no }}"
-                                                data-children="{% for child in pallet.child_pallets.all %}{{ child.pallet_no }}{% if not forloop.last %}, {% endif %}{% endfor %}">
-                                            Delete
-                                        </button>
-
-                                        {% if not pallet.parent_pallet %}
-                                            <button class="btn btn-success btn-sm" onclick="openChildModal('{{ pallet.pallet_no }}')">Add Child</button>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="alert alert-warning text-center mt-3">
-                            No pallets found matching your search.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="card-body">
+          <form method="POST">
+            {% csrf_token %} {{ form.as_p }}
+            <button type="submit" class="btn btn-primary w-100 mt-3"><i class="fa-solid fa-plus me-1"></i> Create Pallet</button>
+          </form>
         </div>
+      </div>
     </div>
+
+    <!-- RIGHT SIDE: Search and Display -->
+    <div class="col-md-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-secondary text-white text-center">
+          <h5><i class="fa-solid fa-magnifying-glass me-2"></i>Search Pallet</h5>
+        </div>
+        <div class="card-body">
+          <!-- Search Form -->
+          <form method="get" class="mb-3">
+            <div class="input-group">
+              <input type="text" name="search" class="form-control" placeholder="Enter Pallet Number" />
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search me-1"></i> Search</button>
+            </div>
+          </form>
+
+          {% if pallets %}
+          <!-- Desktop Table View -->
+          <div class="d-none d-md-block">
+            <table class="table table-hover table-bordered text-center align-middle">
+              <thead class="table-dark">
+                <tr>
+                  <th>Pallet No</th>
+                  <th>Parent Pallet</th>
+                  <th>Product</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for parent in pallets %} {% if not parent.parent_pallet %}
+                <tr class="table-primary fw-bold">
+                  <td>
+                    <i class="fa-solid fa-boxes me-1"></i>
+                    <a href="{% url 'pallet_detail' parent.pallet_no %}" class="text-decoration-none"> {{ parent.pallet_no }} </a>
+                  </td>
+                  <td>Itself parent</td>
+                  <td>{{ parent.product }}</td>
+                  <td class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'edit_pallet' parent.pallet_no %}" class="btn btn-sm btn-outline-primary">
+                      <i class="fa-solid fa-pen-to-square"></i> Edit
+                    </a>
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#deleteModal"
+                      data-pallet="{{ parent.pallet_no }}"
+                      data-children="{% for child in parent.child_pallets.all %}{{ child.pallet_no }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="openChildModal('{{ parent.pallet_no }}')">
+                      <i class="fa-solid fa-plus"></i> Add Child
+                    </button>
+                  </td>
+                </tr>
+
+                {% for child in parent.child_pallets.all %}
+                <tr class="table-success">
+                  <td>↳ <a href="{% url 'pallet_detail' child.pallet_no %}" class="text-decoration-none">{{ child.pallet_no }}</a></td>
+                  <td>{{ parent.pallet_no }}</td>
+                  <td>{{ child.product }}</td>
+                  <td class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'edit_pallet' child.pallet_no %}" class="btn btn-sm btn-outline-primary">
+                      <i class="fa-solid fa-pen-to-square"></i> Edit
+                    </a>
+                    <button
+                      class="btn btn-sm btn-outline-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#deleteModal"
+                      data-pallet="{{ child.pallet_no }}"
+                      data-children="{% for subchild in child.child_pallets.all %}{{ subchild.pallet_no }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %} {% endif %} {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Card View -->
+          <div class="d-md-none">
+            {% for pallet in pallets %}
+            <div class="card mb-3 shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="fa-solid fa-boxes me-1"></i>
+                  <a href="{% url 'pallet_detail' pallet.pallet_no %}" class="text-decoration-none"> Pallet #{{ pallet.pallet_no }} </a>
+                </h5>
+                <p class="card-text mb-1">
+                  <strong>Parent:</strong>
+                  {% if pallet.parent_pallet %}{{ pallet.parent_pallet.pallet_no }}{% else %}None{% endif %}
+                </p>
+                <p class="card-text mb-1"><strong>Product:</strong> {{ pallet.product }}</p>
+
+                <div class="d-flex gap-2 flex-wrap">
+                  <a href="{% url 'edit_pallet' pallet.pallet_no %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                  </a>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal"
+                    data-pallet="{{ pallet.pallet_no }}"
+                    data-children="{% for child in pallet.child_pallets.all %}{{ child.pallet_no }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                    <i class="fa-solid fa-trash"></i> Delete
+                  </button>
+
+                  {% if not pallet.parent_pallet %}
+                  <button class="btn btn-sm btn-outline-success" onclick="openChildModal('{{ pallet.pallet_no }}')">
+                    <i class="fa-solid fa-plus"></i> Add Child
+                  </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="alert alert-warning text-center">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            No pallets found matching your search.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Child Pallet Modal -->
-<div class="modal fade" id="childModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Child Pallets</h5>
-        <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+<div class="modal fade" id="childModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content shadow-sm">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Add Child Pallets</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form id="childForm" method="POST" action="{% url 'add_child_pallet' %}">
         {% csrf_token %}
         <div class="modal-body">
-          <input type="hidden" name="parent_pallet" id="parentPalletInput">
-          <div class="form-group">
-            <label>Number of Child Pallets</label>
-            <input type="number" name="num_children" class="form-control" min="1" required>
+          <input type="hidden" name="parent_pallet" id="parentPalletInput" />
+          <div class="mb-3">
+            <label class="form-label">Number of Child Pallets</label>
+            <input type="number" name="num_children" class="form-control" min="1" required />
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Create</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success"><i class="fa-solid fa-check me-1"></i> Create</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark me-1"></i> Cancel</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<script>
-function openChildModal(parentPallet) {
-    document.getElementById("parentPalletInput").value = parentPallet;
-    $('#childModal').modal('show');
-}
-</script>
-
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content shadow-sm">
       <form id="deleteForm" method="POST" action="">
         {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title">Confirm Delete</h5>
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-1"></i> Confirm Delete</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <p>Are you sure you want to delete this pallet?</p>
           <p><strong>Child Pallets:</strong></p>
-          <ul id="childList"></ul>
+          <ul id="childList" class="list-group list-group-flush"></ul>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-danger">Delete</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark me-1"></i> Cancel</button>
+          <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Delete</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Script to handle delete modal -->
 <script>
-var deleteModal = document.getElementById('deleteModal')
-deleteModal.addEventListener('show.bs.modal', function (event) {
-    var button = event.relatedTarget
-    var palletId = button.getAttribute('data-pallet')
-    var children = button.getAttribute('data-children').split(", ")
+  function openChildModal(parentPallet) {
+    document.getElementById("parentPalletInput").value = parentPallet;
+    var modal = new bootstrap.Modal(document.getElementById("childModal"));
+    modal.show();
+  }
 
-    // Update form action with pallet id
-    var form = deleteModal.querySelector('#deleteForm')
-    form.action = "/pallet/delete/" + palletId + "/"
+  var deleteModal = document.getElementById("deleteModal");
+  deleteModal.addEventListener("show.bs.modal", function (event) {
+    var button = event.relatedTarget;
+    var palletId = button.getAttribute("data-pallet");
+    var children = button.getAttribute("data-children").split(", ");
 
-    // Update child pallet list
-    var childList = document.getElementById("childList")
-    childList.innerHTML = ""
+    var form = deleteModal.querySelector("#deleteForm");
+    form.action = "/pallet/delete/" + palletId + "/";
+
+    var childList = document.getElementById("childList");
+    childList.innerHTML = "";
     if (children[0] !== "") {
-        children.forEach(function(child) {
-            var li = document.createElement("li")
-            li.textContent = child
-            childList.appendChild(li)
-        })
+      children.forEach(function (child) {
+        var li = document.createElement("li");
+        li.textContent = child;
+        li.classList.add("list-group-item");
+        childList.appendChild(li);
+      });
     } else {
-        childList.innerHTML = "<li>No child pallets</li>"
+      childList.innerHTML = "<li class='list-group-item'>No child pallets</li>";
     }
-})
+  });
 </script>
 {% endblock %}

@@ -1,27 +1,46 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-5">
-    <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card-header bg-primary text-white text-center">
-            <h3 class="">Edit Packing Material</h3>
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                 <div class="form-group mb-3">
-                        <label for="material" class="form-label"><b>Material</b></label>
-                    <input type="text" class="form-control" id="p_mat" name="material" value="{{ material.p_mat }}" required>
-                </div>
+  <div class="col-md-6 col-sm-12 mx-auto">
+    <!-- Card Header -->
+    <div class="card shadow-sm rounded-4">
+      <div class="card-header bg-primary text-white text-center">
+        <h3><i class="fas fa-edit me-2"></i>Edit Packing Material</h3>
+      </div>
 
-                    <div class="form-group mb-3">
-                        <label for="description" class="form-label"><b>Description</b></label>
-                    <textarea class="form-control" id="description" name="description" rows="3"required>{{ material.description }}</textarea>
-                </div>
+      <!-- Card Body / Form -->
+      <div class="card-body">
+        <form method="POST" novalidate>
+          {% csrf_token %}
 
-                <button type="submit" class="btn btn-success">Update</button>
-            </form>
-        </div>
+          <!-- Material Field -->
+          <div class="mb-3">
+            <label for="p_mat" class="form-label"><i class="fas fa-cube me-1"></i><b>Material</b></label>
+            <input
+              type="text"
+              class="form-control"
+              id="p_mat"
+              name="material"
+              value="{{ material.material }}"
+              placeholder="Enter material name"
+              required />
+          </div>
+
+          <!-- Description Field -->
+          <div class="mb-3">
+            <label for="description" class="form-label"><i class="fas fa-align-left me-1"></i><b>Description</b></label>
+            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Enter material description" required>
+{{ material.description }}</textarea
+            >
+          </div>
+
+          <!-- Submit Button -->
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-check-circle me-1"></i>Update</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
+
 {% endblock %}

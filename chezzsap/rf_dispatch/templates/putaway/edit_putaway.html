@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-5">
     <div class="col-md-6 col-sm-12 mx-auto">
-        <div class="card">
+        <div class="card shadow-lg">
             <div class="card-header text-center text-white bg-primary">
                 <h3>Edit Putaway Task</h3>
             </div>
@@ -11,41 +11,52 @@
                 <form method="post" class="form-group">
                     {% csrf_token %}
 
+                    <!-- Putaway ID (readonly) -->
                     <div class="mb-3">
                         <label class="form-label"><b>Putaway ID</b></label>
-                        <input type="text" name="putaway_id" value="{{ putaway.putaway_id }}" class="form-control">
+                        <input type="text" name="putaway_id" value="{{ putaway.putaway_id }}" class="form-control" readonly>
                     </div>
 
+                    <!-- Pallet -->
                     <div class="mb-3">
                         <label class="form-label"><b>Pallet</b></label>
-                        <input type="text" name="pallet" value="{{ putaway.pallet }}" class="form-control">
+                        <input type="text" name="pallet" value="{{ putaway.pallet }}" class="form-control" required>
                     </div>
 
+                    <!-- Location -->
                     <div class="mb-3">
                         <label class="form-label"><b>Location</b></label>
-                        <input type="text" name="location" value="{{ putaway.location }}" class="form-control">
+                        <input type="text" name="location" value="{{ putaway.location }}" class="form-control" required>
                     </div>
 
-                   <!-- Putaway Task Type Dropdown -->
-<div class="mb-3">
-    <label class="form-label"><b>Putaway Task Type</b></label>
-    <select name="putaway_task_type" id="taskType" class="form-control">
-        <option value="Putaway by HU" {% if putaway.putaway_task_type == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
-        <option value="Putaway by Warehouse" {% if putaway.putaway_task_type == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
-        <option value="Putaway by Product" {% if putaway.putaway_task_type == " Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
-        <option value="Putaway by Bin" {% if putaway.putaway_task_type == "Putaway by Bin" %}selected{% endif %}>Putaway by Bin</option>
-    </select>
-</div>
+                    <!-- Putaway Task Type -->
+                    <div class="mb-3">
+                        <label class="form-label"><b>Putaway Task Type</b></label>
+                        <select name="putaway_task_type" class="form-control" required>
+                            <option value="Putaway by HU" {% if putaway.putaway_task_type == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
+                            <option value="Putaway by Warehouse" {% if putaway.putaway_task_type == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
+                            <option value="Putaway by Product" {% if putaway.putaway_task_type == "Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
+                            <option value="Putaway by Bin" {% if putaway.putaway_task_type == "Putaway by Bin" %}selected{% endif %}>Putaway by Bin</option>
+                        </select>
+                    </div>
 
-
+                    <!-- Status -->
                     <div class="mb-3">
                         <label class="form-label"><b>Status</b></label>
-                        <input type="text" name="status" value="{{ putaway.status }}" class="form-control">
+                        <select name="status" class="form-control" required>
+                            <option value="In Progress" {% if putaway.status == "In Progress" %}selected{% endif %}>In Progress</option>
+                            <option value="Completed" {% if putaway.status == "Completed" %}selected{% endif %}>Completed</option>
+                        </select>
                     </div>
 
+                    <!-- Buttons -->
                     <div class="text-center mt-3">
-                        <button type="submit" class="btn btn-success">Update</button>
-                        <a href="{% url 'putaway_pending' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Update
+                        </button>
+                        <a href="{% url 'putaway_pending' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancel
+                        </a>
                     </div>
                 </form>
             </div>

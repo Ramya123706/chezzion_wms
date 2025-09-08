@@ -1,120 +1,146 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container py-5">
-    <div class="card mx-auto shadow-lg p-4" style="max-width: 900px;">
-
-        <!-- Header -->
-        <div class="card-header text-center bg-primary text-white">
-            <h5>Purchase Order Details ({{ po.po_number }})</h5>
-        </div>
-
-        <!-- PO Header Info -->
-        <table class="table table-bordered mb-4">
-            <tbody>
-                <tr>
-                    <th>Company Name</th>
-                    <td>{{ po.company_name }}</td>
-                </tr>
-                <tr>
-                    <th>Company Address</th>
-                    <td>{{ po.company_address }}</td>
-                </tr>
-                <tr>
-                    <th>Company Phone</th>
-                    <td>{{ po.company_phone }}</td>
-                </tr>
-                <tr>
-                    <th>Company Email</th>
-                    <td>{{ po.company_email }}</td>
-                </tr>
-                <tr>
-                    <th>Company Website</th>
-                    <td>{{ po.company_website }}</td>
-                </tr>
-                <tr>
-                    <th>PO Date</th>
-                    <td>{{ po.po_date }}</td>
-                </tr>
-                <tr>
-                    <th>PO Number</th>
-                    <td>{{ po.po_number }}</td>
-                </tr>
-                <tr>
-                    <th>Customer Number</th>
-                    <td>{{ po.customer_number }}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Vendor Info -->
-        <h6 class="mt-3">Vendor Details</h6>
-        <table class="table table-bordered mb-4">
-            <tbody>
-                <tr>
-                    <th>Vendor Company</th>
-                    <td>{{ po.vendor_company_name }}</td>
-                </tr>
-                <tr>
-                    <th>Contact Person</th>
-                    <td>{{ po.vendor_contact_name }}</td>
-                </tr>
-                <tr>
-                    <th>Phone</th>
-                    <td>{{ po.vendor_phone }}</td>
-                </tr>
-                <tr>
-                    <th>Email</th>
-                    <td>{{ po.vendor_email }}</td>
-                </tr>
-                <tr>
-                    <th>Address</th>
-                    <td>{{ po.vendor_address }}</td>
-                </tr>
-                <tr>
-                    <th>Website</th>
-                    <td>{{ po.vendor_website }}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!-- Line Items -->
-        <h6 class="mt-3">Products in this Purchase Order</h6>
-        <table class="table table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>Item Number</th>
-                    <th>Product Name</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Total Price</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in po.purchase_items.all %}
-                <tr>
-                    <td>{{ item.product.product_id }}</td>
-                    <td>{{ item.product.name }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>{{ item.unit_price }}</td>
-                    <td>{{ item.total_price }}</td>
-                    <th>{{ po.grand_total|floatformat:2 }}</th>
-
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center">No items found for this Purchase Order</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Buttons -->
-        <div class="text-center mt-4">
-            <a href="{% url 'purchase_edit' po.id %}" class="btn btn-primary">Edit</a>
-            <a href="{% url 'purchase_list' %}" class="btn btn-secondary">Back</a>
-            <a href="{% url 'purchase_pdf' po.id %}" class="btn btn-success">Download PDF</a>
-        </div>
-
+  <div class="card mx-auto shadow-lg p-4" style="max-width: 950px">
+    <!-- Header -->
+    <div class="card-header text-center bg-primary text-white mb-4">
+      <h5><i class="fas fa-file-invoice me-2"></i>Purchase Order Details ({{ po.po_number }})</h5>
     </div>
+
+    <!-- PO Header Info -->
+    <h6 class="mb-2"><i class="fas fa-building me-1"></i>Company Details</h6>
+    <table class="table table-bordered mb-4">
+      <tbody>
+        <tr>
+          <th>Company Name</th>
+          <td>{{ po.company_name }}</td>
+        </tr>
+        <tr>
+          <th>Company Address</th>
+          <td>{{ po.company_address }}</td>
+        </tr>
+        <tr>
+          <th>Company Phone</th>
+          <td>{{ po.company_phone }}</td>
+        </tr>
+        <tr>
+          <th>Company Email</th>
+          <td>{{ po.company_email }}</td>
+        </tr>
+        <tr>
+          <th>Company Website</th>
+          <td>{{ po.company_website }}</td>
+        </tr>
+        <tr>
+          <th>PO Date</th>
+          <td>{{ po.po_date }}</td>
+        </tr>
+        <tr>
+          <th>PO Number</th>
+          <td>{{ po.po_number }}</td>
+        </tr>
+        <tr>
+          <th>Customer Number</th>
+          <td>{{ po.customer_number }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Vendor Info -->
+    <h6 class="mb-2"><i class="fas fa-truck me-1"></i>Vendor Details</h6>
+    <table class="table table-bordered mb-4">
+      <tbody>
+        <tr>
+          <th>Vendor Company</th>
+          <td>{{ po.vendor_company_name }}</td>
+        </tr>
+        <tr>
+          <th>Contact Person</th>
+          <td>{{ po.vendor_contact_name }}</td>
+        </tr>
+        <tr>
+          <th>Phone</th>
+          <td>{{ po.vendor_phone }}</td>
+        </tr>
+        <tr>
+          <th>Email</th>
+          <td>{{ po.vendor_email }}</td>
+        </tr>
+        <tr>
+          <th>Address</th>
+          <td>{{ po.vendor_address }}</td>
+        </tr>
+        <tr>
+          <th>Website</th>
+          <td>{{ po.vendor_website }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Line Items -->
+    <h6 class="mt-3">Products in this Purchase Order</h6>
+    <table class="table table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Item Number</th>
+          <th>Product Name</th>
+          <th>Quantity</th>
+          <th>Unit Price</th>
+          <th>Total Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in po.purchase_items.all %}
+        <tr>
+          <td>{{ item.product.product_id }}</td>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.unit_price }}</td>
+          <td>{{ item.total_price }}</td>
+          <!-- <th>{{ po.grand_total|floatformat:2 }}</th> -->
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No items found for this Purchase Order</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Buttons -->
+    <div class="text-center mt-4">
+      <a href="{% url 'purchase_edit' po.id %}" class="btn btn-primary me-2"><i class="fas fa-edit me-1"></i>Edit</a>
+      <a href="{% url 'purchase_list' %}" class="btn btn-secondary me-2"><i class="fas fa-arrow-left me-1"></i>Back</a>
+      <a href="{% url 'purchase_pdf' po.id %}" class="btn btn-success"><i class="fas fa-file-pdf me-1"></i>Download PDF</a>
+    </div>
+  </div>
 </div>
+
+<!-- Font Awesome CDN -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  integrity="sha512-Po+WogGv7Xv1m5DR+VYN7blMj+DZt7hZqQhr+0P4R3+Puh5E1pYH3ur1tzOZ6N5w+n1K3Q6H4E1+GYoJ0jtkKg=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer" />
+
+<!-- Highlight mismatched totals -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const rows = document.querySelectorAll("#lineItemsTable tbody tr");
+    rows.forEach((row) => {
+      const qtyEl = row.querySelector(".qty");
+      const unitEl = row.querySelector(".unit");
+      const totalEl = row.querySelector(".total");
+      if (qtyEl && unitEl && totalEl) {
+        const qty = parseFloat(qtyEl.textContent);
+        const unit = parseFloat(unitEl.textContent);
+        const total = parseFloat(totalEl.textContent);
+        if (Math.abs(qty * unit - total) > 0.01) {
+          // tolerance for float rounding
+          row.style.backgroundColor = "#f8d7da";
+        }
+      }
+    });
+  });
+</script>
 {% endblock %}
