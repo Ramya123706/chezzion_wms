@@ -3489,3 +3489,10 @@ def all_putaway_tasks(request):
         'tasks': tasks
     }
     return render(request, 'putaway/all_tasks.html', context)
+
+
+def superadmin_base_view(request):
+  return redirect("superadmin_dashboard")
+
+def superadmin_dashboard(request):
+    return render(request, "account/superadmin_dashboard.html")

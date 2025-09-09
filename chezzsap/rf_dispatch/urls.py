@@ -219,8 +219,8 @@ urlpatterns = [
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
 
-    path("accounts/login/", views.login_view, name="login"),
-    path("profile_detail/", views.profile_detail_view, name="profile_detail"),
+    path("login/", views.login_view, name="login"),
+    path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('logout/', views.logout_view, name='logout'), 
     path('profile/change-password/', views.change_password, name='change_password'),
@@ -229,7 +229,7 @@ urlpatterns = [
     path('users/<int:user_id>/', views.user_detail, name='user_detail'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
-
+    
     # Change password
     path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),
     path("password_change/done/", auth_views.PasswordChangeDoneView.as_view(template_name="account/change_password_done.html"), name="password_change_done"),
@@ -239,9 +239,11 @@ urlpatterns = [
     path("accounts/password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="account/password_reset_done.html"), name="password_reset_done"),
     path("accounts/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="account/password_reset_confirm.html"), name="password_reset_confirm"),
     path("accounts/reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="account/password_reset_complete.html"), name="password_reset_complete"),
-    path("login/", views.login_view, name="login"),
+    path("accounts/login/", views.login_view, name="login"),
     path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("accounts/profile/edit/", views.edit_profile, name="edit_profile"),
-    path('logout/', views.logout_view, name='logout'), 
-    path('profile/change-password/', views.change_password, name='change_password'),
+    path('accounts/logout/', views.logout_view, name='logout'), 
+    path('accounts/profile/change-password/', views.change_password, name='change_password'),
+    path('acccounts/superadmin/', views.superadmin_base_view, name='superadmin'),
+    path('accounts/superadmin/dashboard/', views.superadmin_dashboard, name='superadmin_dashboard'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
