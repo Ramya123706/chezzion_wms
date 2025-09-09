@@ -39,13 +39,15 @@ urlpatterns = [
     path('four/', views.four, name='four'),
     path('yard_checkin/', yard_checkin_view, name='yard_checkin'),
     path('get-truck-details/', views.get_truck_details, name='get_truck_details'),
-    path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
+    # path('inspection/<str:truck_no>/', truck_inspection_view, name='truck_inspection'),
     path('inspection-summary/', views.inspection_summary_view, name='inspection_summary'),
     path('truck_landing/', views.truck_landing, name='truck_landing'),
     # path("questions/", views.question_list, name="question_list"),
     # path("questions/add/", views.add_question, name="add_question"),
     # path("questions/delete/<int:pk>/", views.delete_question, name="delete_question"),
     # Truck Logs
+    path("delete-question/<int:pk>/", views.delete_question, name="delete_question"),
+    path("edit-question/<int:pk>/", views.edit_question, name="edit_question"),
     path('status-log/<str:truck_no>/', views.status_log_view, name='status_log'),
     path('truck-log/<str:truck_no>/', views.truck_log_view, name='truck_log_view'),
     path('truck-status/', views.truck_status_view, name='truck_status'),
@@ -53,6 +55,13 @@ urlpatterns = [
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
     path('trucks/', views.truck_list, name='truck_list'),
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
+
+    path("inspection/", views.inspection_view, name="inspection"),   # 2nd HTML
+    path("add-questions/", views.add_questions, name="add_questions"),  # superadmin add questions
+    # urls.py
+    path("inspection/<str:truck_no>/", views.inspection_view, name="inspection"),
+
+
 
     # Product Management
     path('product/', views.product_view, name='add_product'),
@@ -215,7 +224,7 @@ urlpatterns = [
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
 
-    path("accounts/login/", views.login_view, name="login"),
+    path("login/", views.login_view, name="login"),
     path("profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('logout/', views.logout_view, name='logout'), 
@@ -225,7 +234,7 @@ urlpatterns = [
     path('users/<int:user_id>/', views.user_detail, name='user_detail'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
-
+    
     # Change password
     path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),
     path("password_change/done/", auth_views.PasswordChangeDoneView.as_view(template_name="account/change_password_done.html"), name="password_change_done"),
@@ -236,8 +245,11 @@ urlpatterns = [
     path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="account/password_reset_confirm.html"), name="password_reset_confirm"),
     path("reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="account/password_reset_complete.html"), name="password_reset_complete"),
     path("login/", views.login_view, name="login"),
+
     path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("accounts/profile/edit/", views.edit_profile, name="edit_profile"),
-    path('logout/', views.logout_view, name='logout'), 
-    path('profile/change-password/', views.change_password, name='change_password'),
+    path('accounts/logout/', views.logout_view, name='logout'), 
+    path('accounts/profile/change-password/', views.change_password, name='change_password'),
+    path('acccounts/superadmin/', views.superadmin_base_view, name='superadmin'),
+    path('accounts/superadmin/dashboard/', views.superadmin_dashboard, name='superadmin_dashboard'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

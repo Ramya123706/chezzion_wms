@@ -47,6 +47,16 @@ class InspectionQuestion(models.Model):
     def __str__(self):
         return self.text
 
+class InspectionResponse(models.Model):
+    yard = models.ForeignKey(YardHdr, on_delete=models.CASCADE, related_name="inspections")
+    question = models.ForeignKey(InspectionQuestion, on_delete=models.CASCADE)
+    answer = models.CharField(max_length=3, choices=YES_NO_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.yard.truck_no} - {self.question.text} - {self.answer}"
+
+    
 
 # models.py
 from django.db import models

@@ -1,16 +1,37 @@
-{% extends "base.html" %} {% load static %} {% block content %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
 <div class="container mt-5">
-  <!-- Header + Back Button -->
+  <!-- Header + Buttons -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="bg-primary text-white px-3 py-2 rounded shadow-sm mb-0">Vendor List</h4>
-    <a href="{% url 'add_vendor' %}" class="btn btn-secondary rounded-pill shadow-sm"> <i class="fas fa-arrow-left me-2"></i> F7 BACK </a>
+    
+    <!-- Left Side: Title -->
+    <h4 class="bg-primary text-white px-3 py-2 rounded shadow-sm mb-0">
+      Vendor List
+    </h4>
+
+    <!-- Right Side: Buttons -->
+    <div class="d-flex gap-2">
+      <!-- Add Vendor Button -->
+      <a href="{% url 'add_vendor' %}" class="btn btn-success rounded-pill shadow-sm">
+        <i class="fas fa-plus me-2"></i> Add Vendor
+      </a>
+
+      <!-- Back Button -->
+      <a href="{% url 'vendor_list' %}" class="btn btn-secondary rounded-pill shadow-sm">
+        <i class="fas fa-arrow-left me-2"></i> F7 BACK
+      </a>
+    </div>
   </div>
 
   <!-- Search Form -->
   <form method="get" class="mb-4">
     <div class="input-group">
-      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Search by name, ID, or phone" />
-      <button class="btn btn-primary" type="submit"><i class="fas fa-search me-1"></i> Search</button>
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Search vendors...">
+      <button type="submit" class="btn btn-outline-primary">
+        <i class="fas fa-search me-1"></i> Search
+      </button>
     </div>
   </form>
 
@@ -37,13 +58,17 @@
             </a>
             <form action="{% url 'vendor_delete' vendor.vendor_id %}" method="post" style="display: inline" onsubmit="return confirmDelete()">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-danger rounded-pill shadow-sm"><i class="fas fa-trash-alt me-1"></i>Delete</button>
+              <button type="submit" class="btn btn-sm btn-danger rounded-pill shadow-sm">
+                <i class="fas fa-trash-alt me-1"></i>Delete
+              </button>
             </form>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="4" class="text-center text-muted py-3"><i class="fas fa-info-circle me-2"></i>No vendors found.</td>
+          <td colspan="4" class="text-center text-muted py-3">
+            <i class="fas fa-info-circle me-2"></i>No vendors found.
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -64,13 +89,17 @@
           </a>
           <form action="{% url 'vendor_delete' vendor.vendor_id %}" method="post" onsubmit="return confirmDelete()">
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-danger rounded-pill shadow-sm"><i class="fas fa-trash-alt me-1"></i>Delete</button>
+            <button type="submit" class="btn btn-sm btn-danger rounded-pill shadow-sm">
+              <i class="fas fa-trash-alt me-1"></i>Delete
+            </button>
           </form>
         </div>
       </div>
     </div>
     {% empty %}
-    <div class="alert alert-warning text-center"><i class="fas fa-info-circle me-2"></i>No vendors found.</div>
+    <div class="alert alert-warning text-center">
+      <i class="fas fa-info-circle me-2"></i>No vendors found.
+    </div>
     {% endfor %}
   </div>
 
@@ -84,13 +113,19 @@
       </li>
       {% else %}
       <li class="page-item disabled"><span class="page-link">Previous</span></li>
-      {% endif %} {% for num in vendors.paginator.page_range %} {% if vendors.number == num %}
-      <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-      {% else %}
-      <li class="page-item">
-        <a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
-      </li>
-      {% endif %} {% endfor %} {% if vendors.has_next %}
+      {% endif %}
+
+      {% for num in vendors.paginator.page_range %}
+        {% if vendors.number == num %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if vendors.has_next %}
       <li class="page-item">
         <a class="page-link" href="?q={{ request.GET.q }}&page={{ vendors.next_page_number }}">Next</a>
       </li>
