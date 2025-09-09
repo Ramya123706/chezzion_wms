@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg p-4">
+    <!-- Header -->
+    <div class="card-header bg-primary text-white text-center mb-3">
+      <h5>Post Goods Issue (PGI) List</h5>
+    </div>
+
+    <!-- PGI Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>PGI No</th>
+            <th>Delivery No</th>
+            <th>Posted By</th>
+            <th>Posting Date</th>
+            <th>Remarks</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pgi in pgi_records %}
+          <tr>
+            <td>{{ pgi.pgi_no }}</td>
+            <td>{{ pgi.delivery.dlv_no }}</td>
+            <td>{{ pgi.posted_by }}</td>
+            <td>{{ pgi.posting_date }}</td>
+            <td>{{ pgi.remarks|default:"-" }}</td>
+            <td>
+              <a href="{% url 'pgi_detail' pgi_no=pgi.pgi_no %}" class="btn btn-sm btn-info">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center">No PGI records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Add New PGI -->
+    <div class="text-end mt-3">
+      <a href="{% url 'outbound_list' %}" class="btn btn-success">Create New PGI</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

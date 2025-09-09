@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% load static %}
+  <title>RF Dispatch</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+</head>
+
+<body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container-fluid d-flex justify-content-between align-items-center">
+
+    <!-- 🔹 Brand Logo (left side) -->
+    <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
+      <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png"
+        width="100" alt="navbar logo" class="me-2">
+    </a>
+
+    <!-- 🔹 Search Form (center) -->
+    <form class="d-none d-md-flex mx-auto" role="search" method="get" action="{% url 'search' %}">
+      <input class="form-control me-2" type="search" placeholder="Search features..." name="q"
+        aria-label="Search">
+      <button class="btn btn-outline-primary d-flex align-items-center" type="submit">
+        <i class="fa-solid fa-magnifying-glass me-1"></i> Search
+      </button>
+    </form>
+
+    <!-- 🔹 Right side items -->
+    <div class="d-flex align-items-center">
+
+      <!-- Toggle button (only visible on mobile) -->
+      <button class="btn btn-outline-primary d-lg-none me-2" type="button"
+        data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <!-- User Dropdown -->
+      <div class="dropdown">
+        <a class="btn btn-outline-light dropdown-toggle d-flex align-items-center text-dark" href="#"
+          role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+          {% if user.profile.image %}
+          <img src="{{ user.profile.image.url }}" alt="Profile Image"
+            class="rounded-circle me-2 border" width="30" height="30">
+          {% else %}
+          <i class="fa-solid fa-user-circle fa-lg me-2"></i>
+          {% endif %}
+          {{ user.username }}
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <a class="dropdown-item" href="{% url 'profile_detail' %}">
+              <i class="fa-solid fa-id-badge me-2"></i> Profile
+            </a>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item" href="{% url 'logout' %}">
+              <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  </header>
+<!-- Main Content -->
+      
+  <!-- 🔹 Sidebar visible only on large screens -->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-2 bg-light vh-100 p-3 d-none d-lg-block">
+        <div class="list-group">
+          <a href="{% url 'profile_detail' %}"
+            class="list-group-item {% if request.path == '/profile-detail/' %}active{% endif %}">
+            <i class="fa-solid fa-id-badge me-2"></i> Profile
+          </a>
+          <a href="{% url 'vendor_list' %}" class="list-group-item"><i class="fa-solid fa-industry me-2"></i> Vendor</a>
+          <a href="{% url 'customers_list' %}" class="list-group-item"><i class="fa-solid fa-users me-2"></i> Customer</a>
+          <a href="{% url 'get_truck_details' %}" class="list-group-item"><i class="fa-solid fa-truck me-2"></i> Truck</a>
+          <a href="{% url 'warehouse_view' %}" class="list-group-item"><i class="fa-solid fa-warehouse me-2"></i> Warehouse</a>
+          <a href="{% url 'all_tasks' %}" class="list-group-item"><i class="fa-solid fa-list-check me-2"></i> Tasks</a>
+          <a href="{% url 'user_list' %}" class="list-group-item"><i class="fa-solid fa-user-gear me-2"></i> Users</a>
+        </div>
+      </div>
+      <div class="col-12 col-lg-10 p-3 text-center">
+        <main class="pb-5 text-center">
+          {% block content %}
+          <!-- Your main content goes here -->
+          {% endblock %}
+        </main>
+      </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- 🔹 Offcanvas Sidebar for Mobile -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title" id="mobileSidebarLabel">Menu</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <div class="list-group">
+        <a href="{% url 'profile_detail' %}"
+          class="list-group-item {% if request.path == '/profile_detail/' %}active{% endif %}">
+          <i class="fa-solid fa-id-badge me-2"></i> Profile
+        </a>
+        <a href="#" class="list-group-item"><i class="fa-solid fa-industry me-2"></i> Vendor</a>
+        <a href="#" class="list-group-item"><i class="fa-solid fa-users me-2"></i> Customer</a>
+        <a href="#" class="list-group-item"><i class="fa-solid fa-truck me-2"></i> Truck</a>
+        <a href="#" class="list-group-item"><i class="fa-solid fa-warehouse me-2"></i> Warehouse</a>
+        <a href="#" class="list-group-item"><i class="fa-solid fa-list-check me-2"></i> Tasks</a>
+        <a href="#" class="list-group-item"><i class="fa-solid fa-user-gear me-2"></i> Users</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-5 fixed-bottom">
+    <div class="footer bg-dark text-white text-center py-3">
+      &copy; 2025 Chezzion. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- JS -->
+  <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+  <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+</body>
+</html>

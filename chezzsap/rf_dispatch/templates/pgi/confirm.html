@@ -1,29 +1,52 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container mt-4">
-    <h2>Post Goods Issue</h2>
-
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>Delivery No: {{ delivery.dlv_no }}</h5>
-            <p><strong>Customer:</strong> {{ delivery.sold_to }} → {{ delivery.ship_to }}</p>
-            <p><strong>Order Date:</strong> {{ delivery.ord_date }} | <strong>Delivery Date:</strong> {{
-                delivery.del_date }}</p>
-        </div>
+{% extends "base.html" %} {% block content %}
+<div class="container py-5">
+  <div class="card mx-auto shadow-lg p-4" style="max-width: 900px">
+    <div class="card-header bg-warning text-dark text-center">
+      <h5>Confirm Post Goods Issue</h5>
     </div>
 
-    <form method="post">
+    <div class="card-body">
+      <p><strong>Delivery:</strong> {{ delivery.dlv_no }}</p>
+      <p><strong>Customer:</strong> {{ delivery.sold_to }}</p>
+
+      <h6 class="mt-4">Items to Post:</h6>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead class="table-dark">
+            <tr>
+              <th>Item No</th>
+              <th>Product</th>
+              <th>Qty Issued</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in delivery.items.all %}
+            <tr>
+              <td>{{ item.dlv_it_no }}</td>
+              <td>{{ item.product_name }}</td>
+              <td>{{ item.qty_issued }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <form method="post" class="mt-4">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="posted_by" class="form-label">Posted By</label>
-            <input type="text" name="posted_by" id="posted_by" class="form-control" required>
+          <label for="posted_by" class="form-label">Posted By</label>
+          <input type="text" class="form-control" id="posted_by" name="posted_by" required />
         </div>
         <div class="mb-3">
-            <label for="remarks" class="form-label">Remarks</label>
-            <textarea name="remarks" id="remarks" class="form-control"></textarea>
+          <label for="remarks" class="form-label">Remarks</label>
+          <textarea class="form-control" id="remarks" name="remarks" rows="3"></textarea>
         </div>
-        <button type="submit" class="btn btn-success">Confirm PGI</button>
-        <a href="{% url 'outbound_detail' delivery.dlv_no %}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="text-center">
+          <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Post PGI</button>
+          <a href="{% url 'outbound_detail' delivery_no=delivery.dlv_no %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

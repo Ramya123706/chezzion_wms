@@ -160,6 +160,7 @@ urlpatterns = [
     path('inbound_delivery/edit/<str:inbound_delivery_number>/', views.edit_inbound_delivery, name='edit_inbound_delivery'),
     path('po-suggestions/', views.po_suggestions, name='po_suggestions'),
 
+    path("get-product-details/<int:product_id>/", views.get_product_details, name="get_product_details"),
 
     # Pallet Management
     path('create_pallet/', views.creating_pallet, name='creating_pallet'),
@@ -175,7 +176,7 @@ urlpatterns = [
     path('sales_order_creation/',views.sales_order_creation,name='sales_order_creation'),
     path('sales/', views.sales_order_list, name='sales_order_list'),
     path("get-warehouse-address/<str:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
-    # path('product-autocomplete/', views.product_autocomplete, name='product-autocomplete'),
+    path('product-autocomplete/', views.product_autocomplete, name='product-autocomplete'),
 
     path('sales/<str:so_no>/', views.sales_order_detail, name='sales_order_detail'),
     path('sales-order/edit/<str:so_no>/', views.sales_order_edit, name='sales_order_edit'),
@@ -206,6 +207,10 @@ urlpatterns = [
 # Outbound → PGI
     path("pgi/<str:delivery_no>/", views.post_goods_issue, name="post_goods_issue"),
     path("pgi/detail/<str:pgi_no>/", views.pgi_detail, name="pgi_detail"),
+    path ("pgi/", views.pgi_list, name="pgi_list"),
+    path("pgi/create", views.post_goods_issue, name="post_goods_issue"),
+    path("outbound-list/", views.outbound_list, name="outbound_list"),
+
 
     # Inbound → GR
     path("gr/<str:inbound_no>/", views.goods_receipt, name="goods_receipt"),
@@ -219,7 +224,7 @@ urlpatterns = [
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
 
 
-    path("accounts/login/", views.login_view, name="login"),
+    path("login/", views.login_view, name="login"),
     path("profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('logout/', views.logout_view, name='logout'), 
@@ -229,19 +234,22 @@ urlpatterns = [
     path('users/<int:user_id>/', views.user_detail, name='user_detail'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
-
+    
     # Change password
     path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),
     path("password_change/done/", auth_views.PasswordChangeDoneView.as_view(template_name="account/change_password_done.html"), name="password_change_done"),
 
     # Reset password
-    path("accounts/password_reset/", auth_views.PasswordResetView.as_view(template_name="account/password_reset.html"), name="password_reset"),
-    path("accounts/password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="account/password_reset_done.html"), name="password_reset_done"),
-    path("accounts/reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="account/password_reset_confirm.html"), name="password_reset_confirm"),
-    path("accounts/reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="account/password_reset_complete.html"), name="password_reset_complete"),
+    path("password_reset/", auth_views.PasswordResetView.as_view(template_name="account/password_reset.html"), name="password_reset"),
+    path("password_reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="account/password_reset_done.html"), name="password_reset_done"),
+    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="account/password_reset_confirm.html"), name="password_reset_confirm"),
+    path("reset/done/", auth_views.PasswordResetCompleteView.as_view(template_name="account/password_reset_complete.html"), name="password_reset_complete"),
     path("login/", views.login_view, name="login"),
+
     path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("accounts/profile/edit/", views.edit_profile, name="edit_profile"),
-    path('logout/', views.logout_view, name='logout'), 
-    path('profile/change-password/', views.change_password, name='change_password'),
+    path('accounts/logout/', views.logout_view, name='logout'), 
+    path('accounts/profile/change-password/', views.change_password, name='change_password'),
+    path('acccounts/superadmin/', views.superadmin_base_view, name='superadmin'),
+    path('accounts/superadmin/dashboard/', views.superadmin_dashboard, name='superadmin_dashboard'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

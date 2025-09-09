@@ -685,8 +685,8 @@ STATUS_CHOICES = [
 
 class SalesOrderCreation(models.Model):
     so_no = models.CharField(max_length=50, editable=False, unique=True)
-    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="warehouse")
-    whs_address = models.CharField(max_length=100, default="Unknown")
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="sales_orders")
+    whs_address = models.TextField(default="Unknown")
     customer_id = models.CharField(max_length=50)
     customer_code = models.CharField(max_length=50)
     order_date = models.DateField()
@@ -694,6 +694,10 @@ class SalesOrderCreation(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Draft')
     remarks = models.TextField(blank=True, null=True)
     net_total_price = models.DecimalField(max_digits=50, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return f"{self.so_no} - {self.status}"
@@ -702,7 +706,7 @@ class SalesOrderCreation(models.Model):
         # Auto-generate SO number if not exists
         if not self.so_no:
             last_so = SalesOrderCreation.objects.all().order_by('id').last()
-            if last_so:
+            if last_so and last_so.so_no.startswith('SO'):
                 last_no = int(last_so.so_no.split('SO')[-1])
                 self.so_no = f"SO{last_no + 1:05d}"
             else:
@@ -710,24 +714,28 @@ class SalesOrderCreation(models.Model):
         super().save(*args, **kwargs)
 
 
+
+
 class SalesOrderItem(models.Model):
     so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, default=None)  # ForeignKey instead of product_id/product_name
-    product_name = models.CharField(max_length=50)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, default=None) 
+    product_name = models.CharField(max_length=200)
     existing_quantity = models.IntegerField(default=0)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
+    def __str__(self):
+        return f"{self.product_name} ({self.quantity}) - {self.so_no.so_no}"
+
     def save(self, *args, **kwargs):
         # Auto-calculate unit_total_price
         self.unit_total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
 
 # outbound delivery
-
 class OutboundDelivery(models.Model):
-    dlv_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    dlv_no = models.CharField(max_length=200, unique=True, blank=True, null=True)
     so_no = models.ForeignKey(
         SalesOrderCreation,
         on_delete=models.CASCADE,
@@ -741,11 +749,11 @@ class OutboundDelivery(models.Model):
         null=True,
         blank=True
     )
-    whs_address = models.CharField(max_length=100, blank=True, null=True)
+    whs_address = models.CharField(max_length=300, blank=True, null=True)
 
-    sold_to = models.CharField(max_length=100, blank=True, null=True)
-    ship_to = models.CharField(max_length=100, blank=True, null=True)
-    cust_ref = models.CharField(max_length=100, blank=True, null=True)
+    sold_to = models.CharField(max_length=200, blank=True, null=True)
+    ship_to = models.CharField(max_length=200, blank=True, null=True)
+    cust_ref = models.CharField(max_length=200, blank=True, null=True)
     ord_date = models.DateField(blank=True, null=True)
     del_date = models.DateField(blank=True, null=True)
 
@@ -759,30 +767,29 @@ class OutboundDeliveryItem(models.Model):
         on_delete=models.CASCADE,
         related_name='items'
     )
-    dlv_it_no = models.CharField(max_length=10)  # Item number (10,20,30…)
-    product_id = models.CharField(max_length=50, blank=True, null=True)
-    product_name = models.CharField(max_length=100, default="Unknown")
-    serial_no = models.CharField(max_length=50, blank=True, null=True)
-    batch_no = models.CharField(max_length=50, blank=True, null=True)
+    dlv_it_no = models.CharField(max_length=50)  
 
-    qty_order = models.DecimalField(max_digits=10, decimal_places=2)
-    qty_issued = models.DecimalField(max_digits=10, decimal_places=2)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    # Instead of storing product_id/name as CharField, link to Product
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="outbound_items"
+    )
+    product_name = models.CharField(max_length=200)
+    serial_no = models.CharField(max_length=100, blank=True, null=True)
+    batch_no = models.CharField(max_length=100, blank=True, null=True)
+    qty_order = models.DecimalField(max_digits=100, decimal_places=2)
+    qty_issued = models.DecimalField(max_digits=100, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=100, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
     net_total_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
-    vol_per_item = models.DecimalField(max_digits=10, decimal_places=2)
+    vol_per_item  = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     class Meta:
         unique_together = ('delivery', 'dlv_it_no')
 
-    # def save(self, *args, **kwargs):
-    #     # Calculate totals before saving
-    #     self.unit_total_price = self.qty_issued * self.unit_price
-    #     self.net_total_price = self.unit_total_price
-    #     super().save(*args, **kwargs)
-
     def __str__(self):
-        return f"{self.product_name} - Item {self.dlv_it_no}"
+        return f"{self.product.name} - Item {self.dlv_it_no}"
 
 from django.db import models
 
@@ -813,19 +820,32 @@ class PackedItem(models.Model):
     def __str__(self):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
 
+
+
+from django.db import models
+from django.utils.timezone import now
+
 class PostGoodsIssue(models.Model):
-    pgi_no = models.CharField(max_length=50, unique=True)
-    delivery = models.OneToOneField(  # one PGI per delivery
-        OutboundDelivery,
+    pgi_no = models.CharField(max_length=50, unique=True)  # Unique PGI number
+    delivery = models.OneToOneField(  # One PGI per delivery
+        "rf_dispatch.OutboundDelivery",
         on_delete=models.CASCADE,
         related_name="pgi"
     )
     posting_date = models.DateField(auto_now_add=True)
-    posted_by = models.CharField(max_length=100)  # user/employee
+    posted_by = models.CharField(max_length=100)  
     remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Post Goods Issue"
+        verbose_name_plural = "Post Goods Issues"
+        ordering = ['-posting_date']
 
     def __str__(self):
         return f"PGI {self.pgi_no} for Delivery {self.delivery.dlv_no}"
+
+
+
 
 from django.db import models
 
@@ -892,4 +912,5 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
 

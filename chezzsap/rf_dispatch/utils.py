@@ -1,5 +1,7 @@
 from datetime import datetime
 from .models import TruckLog
+from decimal import Decimal, InvalidOperation
+import random
 
 def log_truck_status(truck_instance, status, user=None, comment=''):
     # Fetch the last log entry for this truck
@@ -32,3 +34,12 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         comment=comment,
         time_taken=time_taken_str
     )
+
+def generate_outbound_delivery_number():
+    return f"OBD{random.randint(1000, 9999)}"
+
+def safe_decimal(value, default=0):
+    try:
+        return Decimal(default) if value is None or value == "" else Decimal(value)
+    except (InvalidOperation, ValueError):
+        return Decimal(default)
