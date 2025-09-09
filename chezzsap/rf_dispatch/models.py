@@ -75,6 +75,7 @@ class TruckLog(models.Model):
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
+    time_taken = models.CharField(max_length=20, default='-')
     comment = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='Not planned')
     status_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
