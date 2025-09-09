@@ -1,0 +1,76 @@
+{% extends "base.html" %} {% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg mx-auto" style="max-width: 800px">
+    <!-- Header -->
+    <div class="card-header bg-primary text-white text-center">
+      <h5>Create Post Goods Issue for Delivery {{ delivery.dlv_no }}</h5>
+    </div>
+
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Outbound Info -->
+        <div class="mb-3">
+          <label class="form-label"><strong>Delivery Number:</strong></label>
+          <input type="text" class="form-control" value="{{ delivery.dlv_no }}" readonly />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><strong>Customer:</strong></label>
+          <input type="text" class="form-control" value="{{ delivery.sold_to }}" readonly />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label"><strong>Warehouse:</strong></label>
+          <input type="text" class="form-control" value="{{ delivery.whs_no }}" readonly />
+        </div>
+
+        <!-- User Input -->
+        <div class="mb-3">
+          <label for="posted_by" class="form-label"><strong>Posted By</strong></label>
+          <input type="text" class="form-control" name="posted_by" id="posted_by" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="remarks" class="form-label"><strong>Remarks</strong></label>
+          <textarea class="form-control" name="remarks" id="remarks" rows="3"></textarea>
+        </div>
+
+        <!-- Delivery Items Preview -->
+        <h6 class="mt-4">Delivery Items</h6>
+        <table class="table table-bordered table-striped text-center">
+          <thead class="table-dark">
+            <tr>
+              <th>Item No</th>
+              <th>Product</th>
+              <th>Qty Ordered</th>
+              <th>Qty Issued</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in delivery.items.all %}
+            <tr>
+              <td>{{ item.dlv_it_no }}</td>
+              <td>{{ item.product_name }}</td>
+              <td>{{ item.qty_order }}</td>
+              <td>{{ item.qty_issued }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-center">No items found for this delivery</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-between mt-4">
+          <a href="{% url 'outbound_detail' delivery_no=delivery.dlv_no %}" class="btn btn-secondary"> <i class="fas fa-arrow-left"></i> Back </a>
+          <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Post Goods Issue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
