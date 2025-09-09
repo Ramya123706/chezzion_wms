@@ -110,6 +110,11 @@
           <div class="d-flex mt-4">
             <a class="btn btn-secondary m-3"> <i class="fa-solid fa-arrow-left"></i> F7 BACK </a>
             <button type="submit" class="btn btn-secondary m-3"><i class="fa-solid fa-clipboard-check"></i> F2 PQC</button>
+            {% if request.user.is_superuser %}
+            <div class="mt-3 text-center">
+              <a href="{% url 'add_questions' %}" class="btn btn-primary"> <i class="fa-solid fa-plus"></i> Add Questions </a>
+            </div>
+            {% endif %}
           </div>
         </form>
       </div>
