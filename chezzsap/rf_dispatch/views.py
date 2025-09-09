@@ -76,49 +76,195 @@ from django.shortcuts import render, redirect
 from .forms import YardHdrForm
 from .models import Truck
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import YardHdrForm
+from .models import YardHdr, Truck, InspectionQuestion, InspectionResponse
+
+# Page 1 – Truck check-in form
+from django.db.models import Q
+
+from django import forms
 
 def yard_checkin_view(request):
+    error_message = None  # Initialize error message
+
     if request.method == 'POST':
-        form = YardHdrForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            scan = instance.yard_scan.lower()   
-            if 'door' in scan:
-                instance.truck_status = 'door'
-            elif 'parking' in scan:
-                instance.truck_status = 'parking'
-            elif 'checkin' in scan:
-                instance.truck_status = 'checkin'
-            elif 'gate' in scan:
-                instance.truck_status = 'gate'
-            elif 'checkout' in scan:
-                instance.truck_status = 'checkout'
-            else:
-                instance.truck_status = 'not planned'
-            instance.save()
-            truck_no = request.POST.get('truck_no')
-            driver_name = request.POST.get('driver_name')
-            driver_phn_no = request.POST.get('driver_phn_no')
+        truck_no = request.POST.get('truck_no')
 
-            if truck_no:
-                try:
-                    yard_instance = YardHdr.objects.filter(truck_no=truck_no).last()
-                    if yard_instance and not Truck.objects.filter(truck_no=yard_instance).exists():
-                        Truck.objects.create(
-                            truck_no=yard_instance,
-                            driver_name=driver_name,
-                            driver_phn_no=driver_phn_no
-                        )
-                except YardHdr.DoesNotExist:
-                    print(f"YardHdr with truck_no {truck_no} does not exist.")
+        # Check if the truck is already checked in and not checked out
+        existing = YardHdr.objects.filter(
+            truck_no=truck_no
+        ).exclude(truck_status='checkout').last()
 
-            return redirect('inspection', truck_no=instance.truck_no)
+        if existing:
+            error_message = f"Truck {truck_no} is already checked in and not checked out!"
+        else:
+            # Store form data in session
+            request.session['page1_data'] = {
+                'whs_no': request.POST.get('whs_no'),
+                'truck_no': truck_no,
+                'truck_type': request.POST.get('truck_type'),
+                'driver_name': request.POST.get('driver_name'),
+                'driver_phn_no': request.POST.get('driver_phn_no'),
+                'po_no': request.POST.get('po_no'),
+                'truck_date': request.POST.get('truck_date'),
+                'truck_time': request.POST.get('truck_time'),
+                'seal_no': request.POST.get('seal_no'),
+                'yard_scan': request.POST.get('yard_scan'),
+                'truck_status': request.POST.get('truck_status')
+            }
 
-    else:
-        form = YardHdrForm()
-    warehouses = Warehouse.objects.all()
+            return redirect('inspection', truck_no=truck_no)
+
+    form = YardHdrForm()
+
+    return render(request, 'truck_screen/one.html', {
+        'form': form,
+        'truck': Truck.objects.all(),
+        'error_message': error_message
+    })
+
+
+# Page 2 – Truck inspection
+def inspection_view(request, truck_no):
+    page1_data = request.session.get('page1_data')
+    if not page1_data:
+        messages.error(request, "Page 1 data not found. Please fill Truck Check-in first.")
+        return redirect('yard_checkin')
+
+    questions = InspectionQuestion.objects.all()
+
+    if request.method == 'POST':
+        # Collect inspection responses
+        all_yes = True
+        responses = {}
+        for q in questions:
+            ans = request.POST.get(f"question_{q.id}")
+            responses[q] = ans
+            if ans != "Yes":
+                all_yes = False
+
+        if not all_yes:
+            messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
+            return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
+
+        # ✅ Save both Page 1 and Page 2 data together
+        yard_instance = YardHdr.objects.create(
+            whs_no = page1_data['whs_no'],
+            truck_no = page1_data['truck_no'],
+            truck_type = page1_data['truck_type'],
+            driver_name = page1_data['driver_name'],
+            driver_phn_no = page1_data['driver_phn_no'],
+            po_no = page1_data['po_no'],
+            truck_date = page1_data['truck_date'],
+            truck_time = page1_data['truck_time'],
+            seal_no = page1_data['seal_no'],
+            yard_scan = page1_data['yard_scan'],
+            truck_status = "Inspected"
+        )
+        
+        # Save inspection responses
+        for q, ans in responses.items():
+            InspectionResponse.objects.create(
+                yard = yard_instance,
+                question = q,
+                answer = ans
+            )
+        
+
+        # Optional: Save truck info if not exists
+        if not Truck.objects.filter(truck_no=yard_instance.truck_no).exists():
+            Truck.objects.create(
+                truck_no = yard_instance.truck_no,
+                driver_name = yard_instance.driver_name,
+                driver_phn_no = yard_instance.driver_phn_no
+            )
+
+        # Clear session data
+        if 'page1_data' in request.session:
+            del request.session['page1_data']
+
+            messages.success(request, "Truck inspection completed successfully!")
+        return redirect('yard_checkin')
     
-    return render(request, 'truck_screen/one.html', {'form': form, 'warehouses': warehouses, 'truck': Truck.objects.all()})
+    return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
+
+# from django.contrib import messages
+# from django.utils import timezone
+# def yard_checkin_view(request):
+#     if request.method == 'POST':
+#         form = YardHdrForm(request.POST)
+#         if form.is_valid():
+#             truck_no = request.POST.get('truck_no')
+
+#             # Correct logic to check last status
+#             last_log = TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
+
+#             if last_log and last_log.status == 'checkin':
+#                 messages.error(request, "This truck is still not checked out. Please checkout before next check-in.")
+#                 return redirect('yard_checkin')
+
+#             # Proceed if last status is not 'checkin'
+#             instance = form.save(commit=False)
+#             scan = instance.yard_scan.lower()
+#             if 'door' in scan:
+#                 instance.truck_status = 'door'
+#             elif 'parking' in scan:
+#                 instance.truck_status = 'parking'
+#             elif 'checkin' in scan:
+#                 instance.truck_status = 'checkin'
+#             elif 'gate' in scan:
+#                 instance.truck_status = 'gate'
+#             elif 'checkout' in scan:
+#                 instance.truck_status = 'checkout'
+#             else:
+#                 instance.truck_status = 'not planned'
+#             instance.save()
+
+#             driver_name = request.POST.get('driver_name')
+#             driver_phn_no = request.POST.get('driver_phn_no')
+
+#             try:
+#                 yard_instance = YardHdr.objects.filter(truck_no=truck_no).last()
+#                 if yard_instance and not Truck.objects.filter(truck_no=yard_instance.truck_no).exists():
+#                     Truck.objects.create(
+#                         truck_no=yard_instance.truck_no,
+#                         driver_name=driver_name,
+#                         driver_phn_no=driver_phn_no
+#                     )
+#             except YardHdr.DoesNotExist:
+#                 print(f"YardHdr with truck_no {truck_no} does not exist.")
+
+#             messages.success(request, "Truck inspection completed successfully!")
+#             return redirect('inspection', truck_no=instance.truck_no)
+
+#     else:
+#         form = YardHdrForm()
+
+#     warehouses = Warehouse.objects.all()
+
+#     return render(request, 'truck_screen/one.html', {
+#         'form': form,
+#         'warehouses': warehouses,
+#         'truck': Truck.objects.all()
+#     })
+
+
+# def truck_checkout_view(request, truck_no):
+#     try:
+#         yard_entry = YardHdr.objects.filter(truck_no=truck_no, truck_status='checkin').last()
+#         if yard_entry:
+#             yard_entry.truck_status = 'checkout'
+#             yard_entry.checkout_time = timezone.now()
+#             yard_entry.save()
+#             messages.success(request, "Truck checked out successfully.")
+#         else:
+#             messages.error(request, "No active check-in found for this truck.")
+#     except YardHdr.DoesNotExist:
+#         messages.error(request, "Truck not found.")
+
+#     return redirect('truck_landing')
 
 
 # from django.shortcuts import render, redirect, get_object_or_404
@@ -220,54 +366,54 @@ from .models import YardHdr, InspectionQuestion, InspectionResponse
 
 from django.contrib import messages
 
-def inspection_view(request, truck_no):
-    # Get existing truck
-    truck = YardHdr.objects.filter(truck_no=truck_no).last()
-    if not truck:
-        return redirect("one")  # safety redirect
+# def inspection_view(request, truck_no):
+#     # Get existing truck
+#     truck = YardHdr.objects.filter(truck_no=truck_no).last()
+#     if not truck:
+#         return redirect("one")  # safety redirect
 
-    questions = InspectionQuestion.objects.all()
+#     questions = InspectionQuestion.objects.all()
 
-    if request.method == "POST":
-        all_yes = True
-        responses = {}
+#     if request.method == "POST":
+#         all_yes = True
+#         responses = {}
 
-        for q in questions:
-            ans = request.POST.get(f"question_{q.id}")
-            if ans is None:
-                all_yes = False  # missing answer
-            responses[q] = ans
-            if ans == "No":
-                all_yes = False
+#         for q in questions:
+#             ans = request.POST.get(f"question_{q.id}")
+#             if ans is None:
+#                 all_yes = False  # missing answer
+#             responses[q] = ans
+#             if ans == "No":
+#                 all_yes = False
 
-        if not all_yes:
-            # Don’t save, show error message
-            messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
-            return render(
-                request,
-                "truck_screen/two.html",
-                {"questions": questions, "truck_no": truck_no},
-            )
+#         if not all_yes:
+#             # Don’t save, show error message
+#             messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
+#             return render(
+#                 request,
+#                 "truck_screen/two.html",
+#                 {"questions": questions, "truck_no": truck_no},
+#             )
 
-        # ✅ Save only if all answers are Yes
-        for q, ans in responses.items():
-            InspectionResponse.objects.create(
-                yard=truck,
-                question=q,
-                answer=ans
-            )
+#         # ✅ Save only if all answers are Yes
+#         for q, ans in responses.items():
+#             InspectionResponse.objects.create(
+#                 yard=truck,
+#                 question=q,
+#                 answer=ans
+#             )
 
-        truck.truck_status = "Inspected"
-        truck.save()
+#         truck.truck_status = "Inspected"
+#         truck.save()
 
-        messages.success(request, "Truck inspection completed successfully!")
-        return redirect("one")
+#         messages.success(request, "Truck inspection completed successfully!")
+#         return redirect("one")
 
-    return render(
-        request,
-        "truck_screen/two.html",
-        {"questions": questions, "truck_no": truck_no},
-    )
+#     return render(
+#         request,
+#         "truck_screen/two.html",
+#         {"questions": questions, "truck_no": truck_no},
+#     )
 
 
 from django.http import JsonResponse
@@ -450,24 +596,20 @@ def update_truck_status(request, truck_no):
         comment = request.POST.get("comment", "")
 
         try:
-            truck = YardHdr.objects.get(truck_no=truck_no)
+            truck = YardHdr.objects.filter(truck_no=truck_no).last()
             # Update current truck status
             truck.truck_status = new_status
             truck.save()
 
-            # Create a log entry
-            TruckLog.objects.create(
-                truck_no=truck,
-                status=new_status,
-                comment=comment,
-                status_changed_by=request.user
-            )
+            # Call utility function to log the status and calculate time_taken
+            log_truck_status(truck_instance=truck, status=new_status, user=request.user, comment=comment)
 
             messages.success(request, f"Truck status updated to {new_status}.")
         except YardHdr.DoesNotExist:
             messages.error(request, "Truck not found.")
 
     return redirect("truck_detail", truck_no=truck_no)
+
 
 
 # ------------

@@ -168,6 +168,7 @@
                                 <th>Time</th>
                                 <th>Status</th>
                                 <th>Comment</th>
+                                <th>Time Taken</th>
                                 <th>Updated By</th>
                             </tr>
                         </thead>
@@ -178,6 +179,9 @@
                                 <td>{{ log.truck_time }}</td>
                                 <td>{{ log.status }}</td>
                                 <td>{{ log.comment|default:"-" }}</td>
+                                <td>
+                                    {{ log.time_taken|default:"-" }}
+                                </td>
                                 <td>{{ log.status_changed_by|default:"System" }}</td>
                             </tr>
                             {% endfor %}
