@@ -220,7 +220,7 @@ urlpatterns = [
 
 
     path("login/", views.login_view, name="login"),
-    path("accounts/profile_detail/", views.profile_detail_view, name="profile_detail"),
+    path("profile_detail/", views.profile_detail_view, name="profile_detail"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('logout/', views.logout_view, name='logout'), 
     path('profile/change-password/', views.change_password, name='change_password'),
