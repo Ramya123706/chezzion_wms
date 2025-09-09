@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 
 <div class="container mt-5">
   <div class="col-md-6 col-sm-12 mx-auto">
@@ -6,232 +7,92 @@
       <div class="card-header bg-light text-center">
         <h5 class="text-center mb-4 mt-3"><i class="fa-solid fa-truck-front"></i> Truck check-in and Check-out</h5>
       </div>
+
       <div class="card-body">
         <form id="inspectionForm" method="POST">
-          {% csrf_token %} {% if form.errors %}
-          <div class="alert alert-danger">{{ form.errors }}</div>
+          {% csrf_token %}
+
+          {% if error_message %}
+            <div class="alert alert-danger">{{ error_message }}</div>
           {% endif %}
 
+          {% if form.errors %}
+            <div class="alert alert-danger">{{ form.errors }}</div>
+          {% endif %}
+
+          <!-- WHS No -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-warehouse"></i> WHS No </label>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-warehouse"></i> WHS No</label>
             <div class="col-sm-8">
-              <input type="text" id="whs_no_input" name="whs_no" class="form-control" placeholder="Enter WHS No" autocomplete="off" />
-              <div id="whs_suggestions" class="border p-2 bg-white" style="position: absolute; z-index: 999; display: none"></div>
-            </div>
-
-            <div class="card-body">
-
-                {% if error_message %}
-                    <div class="alert alert-danger">{{ error_message }}</div>
-                {% endif %}
-
-                <form id="inspectionForm" method="POST">
-                    {% csrf_token %}
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            {{ form.errors }}
-                        </div>
-                    {% endif %}
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-warehouse"></i> WHS No
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" id="whs_no_input" name="whs_no" class="form-control"
-                                   placeholder="Enter WHS No" autocomplete="off">
-                            <div id="whs_suggestions" class="border p-2 bg-white"
-                                 style="position:absolute; z-index:999; display:none;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-truck"></i> Truck No
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" id="truck_no_input" name="truck_no" class="form-control"
-                                   placeholder="Enter Truck No" autocomplete="off">
-                            <div id="truck_suggestions" class="border p-2 bg-white"
-                                 style="position:absolute; z-index:999; display:none;"></div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-truck-field"></i> Truck Type
-                        </label>
-                        <div class="col-sm-8">
-                            <select class="form-select" id="truckTypeSelect" name="truck_type">
-                                <option value="Inbound">Inbound</option>
-                                <option value="Outbound">Outbound</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-user"></i> Driver Name
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}">
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-phone"></i> Driver Phn No
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}"
-                                   value="{{ truck.driver_phn_no }}" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-file-invoice"></i> PO No
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="po_no" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-calendar-days"></i> Truck Date
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="date" class="form-control" name="truck_date">
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-clock"></i> Truck Time
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="time" class="form-control" name="truck_time">
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-lock"></i> Seal No
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" name="seal_no" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-qrcode"></i> Yard Scan
-                        </label>
-                        <div class="col-sm-8">
-                            <select class="form-select" id="yardScanSelect" name="yard_scan">
-                                <option value="" selected>Not Planned</option>
-                                <option value="checkin">Checkin</option>
-                                <option value="door1">Door 1</option>
-                                <option value="door2">Door 2</option>
-                                <option value="door3">Door 3</option>
-                                <option value="parkinglot1">Parking Lot 1</option>
-                                <option value="parkinglot2">Parking Lot 2</option>
-                                <option value="parkinglot3">Parking Lot 3</option>
-                                <option value="gate1">Gate 1</option>
-                                <option value="gate2">Gate 2</option>
-                                <option value="gate3">Gate 3</option>
-                                <option value="checkout">Checkout</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">
-                            <i class="fa-solid fa-truck-ramp-box"></i> Truck Status
-                        </label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control" id="truckStatusInput" name="truck_status" readonly>
-                        </div>
-                    </div>
-
-                    <div class="d-flex mt-4">
-                        <a href="{% url 'home' %}" class="btn btn-secondary m-3">
-                            <i class="fa-solid fa-arrow-left"></i> F7 BACK
-                        </a>
-
-                        <button type="submit" class="btn btn-secondary m-3">
-                            <i class="fa-solid fa-clipboard-check"></i> F2 PQC
-                        </button>
-
-                        {% if request.user.is_superuser %}
-                            <div class="mt-3 text-center">
-                                <a href="{% url 'add_questions' %}" class="btn btn-primary">
-                                    <i class="fa-solid fa-plus"></i> Add Questions
-                                </a>
-                            </div>
-                        {% endif %}
-                    </div>
-                </form>
-
+              <input type="text" id="whs_no_input" name="whs_no" class="form-control" placeholder="Enter WHS No" autocomplete="off">
+              <div id="whs_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
             </div>
           </div>
 
+          <!-- Truck No -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck-field"></i> Truck Type </label>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-truck"></i> Truck No</label>
             <div class="col-sm-8">
-              <select class="form-select" id="truckTypeSelect" name="truck_type">
+              <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off">
+              <div id="truck_suggestions" class="border p-2 bg-white" style="position:absolute; z-index:999; display:none;"></div>
+            </div>
+          </div>
+
+          <!-- Truck Type -->
+          <div class="mb-3 row">
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-truck-field"></i> Truck Type</label>
+            <div class="col-sm-8">
+              <select class="form-select" name="truck_type">
                 <option value="Inbound">Inbound</option>
                 <option value="Outbound">Outbound</option>
               </select>
             </div>
           </div>
 
+          <!-- Driver Name -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-user"></i> Driver Name </label>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-user"></i> Driver Name</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}" />
+              <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}">
             </div>
           </div>
 
+          <!-- Driver Phone -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-phone"></i> Driver Phn No </label>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-phone"></i> Driver Phn No</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}" value="{{ truck.driver_phn_no }}" required />
+              <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}" value="{{ truck.driver_phn_no }}" required>
             </div>
           </div>
 
+          <!-- PO No -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-file-invoice"></i> PO No </label>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-file-invoice"></i> PO No</label>
             <div class="col-sm-8">
-              <input type="text" class="form-control" name="po_no" required />
+              <input type="text" class="form-control" name="po_no" required>
             </div>
           </div>
 
+          <!-- Date & Time -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-calendar-days"></i> Truck Date </label>
-            <div class="col-sm-8">
-              <input type="date" class="form-control" name="truck_date" />
-            </div>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-calendar-days"></i> Truck Date</label>
+            <div class="col-sm-8"><input type="date" class="form-control" name="truck_date"></div>
           </div>
 
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-clock"></i> Truck Time </label>
-            <div class="col-sm-8">
-              <input type="time" class="form-control" name="truck_time" />
-            </div>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-clock"></i> Truck Time</label>
+            <div class="col-sm-8"><input type="time" class="form-control" name="truck_time"></div>
           </div>
 
+          <!-- Seal No -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-lock"></i> Seal No </label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" name="seal_no" required />
-            </div>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-lock"></i> Seal No</label>
+            <div class="col-sm-8"><input type="text" class="form-control" name="seal_no" required></div>
           </div>
 
+          <!-- Yard Scan -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-qrcode"></i> Yard Scan </label>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-qrcode"></i> Yard Scan</label>
             <div class="col-sm-8">
               <select class="form-select" id="yardScanSelect" name="yard_scan">
                 <option value="" selected>Not Planned</option>
@@ -250,22 +111,30 @@
             </div>
           </div>
 
+          <!-- Truck Status -->
           <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck-ramp-box"></i> Truck Status </label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" id="truckStatusInput" name="truck_status" />
-            </div>
+            <label class="col-sm-4 col-form-label fw-bold"><i class="fa-solid fa-truck-ramp-box"></i> Truck Status</label>
+            <div class="col-sm-8"><input type="text" class="form-control" id="truckStatusInput" name="truck_status" readonly></div>
           </div>
 
+          <!-- Buttons -->
           <div class="d-flex mt-4">
-            <a class="btn btn-secondary m-3"> <i class="fa-solid fa-arrow-left"></i> F7 BACK </a>
+            <a href="{% url 'home' %}" class="btn btn-secondary m-3"><i class="fa-solid fa-arrow-left"></i> F7 BACK</a>
             <button type="submit" class="btn btn-secondary m-3"><i class="fa-solid fa-clipboard-check"></i> F2 PQC</button>
           </div>
+
+          {% if request.user.is_superuser %}
+            <div class="mt-3 text-center">
+              <a href="{% url 'add_questions' %}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Questions</a>
+            </div>
+          {% endif %}
         </form>
       </div>
     </div>
   </div>
 </div>
+
+
 
 <!-- Auto-fill Truck Status -->
 <script>
@@ -344,19 +213,10 @@
                             suggestionBox.appendChild(div);
                         });
                         suggestionBox.style.display = "block";
-                    } else {
-                        suggestionBox.style.display = "none";
-                    }
-                });
         } else {
-
             suggestionBox.style.display = "none";
-          }
-        });
-    } else {
-      suggestionBox.style.display = "none";
-    }
-  });
+        }
+    });
 </script>
 
 <!-- WHS No suggestions -->
