@@ -255,4 +255,7 @@ urlpatterns = [
 
     # create category
     path('create-category/', views.create_category_with_subcategories, name='create_category_with_subcategories'),
+    path('list_category/', views.category_list_view, name='category_list'),
+    path('category/edit/<int:id>/', views.edit_category_view, name='edit_category'),
+    path('category/delete/<int:id>/', views.delete_category_view, name='delete_category'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -3846,3 +3846,30 @@ def create_category_with_subcategories(request):
     }
     return render(request, 'category/create_category.html', context)
 
+
+from django.shortcuts import render
+from .models import Category
+
+def category_list_view(request):
+    categories = Category.objects.all().order_by('-created_at')
+    return render(request, 'category/list_of_category.html', {'categories': categories})
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Category
+
+def delete_category_view(request, id):
+    category = get_object_or_404(Category, id=id)
+    category.delete()
+    return redirect('category_list')
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import Category
+
+def edit_category_view(request, id):
+    category = get_object_or_404(Category, id=id)
+    if request.method == 'POST':
+        category.category = request.POST.get('category')
+        category.description = request.POST.get('description')
+        category.save()
+    return redirect('category_list')
+
