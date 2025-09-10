@@ -15,6 +15,9 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#000000">
+
 </head>
 
 <body>
@@ -91,5 +94,16 @@
     <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
 </body>
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register("{% static 'sw.js' %}")
+        .then(function(registration) {
+            console.log('Service Worker Registered');
+        })
+        .catch(function(error) {
+            console.log('Service Worker registration failed:', error);
+        });
+    }
+</script>
 
 </html>
