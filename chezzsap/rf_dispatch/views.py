@@ -3805,3 +3805,44 @@ def superadmin_base_view(request):
 
 def superadmin_dashboard(request):
     return render(request, "account/superadmin_dashboard.html")
+
+# ----------
+# Category Creation
+# ----------
+
+# views.py
+from django.shortcuts import render, redirect
+from .forms import CategoryForm
+from .models import Category, SubCategory
+
+def create_category_with_subcategories(request):
+    success_message = ''
+    
+    if request.method == 'POST':
+        category_form = CategoryForm(request.POST)
+        subcategories = []
+        for key, value in request.POST.items():
+            if key.startswith('sub_category_') and value.strip():
+                subcategories.append(value.strip())
+
+        if category_form.is_valid():
+            category_obj = category_form.save(commit=False)
+            category_obj.created_by = request.user.username  # Optional
+            category_obj.save()
+
+            # Save subcategories linked to this category
+            for subcat_name in subcategories:
+                SubCategory.objects.create(category=category_obj, name=subcat_name)
+
+            success_message = "Category and Subcategories created successfully!"
+            category_form = CategoryForm()  # Reset form after success
+
+    else:
+        category_form = CategoryForm()
+
+    context = {
+        'category_form': category_form,
+        'success_message': success_message,
+    }
+    return render(request, 'category/create_category.html', context)
+

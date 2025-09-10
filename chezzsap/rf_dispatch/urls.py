@@ -252,4 +252,7 @@ urlpatterns = [
     path('accounts/profile/change-password/', views.change_password, name='change_password'),
     path('acccounts/superadmin/', views.superadmin_base_view, name='superadmin'),
     path('accounts/superadmin/dashboard/', views.superadmin_dashboard, name='superadmin_dashboard'),
+
+    # create category
+    path('create-category/', views.create_category_with_subcategories, name='create_category_with_subcategories'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
