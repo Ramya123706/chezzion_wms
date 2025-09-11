@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block content %}
- 
+
 <div class="container mt-5">
   <div class="col-md-6 col-sm-12 mx-auto">
     <div class="card shadow-lg">
@@ -11,7 +11,7 @@
           {% csrf_token %} {% if form.errors %}
           <div class="alert alert-danger">{{ form.errors }}</div>
           {% endif %}
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-warehouse"></i> WHS No </label>
             <div class="col-sm-8">
@@ -19,7 +19,7 @@
               <div id="whs_suggestions" class="border p-2 bg-white" style="position: absolute; z-index: 999; display: none"></div>
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck"></i> Truck No </label>
             <div class="col-sm-8">
@@ -27,7 +27,7 @@
               <div id="truck_suggestions" class="border p-2 bg-white" style="position: absolute; z-index: 999; display: none"></div>
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck-field"></i> Truck Type </label>
             <div class="col-sm-8">
@@ -37,49 +37,49 @@
               </select>
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-user"></i> Driver Name </label>
             <div class="col-sm-8">
               <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}" />
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-phone"></i> Driver Phn No </label>
             <div class="col-sm-8">
               <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}" value="{{ truck.driver_phn_no }}" required />
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-file-invoice"></i> PO No </label>
             <div class="col-sm-8">
               <input type="text" class="form-control" name="po_no" required />
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-calendar-days"></i> Truck Date </label>
             <div class="col-sm-8">
               <input type="date" class="form-control" name="truck_date" />
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-clock"></i> Truck Time </label>
             <div class="col-sm-8">
               <input type="time" class="form-control" name="truck_time" />
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-lock"></i> Seal No </label>
             <div class="col-sm-8">
               <input type="text" class="form-control" name="seal_no" required />
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-qrcode"></i> Yard Scan </label>
             <div class="col-sm-8">
@@ -99,14 +99,14 @@
               </select>
             </div>
           </div>
- 
+
           <div class="mb-3 row">
             <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck-ramp-box"></i> Truck Status </label>
             <div class="col-sm-8">
               <input type="text" class="form-control" id="truckStatusInput" name="truck_status" />
             </div>
           </div>
- 
+
           <div class="d-flex mt-4">
             <a class="btn btn-secondary m-3"> <i class="fa-solid fa-arrow-left"></i> F7 BACK </a>
             <button type="submit" class="btn btn-secondary m-3"><i class="fa-solid fa-clipboard-check"></i> F2 PQC</button>
@@ -121,13 +121,13 @@
     </div>
   </div>
 </div>
- 
+
 <!-- JavaScript to auto-fill Truck Status -->
 <script>
   document.getElementById("yardScanSelect").addEventListener("change", function () {
     const value = this.value.toLowerCase();
     let status = "";
- 
+
     if (value.startsWith("door")) {
       status = "door";
     } else if (value.startsWith("parkinglot")) {
@@ -141,7 +141,7 @@
     } else {
       status = "";
     }
- 
+
     document.getElementById("truckStatusInput").value = status;
   });
 </script>
@@ -149,13 +149,13 @@
   // Auto-fill current date and time on page load
   window.addEventListener("DOMContentLoaded", function () {
     const now = new Date();
- 
+
     // Format date as YYYY-MM-DD
     const dateStr = now.toISOString().split("T")[0];
- 
+
     // Format time as HH:MM (24-hour format)
     const timeStr = now.toTimeString().split(":").slice(0, 2).join(":");
- 
+
     // Set values to input fields
     document.querySelector('input[name="truck_date"]').value = dateStr;
     document.querySelector('input[name="truck_time"]').value = timeStr;
@@ -164,7 +164,7 @@
 <script>
   document.querySelector('input[name="truck_no"]').addEventListener("change", function () {
     const truckNo = this.value;
- 
+
     fetch(`/get-truck-details/?truck_no=${encodeURIComponent(truckNo)}`)
       .then((response) => response.json())
       .then((data) => {
@@ -177,7 +177,7 @@
   document.getElementById("truck_no_input").addEventListener("keyup", function () {
     const query = this.value;
     const suggestionBox = document.getElementById("truck_suggestions");
- 
+
     if (query.length > 0) {
       fetch(`/ajax/truck-suggestions/?q=${query}`)
         .then((response) => response.json())
@@ -210,7 +210,7 @@
   document.getElementById("whs_no_input").addEventListener("keyup", function () {
     const query = this.value;
     const suggestionBox = document.getElementById("whs_suggestions");
- 
+
     if (query.length > 0) {
       fetch(`/ajax/whs-suggestions/?q=${query}`)
         .then((response) => response.json())
@@ -237,7 +237,5 @@
     }
   });
 </script>
- 
+
 {% endblock %}
- 
- 

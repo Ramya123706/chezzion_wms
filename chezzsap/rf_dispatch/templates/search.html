@@ -1,27 +1,102 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-5">
-    <h3>Search Results for: "{{ query }}"</h3>
-    <hr>
+  <h3>Search Results for: "{{ query }}"</h3>
+  <hr />
 
-    {% if results %}
-    <div class="row g-4">
-        {% for item in results %}
-        <div class="col-md-4 col-sm-6">
-            <a href="{% url item.url %}" class="text-decoration-none">
-                <div class="card text-center p-4 shadow-sm border-0">
-                    <div class="card-body">
-                        <i class="fa-solid fa-magnifying-glass fa-2x text-primary mb-3"></i>
-                        <h5>{{ item.name }}</h5>
-                    </div>
-                </div>
-            </a>
+  {% if query %} {% if results.features or results.trucks or results.products or results.warehouses or results.customers or results.vendors %}
+  <div class="row g-4">
+    <!-- Features -->
+    {% for item in results.features %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{{ item.url }}" class="text-decoration-none">
+        <div class="card text-center p-4 shadow-sm border-0">
+          <div class="card-body">
+            <i class="fa-solid fa-list-check fa-2x text-primary mb-3"></i>
+            <h5>{{ item.name }}</h5>
+            <p class="text-muted">Feature</p>
+          </div>
         </div>
-        {% endfor %}
+      </a>
     </div>
-    {% else %}
-    <p class="text-muted">No results found.</p>
-    {% endif %}
-</div>
+    {% endfor %}
 
+    <!-- Trucks -->
+    {% for truck in results.trucks %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{% url 'truck_detail' truck.truck_no %}" class="text-decoration-none">
+        <div class="card text-center p-4 shadow-sm border-0">
+          <div class="card-body">
+            <i class="fa-solid fa-truck fa-2x text-success mb-3"></i>
+            <h5>{{ truck.truck_no }}</h5>
+            <p class="text-muted">Truck</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+
+    <!-- Products -->
+    {% for product in results.products %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{% url 'product_detail' product.product_id %}" class="text-decoration-none">
+        <div class="card text-center p-4 shadow-sm border-0">
+          <div class="card-body">
+            <i class="fa-solid fa-box fa-2x text-warning mb-3"></i>
+            <h5>{{ product.product_name }}</h5>
+            <p class="text-muted">Product</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+
+    <!-- Warehouses -->
+    {% for wh in results.warehouses %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{% url 'warehouse_detail' wh.whs_no %}" class="text-decoration-none">
+        <div class="card text-center p-4 shadow-sm border-0">
+          <div class="card-body">
+            <i class="fa-solid fa-warehouse fa-2x text-info mb-3"></i>
+            <h5>{{ wh.whs_name }}</h5>
+            <p class="text-muted">Warehouse</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+
+    <!-- Customers -->
+    {% for cust in results.customers %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{% url 'customers_detail' cust.customer_id %}" class="text-decoration-none">
+        <div class="card text-center p-4 shadow-sm border-0">
+          <div class="card-body">
+            <i class="fa-solid fa-user fa-2x text-danger mb-3"></i>
+            <h5>{{ cust.name }}</h5>
+            <p class="text-muted">Customer</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+
+    <!-- Vendors -->
+    {% for v in results.vendors %}
+    <div class="col-md-4 col-sm-6">
+      <a href="{% url 'vendor_detail' v.vendor_id %}" class="text-decoration-none">
+        <div class="card text-center p-4 shadow-sm border-0">
+          <div class="card-body">
+            <i class="fa-solid fa-industry fa-2x text-secondary mb-3"></i>
+            <h5>{{ v.name }}</h5>
+            <p class="text-muted">Vendor</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted">No results found.</p>
+  {% endif %} {% endif %}
+</div>
 {% endblock %}
