@@ -148,7 +148,8 @@ def inspection_view(request, truck_no):
         if not all_yes:
             messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
             return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
-
+        
+        
         # ✅ Save both Page 1 and Page 2 data together
         yard_instance = YardHdr.objects.create(
             whs_no = page1_data['whs_no'],
@@ -171,6 +172,7 @@ def inspection_view(request, truck_no):
                 question = q,
                 answer = ans
             )
+            
         
 
         # Optional: Save truck info if not exists
@@ -185,128 +187,14 @@ def inspection_view(request, truck_no):
         if 'page1_data' in request.session:
             del request.session['page1_data']
 
-            messages.success(request, "Truck inspection completed successfully!")
+            
         return redirect('yard_checkin')
     
     return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
 
-# from django.contrib import messages
-# from django.utils import timezone
-# def yard_checkin_view(request):
-#     if request.method == 'POST':
-#         form = YardHdrForm(request.POST)
-#         if form.is_valid():
-#             truck_no = request.POST.get('truck_no')
 
-#             # Correct logic to check last status
-#             last_log = TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
-
-#             if last_log and last_log.status == 'checkin':
-#                 messages.error(request, "This truck is still not checked out. Please checkout before next check-in.")
-#                 return redirect('yard_checkin')
-
-#             # Proceed if last status is not 'checkin'
-#             instance = form.save(commit=False)
-#             scan = instance.yard_scan.lower()
-#             if 'door' in scan:
-#                 instance.truck_status = 'door'
-#             elif 'parking' in scan:
-#                 instance.truck_status = 'parking'
-#             elif 'checkin' in scan:
-#                 instance.truck_status = 'checkin'
-#             elif 'gate' in scan:
-#                 instance.truck_status = 'gate'
-#             elif 'checkout' in scan:
-#                 instance.truck_status = 'checkout'
-#             else:
-#                 instance.truck_status = 'not planned'
-#             instance.save()
-
-#             driver_name = request.POST.get('driver_name')
-#             driver_phn_no = request.POST.get('driver_phn_no')
-
-#             try:
-#                 yard_instance = YardHdr.objects.filter(truck_no=truck_no).last()
-#                 if yard_instance and not Truck.objects.filter(truck_no=yard_instance.truck_no).exists():
-#                     Truck.objects.create(
-#                         truck_no=yard_instance.truck_no,
-#                         driver_name=driver_name,
-#                         driver_phn_no=driver_phn_no
-#                     )
-#             except YardHdr.DoesNotExist:
-#                 print(f"YardHdr with truck_no {truck_no} does not exist.")
-
-#             messages.success(request, "Truck inspection completed successfully!")
-#             return redirect('inspection', truck_no=instance.truck_no)
-
-#     else:
-#         form = YardHdrForm()
-
-#     warehouses = Warehouse.objects.all()
-
-#     return render(request, 'truck_screen/one.html', {
-#         'form': form,
-#         'warehouses': warehouses,
-#         'truck': Truck.objects.all()
-#     })
-
-
-# def truck_checkout_view(request, truck_no):
-#     try:
-#         yard_entry = YardHdr.objects.filter(truck_no=truck_no, truck_status='checkin').last()
-#         if yard_entry:
-#             yard_entry.truck_status = 'checkout'
-#             yard_entry.checkout_time = timezone.now()
-#             yard_entry.save()
-#             messages.success(request, "Truck checked out successfully.")
-#         else:
-#             messages.error(request, "No active check-in found for this truck.")
-#     except YardHdr.DoesNotExist:
-#         messages.error(request, "Truck not found.")
-
-#     return redirect('truck_landing')
-
-
-# from django.shortcuts import render, redirect, get_object_or_404
-# from .models import WarehouseQuestion
-# from .forms import WarehouseQuestionForm
-# from django.contrib.auth.decorators import user_passes_test
-
-# # only superuser can access
-# def superuser_required(view_func):
-#     decorated_view_func = user_passes_test(lambda u: u.is_superuser)(view_func)
-#     return decorated_view_func
-
-# @superuser_required
-# def question_list(request):
-#     questions = WarehouseQuestion.objects.all()
-#     return render(request, "question_list.html", {"questions": questions})
-
-# @superuser_required
-# def add_question(request):
-#     if request.method == "POST":
-#         form = WarehouseQuestionForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect("question_list")
-#     else:
-#         form = WarehouseQuestionForm()
-#     return render(request, "add_question.html", {"form": form})
-
-# @superuser_required
-# def delete_question(request, pk):
-#     question = get_object_or_404(WarehouseQuestion, pk=pk)
-#     question.delete()
-#     return redirect("question_list")
-
-# views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import user_passes_test
-from .models import InspectionQuestion
-
-from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render, redirect
-from .models import InspectionQuestion
 
 @user_passes_test(lambda u: u.is_superuser)
 def add_questions(request):
@@ -363,59 +251,7 @@ def edit_question(request, pk):
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 from .models import YardHdr, InspectionQuestion, InspectionResponse
-
 from django.contrib import messages
-
-# def inspection_view(request, truck_no):
-#     # Get existing truck
-#     truck = YardHdr.objects.filter(truck_no=truck_no).last()
-#     if not truck:
-#         return redirect("one")  # safety redirect
-
-#     questions = InspectionQuestion.objects.all()
-
-#     if request.method == "POST":
-#         all_yes = True
-#         responses = {}
-
-#         for q in questions:
-#             ans = request.POST.get(f"question_{q.id}")
-#             if ans is None:
-#                 all_yes = False  # missing answer
-#             responses[q] = ans
-#             if ans == "No":
-#                 all_yes = False
-
-#         if not all_yes:
-#             # Don’t save, show error message
-#             messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
-#             return render(
-#                 request,
-#                 "truck_screen/two.html",
-#                 {"questions": questions, "truck_no": truck_no},
-#             )
-
-#         # ✅ Save only if all answers are Yes
-#         for q, ans in responses.items():
-#             InspectionResponse.objects.create(
-#                 yard=truck,
-#                 question=q,
-#                 answer=ans
-#             )
-
-#         truck.truck_status = "Inspected"
-#         truck.save()
-
-#         messages.success(request, "Truck inspection completed successfully!")
-#         return redirect("one")
-
-#     return render(
-#         request,
-#         "truck_screen/two.html",
-#         {"questions": questions, "truck_no": truck_no},
-#     )
-
-
 from django.http import JsonResponse
 from .models import Truck
 
