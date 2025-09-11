@@ -460,6 +460,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('truck_date', models.DateField(auto_now_add=True)),
                 ('truck_time', models.TimeField(auto_now_add=True)),
+                ('time_taken', models.CharField(default='-', max_length=20)),
                 ('comment', models.TextField(blank=True)),
                 ('status', models.CharField(default='Not planned', max_length=20)),
                 ('status_changed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),

@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 from . import views
-from .views import yard_checkin_view, truck_inspection_view, update_truck_status
+from .views import yard_checkin_view, update_truck_status
 
 urlpatterns = [
     # General
@@ -54,7 +54,7 @@ urlpatterns = [
 
     # Inspection
     path("inspection/", views.inspection_view, name="inspection"),  
-    path("inspection/<str:truck_no>/", views.truck_inspection_view, name="inspection"),
+    path("inspection/<str:truck_no>/", views.inspection_view, name="inspection"),
     path("add-questions/", views.add_questions, name="add_questions"), 
 
     # Product Management
@@ -217,4 +217,10 @@ urlpatterns = [
     # Superadmin
     path('accounts/superadmin/', views.superadmin_base_view, name='superadmin'),
     path('accounts/superadmin/dashboard/', views.superadmin_dashboard, name='superadmin_dashboard'),
+
+    # create category
+    path('create-category/', views.create_category_with_subcategories, name='create_category_with_subcategories'),
+    path('list_category/', views.category_list_view, name='category_list'),
+    path('category/edit/<int:id>/', views.edit_category_view, name='edit_category'),
+    path('category/delete/<int:id>/', views.delete_category_view, name='delete_category'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

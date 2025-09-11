@@ -2,11 +2,12 @@ import csv
 import json
 import uuid
 import contextlib
+import random
 from decimal import Decimal, InvalidOperation
 from itertools import chain, zip_longest
 from datetime import datetime, timezone
 from django.urls import reverse
-
+from django.utils.dateparse import parse_date
 from django import forms
 from django.contrib import messages
 from django.contrib.auth import (
@@ -26,11 +27,10 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.timezone import now
 from weasyprint import HTML
-
 # Forms
 from .forms import (
     YardHdrForm, TruckInspectionForm, Trucksearchform,
-    PalletForm, CustomerForm, ProductForm, WarehouseForm,
+    PalletForm, PalletEditForm, CustomerForm, ProductForm, WarehouseForm,
     PurchaseOrderForm, GoodsReceiptForm, VendorForm,
     CategoryForm, PackingForm, PackedItemFormSet
 )
@@ -131,18 +131,18 @@ def task(request):
 # -------------------------------------
 # TRUCK CHECKIN/CHECKOUT AND INSPECTION
 # -------------------------------------
+from django.contrib import messages
+
 def yard_checkin_view(request):
-    error_message = None  
- 
     if request.method == 'POST':
         truck_no = request.POST.get('truck_no')
- 
+
         existing = YardHdr.objects.filter(
             truck_no=truck_no
         ).exclude(truck_status='checkout').last()
 
         if existing:
-            error_message = f"Truck {truck_no} is already checked in and not checked out!"
+            messages.error(request, f"Truck {truck_no} is already checked in and not checked out!")
         else:
             request.session['page1_data'] = {
                 'whs_no': request.POST.get('whs_no'),
@@ -155,19 +155,17 @@ def yard_checkin_view(request):
                 'truck_time': request.POST.get('truck_time'),
                 'seal_no': request.POST.get('seal_no'),
                 'yard_scan': request.POST.get('yard_scan'),
-                'truck_status': request.POST.get('truck_status')
+                'truck_status': request.POST.get('truck_status'),
             }
- 
             return redirect('inspection', truck_no=truck_no)
- 
+
     form = YardHdrForm()
- 
+
     return render(request, 'truck_screen/one.html', {
         'form': form,
         'truck': Truck.objects.all(),
-        'error_message': error_message
     })
- 
+
  
 def inspection_view(request, truck_no):
     page1_data = request.session.get('page1_data')
@@ -295,46 +293,9 @@ def get_truck_details(request):
             'driver_name': '',
             'driver_phn_no': ''
         }
-    return JsonResponse(data)
+    return JsonResponse(data) 
 
-@login_required
-def truck_inspection_view(request, truck_no):
-    try:
-        existing_truck = YardHdr.objects.filter(truck_no=truck_no).last()
 
-        seal_no = existing_truck.seal_no
-    except YardHdr.DoesNotExist:
-        existing_truck = None
-        seal_no = ''
-
-    if request.method == 'POST':
-        form = TruckInspectionForm(request.POST, instance=existing_truck)
-        if form.is_valid():
-            instance = form.save(commit=False)
-
-            old_status = existing_truck.truck_status if existing_truck else None
-
-            instance.truck_no = truck_no
-            if not instance.seal_no:
-                instance.seal_no = seal_no
-            instance.save()
-
-            if old_status != instance.truck_status:
-                log_truck_status(instance, instance.truck_status, user=request.user)
-
-            return redirect('one')
-        else:
-            print(form.errors)
-    elif existing_truck:
-        form = TruckInspectionForm(instance=existing_truck)
-    else:
-        form = TruckInspectionForm(initial={'truck_no': truck_no, 'seal_no': seal_no})
-
-    return render(request, 'truck_screen/two.html', {
-        'form': form,
-        'truck_no': truck_no,
-        'seal_no': seal_no,
-    })
 
 @login_required
 def inspection_summary_view(request):
@@ -3257,3 +3218,71 @@ def superadmin_base_view(request):
 
 def superadmin_dashboard(request):
     return render(request, "account/superadmin_dashboard.html")
+
+# ----------
+# Category Creation
+# ----------
+
+# views.py
+from django.shortcuts import render, redirect
+from .forms import CategoryForm
+from .models import Category, SubCategory
+
+def create_category_with_subcategories(request):
+    success_message = ''
+    
+    if request.method == 'POST':
+        category_form = CategoryForm(request.POST)
+        subcategories = []
+        for key, value in request.POST.items():
+            if key.startswith('sub_category_') and value.strip():
+                subcategories.append(value.strip())
+
+        if category_form.is_valid():
+            category_obj = category_form.save(commit=False)
+            category_obj.created_by = request.user.username  # Optional
+            category_obj.save()
+
+            # Save subcategories linked to this category
+            for subcat_name in subcategories:
+                SubCategory.objects.create(category=category_obj, name=subcat_name)
+
+            success_message = "Category and Subcategories created successfully!"
+            category_form = CategoryForm()  # Reset form after success
+
+    else:
+        category_form = CategoryForm()
+
+    context = {
+        'category_form': category_form,
+        'success_message': success_message,
+    }
+    return render(request, 'category/create_category.html', context)
+
+
+from django.shortcuts import render
+from .models import Category
+
+def category_list_view(request):
+    categories = Category.objects.all().order_by('-created_at')
+    return render(request, 'category/list_of_category.html', {'categories': categories})
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Category
+
+def delete_category_view(request, id):
+    category = get_object_or_404(Category, id=id)
+    category.delete()
+    return redirect('category_list')
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import Category
+
+def edit_category_view(request, id):
+    category = get_object_or_404(Category, id=id)
+    if request.method == 'POST':
+        category.category = request.POST.get('category')
+        category.description = request.POST.get('description')
+        category.save()
+    return redirect('category_list')
+
