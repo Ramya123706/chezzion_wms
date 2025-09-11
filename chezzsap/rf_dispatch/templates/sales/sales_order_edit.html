@@ -3,124 +3,144 @@
 <div class="container mt-5">
     <div class="col-md-10 mx-auto">
         <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white">
-                <h3>Edit Sales Order</h3>
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-edit me-2"></i>Edit Sales Order</h3>
+                <a href="{% url 'sales_order_list' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
             </div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
 
+                    <!-- Order Info -->
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label>SO No</label>
+                            <label><i class="fas fa-file-alt me-1"></i> SO No</label>
                             <input type="text" name="so_no" class="form-control" value="{{ so_obj.so_no }}">
                         </div>
                         <div class="col-md-4">
-                            <label>Warehouse</label>
-                            <select name="whs_no" id="id_whs_no" class="form-control">
+                            <label><i class="fas fa-warehouse me-1"></i> Warehouse</label>
+                           <select name="whs_no" id="id_whs_no" class="form-control">
                                 {% for wh in warehouses %}
-                                <option value="{{ wh.id }}" {% if so_obj.whs_no.id == wh.id %}selected{% endif %}>
-                                    {{ wh.whs_no }} - {{ wh.name }}
-                                </option>
+                                    <option value="{{ wh.whs_no }}" {% if so_obj.whs_no.whs_no == wh.whs_no %}selected{% endif %}>
+                                        {{ wh.whs_no }} - {{ wh.whs_name }}
+                                    </option>
                                 {% endfor %}
                             </select>
+
                         </div>
                         <div class="col-md-4">
-                            <label>Customer ID</label>
+                            <label><i class="fas fa-id-card me-1"></i> Customer ID</label>
                             <input type="text" name="customer_id" class="form-control" value="{{ so_obj.customer_id }}">
                         </div>
                     </div>
 
+                    <!-- Customer + Dates -->
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label>Customer Code</label>
+                            <label><i class="fas fa-user-tag me-1"></i> Customer Code</label>
                             <input type="text" name="customer_code" class="form-control" value="{{ so_obj.customer_code }}">
                         </div>
                         <div class="col-md-4">
-                            <label>Order Date</label>
+                            <label><i class="fas fa-calendar-day me-1"></i> Order Date</label>
                             <input type="date" name="order_date" class="form-control" value="{{ so_obj.order_date|date:'Y-m-d' }}">
                         </div>
                         <div class="col-md-4">
-                            <label>Delivery Date</label>
+                            <label><i class="fas fa-truck me-1"></i> Delivery Date</label>
                             <input type="date" name="delivery_date" class="form-control" value="{{ so_obj.delivery_date|date:'Y-m-d' }}">
                         </div>
                     </div>
 
+                    <!-- Status -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label><i class="fas fa-info-circle me-1"></i> Status</label>
+                            <select name="status" class="form-control">
+                                <option value="Draft" {% if so_obj.status == "Draft" %}selected{% endif %}>📝 Draft</option>
+                                <option value="Open" {% if so_obj.status == "Open" %}selected{% endif %}>✅ Open</option>
+                                <option value="Cancel" {% if so_obj.status == "Cancel" %}selected{% endif %}>❌ Cancel</option>
+                                <option value="Closed" {% if so_obj.status == "Closed" %}selected{% endif %}>🔒 Closed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Remarks -->
                     <div class="mb-3">
-                        <label>Remarks</label>
+                        <label><i class="fas fa-comment-dots me-1"></i> Remarks</label>
                         <textarea name="remarks" class="form-control">{{ so_obj.remarks }}</textarea>
                     </div>
 
-                    <h5 class="mt-4">Products</h5>
+                    <!-- Products Table -->
+                    <h5 class="mt-4 text-primary"><i class="fas fa-box me-1"></i> Products</h5>
                     <table class="table table-bordered align-middle" id="productTable">
-                            <thead class="table-light">
-                                <tr class="text-center">
-                                    <th>Product Name</th>
-                                    <th>Product ID</th>
-                                    <th>Quantity</th>
-                                    <th>Unit Price</th>
-                                    <th>Unit Total Price</th>
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Product ID</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if so_items %}
+                                {% for row in so_items %}
+                                    <tr>
+                                        <td>
+                                            <input type="text" class="product_name form-control" placeholder="Type product name" value="{{ row.product_name }}" name="product_name[]">
+                                            <div class="suggestions" style="border:1px solid #ccc; background:white; position:absolute;"></div>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="product_id form-control" name="product_id[]" value="{{ row.product }}" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="quantity[]" class="form-control text-end" min="1"
+                                                oninput="calculateRowTotal(this)" value="{{ row.quantity }}" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="unit_price[]" class="form-control text-end"
+                                                oninput="calculateRowTotal(this)" value="{{ row.unit_price }}" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly value="{{ row.unit_total_price }}">
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td>
+                                        <input type="text" class="product_name form-control" placeholder="Type product name" name="product_name[]">
+                                        <div class="suggestions" style="border:1px solid #ccc; background:white; position:absolute;"></div>
+                                    </td>
+                                    <td><input type="text" class="product_id form-control" name="product_id[]" readonly></td>
+                                    <td><input type="number" name="quantity[]" class="form-control text-end" min="1" value="1" oninput="calculateRowTotal(this)" required></td>
+                                    <td><input type="number" step="0.01" name="unit_price[]" class="form-control text-end" oninput="calculateRowTotal(this)" required></td>
+                                    <td><input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly placeholder="Auto-calculated"></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-    {% if so_items %}
-        {% for row in so_items %}
-            <tr>
-                <td>
-                    <input type="text" class="product_name form-control" placeholder="Type product name" value="{{ row.product_name }}" name="product_name[]">
-                    <div class="suggestions" style="border:1px solid #ccc; background:white; position:absolute;"></div>
-                </td>
-                <td>
-                    <input type="text" class="product_id form-control" name="product_id[]" value="{{ row.product }}" name="product_id[]" readonly>
-                </td>
-                <td>
-                    <input type="number" name="quantity[]" class="form-control text-end" min="1"
-                           oninput="calculateRowTotal(this)" value="{{ row.quantity }}" required>
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="unit_price[]" class="form-control text-end"
-                           oninput="calculateRowTotal(this)" value="{{ row.unit_price }}" required>
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly value="{{ row.unit_total_price }}">
-                </td>
-            </tr>
-        {% endfor %}
-    {% else %}
-        <tr>
-            <td>
-                <input type="text" class="product_name form-control" placeholder="Type product name" name="product_name[]">
-                <div class="suggestions" style="border:1px solid #ccc; background:white; position:absolute;"></div>
-            </td>
-            <td>
-                <input type="text" class="product_id form-control" name="product_id[]" readonly>
-            </td>
-            <td>
-                <input type="number" name="quantity[]" class="form-control text-end" min="1" value="1" oninput="calculateRowTotal(this)" required>
-            </td>
-            <td>
-                <input type="number" step="0.01" name="unit_price[]" class="form-control text-end" oninput="calculateRowTotal(this)" required>
-            </td>
-            <td>
-                <input type="number" step="0.01" name="unit_total_price[]" class="form-control text-end" readonly placeholder="Auto-calculated">
-            </td>
-        </tr>
-    {% endif %}
-</tbody>
+                            {% endif %}
+                        </tbody>
+                    </table>
 
-                        </table>
-
-                    <button type="submit" class="btn btn-success mt-3">Update Sales Order</button>
-                    <a href="{% url 'sales_order_list' %}" class="btn btn-secondary mt-3">Cancel</a>
+                    <!-- Actions -->
+                    <div class="mt-4 d-flex justify-content-end mb-5 pb-5">
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="fas fa-save"></i> Update
+                        </button>
+                        <a href="{% url 'sales_order_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 <script>
 function setupAutocomplete(row) {
     const input = row.querySelector('.product_name');
-    const productIdInput = row.querySelector('.product_id'); // visible column
+    const productIdInput = row.querySelector('.product_id');
     const suggestions = row.querySelector('.suggestions');
 
     input.addEventListener('keyup', function() {
@@ -147,10 +167,6 @@ function setupAutocomplete(row) {
             });
     });
 }
-
-// attach to all existing rows
 document.querySelectorAll('#productTable tbody tr').forEach(row => setupAutocomplete(row));
-
-
 </script>
 {% endblock %}

@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {% load static %}
     <title>RF Dispatch</title>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
 
     <!-- Font Awesome (Latest v6.5) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
@@ -20,73 +19,89 @@
 
 </head>
 
-<body>
+
+  <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-            <div class="container">
-                <!-- Brand Logo -->
-                <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
-                    <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="100"
-                        alt="navbar logo" class="me-2">
-                </a>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+          <!-- Brand Logo -->
+          <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
+            <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="100" alt="navbar logo" class="me-2" />
+          </a>
 
-                <!-- Search Form -->
-                <form class="d-flex mx-auto" role="search" method="get" action="{% url 'search' %}">
-                    <input class="form-control me-2" type="search" placeholder="Search features..." name="q"
-                        aria-label="Search">
-                    <button class="btn btn-outline-primary d-flex align-items-center" type="submit">
-                        <i class="fa-solid fa-magnifying-glass me-1"></i> Search
-                    </button>
-                </form>
+          <!-- Search Form -->
+          <form class="d-flex mx-auto" role="search" method="get" action="{% url 'search' %}">
+            <input class="form-control me-2" type="search" placeholder="Search features..." name="q" aria-label="Search" />
+            <button class="btn btn-outline-primary d-flex align-items-center" type="submit">
+              <i class="fa-solid fa-magnifying-glass me-1"></i> Search
+            </button>
+          </form>
 
-                <!-- User Dropdown -->
-                <div class="dropdown ms-3">
-                    <a class="btn btn-outline-light dropdown-toggle d-flex align-items-center text-dark" href="#"
-                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <!-- User Dropdown -->
+          <div class="dropdown ms-3">
+            <a
+              class="btn btn-outline-light dropdown-toggle d-flex align-items-center text-dark"
+              href="#"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false">
+              {% if user.profile.image %}
+              <!-- Profile Image -->
+              <img src="{{ user.profile.image.url }}" alt="Profile Image" class="rounded-circle me-2 border" width="30" height="30" />
+              {% else %}
+              <!-- Default FA Icon -->
+              <i class="fa-solid fa-user-circle fa-lg me-2"></i>
+              {% endif %} {{ user.username }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="{% url 'profile_detail' %}"> <i class="fa-solid fa-id-badge me-2"></i> Profile </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
 
-                        {% if user.profile.image %}
-                        <!-- Profile Image -->
-                        <img src="{{ user.profile.image.url }}" alt="Profile Image" class="rounded-circle me-2 border"
-                            width="30" height="30">
-                        {% else %}
-                        <!-- Default FA Icon -->
-                        <i class="fa-solid fa-user-circle fa-lg me-2"></i>
-                        {% endif %}
-
-                        {{ user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'profile_detail' %}">
-                                <i class="fa-solid fa-id-badge me-2"></i> Profile
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item" href="{% url 'logout' %}">
-                                <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-            </div>
-        </nav>
+              <li>
+                <a class="dropdown-item" href="{% url 'logout' %}"> <i class="fa-solid fa-right-from-bracket me-2"></i> Logout </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
     </header>
 
     <!-- Page Content -->
     <main class="pb-5">
-        {% block content %}{% endblock %}
+      <div class="container">
+        <!-- Messages -->
+        {% if messages %} {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          <i class="fas fa-info-circle me-2"></i>{{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %} {% endif %}
+
+        <!-- Form Errors -->
+        {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Please fix the following errors:</strong>
+          <ul class="mb-0">
+            {% for field, errors in form.errors.items %} {% for error in errors %}
+            <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+            {% endfor %} {% endfor %}
+          </ul>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+      </div>
+
+      {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
     <footer class="mt-5 fixed-bottom">
-        <div class="footer bg-dark text-white text-center py-3">
-            &copy; 2025 Chezzion. All rights reserved.
-        </div>
+      <div class="footer bg-dark text-white text-center py-3">&copy; 2025 Chezzion. All rights reserved.</div>
     </footer>
 
     <!-- JS files -->
@@ -107,3 +122,4 @@
 </script>
 
 </html>
+

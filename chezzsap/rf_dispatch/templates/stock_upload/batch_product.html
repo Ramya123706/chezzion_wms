@@ -8,14 +8,6 @@
           <h5><i class="fas fa-box-open me-2"></i>Chezzion WMS - Magic Box</h5>
         </div>
         <div class="card-body">
-          <!-- Messages -->
-          {% if messages %} {% for message in messages %}
-          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            <i class="fas fa-info-circle me-2"></i>{{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-          {% endfor %} {% endif %}
-
           <!-- Form -->
           <form action="{% url 'batch_product' %}" method="post">
             {% csrf_token %}
