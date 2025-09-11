@@ -186,13 +186,21 @@ class PutawayForm(forms.ModelForm):
 
 from django import forms
 from .models import Picking, Customer
-
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        fields = ['id', 'pallet', 'location', 'product', 'quantity','picking_type','status']
+        fields = ['pallet', 'product', 'location', 'quantity', 'picking_type', 'status']
         exclude = ['created_at']
 
+        widgets = {
+            'pallet': forms.Select(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'picking_type': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+     
 from .models import Customer
 
 class CustomerForm(forms.ModelForm):

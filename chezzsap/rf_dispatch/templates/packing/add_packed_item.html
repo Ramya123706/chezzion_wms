@@ -14,11 +14,11 @@
                 <div class="row mb-3">
                     <div class="col">
                         <label class="form-label">Pallet</label>
-                        <input type="text" class="form-control" name="pallet">
+                        <input type="text" class="form-control" name="pallet" id="pallet">
                     </div>
                     <div class="col">
                         <label class="form-label">Packing Material</label>
-                        <input type="text" class="form-control" name="packing_material">
+                        <input type="text" class="form-control" name="p_mat" id="p_mat">
                     </div>
                     <div class="col">
                         <label class="form-label">Delivery No</label>
@@ -46,7 +46,7 @@
                     <thead class="table-dark">
                         <tr>
                             <th>Pallet</th>
-                            <th>Packing Material</th>
+                            <th>P_mat</th>
                             <th>Batch No</th>
                             <th>Serial No</th>
                             <th>Quantity</th>
@@ -61,29 +61,30 @@
 
                 <button type="button" class="btn btn-primary mb-3" onclick="addRow()">+ Add Row</button>
                 <br>
-               <div class="d-flex justify-content-between mt-3">
-    <!-- Save: submit form normally -->
-    <button type="submit" class="btn btn-success">Save</button>
+                <div class="d-flex justify-content-between mt-3">
+                    <!-- Save: submit form normally -->
+                    <button type="submit" class="btn btn-success">Save</button>
 
-    <!-- Cancel: go to detail page -->
-    <a href="{% url 'packing_detail' packing.id %}" class="btn btn-secondary">Cancel</a>
-</div>
+                    <!-- Cancel: go to detail page -->
+                    <a href="{% url 'packing_detail' packing.id %}" class="btn btn-secondary">Cancel</a>
+                </div>
 
             </form>
         </div>
     </div>
 </div>
 
-
 <script>
 function addRow() {
     let table = document.getElementById("packedItemsTable").getElementsByTagName("tbody")[0];
+    let palletValue = document.querySelector("#id_pallet").value;
+    let pmatValue = document.querySelector("#id_packing_material").value;
 
     let newRow = table.insertRow();
 
     newRow.innerHTML = `
-        <td><input type="text" class="form-control" name="packed_pallet[]"></td>
-        <td><input type="text" class="form-control" name="packed_material[]"></td>
+        <td><input type="text" class="form-control" name="pallet[]" value="${palletValue}"></td>
+        <td><input type="text" class="form-control" name="p_mat[]" value="${pmatValue}"></td>
         <td><input type="text" class="form-control" name="batch_no[]"></td>
         <td><input type="text" class="form-control" name="serial_no[]"></td>
         <td><input type="number" class="form-control" name="quantity[]" min="1"></td>
@@ -96,8 +97,29 @@ function deleteRow(btn) {
     let row = btn.parentNode.parentNode;
     row.parentNode.removeChild(row);
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    let palletField = document.querySelector("pallet");
+    let pmatField = document.querySelector("p_mat");
+
+    function updatePackedItems() {
+        let palletValue = palletField.value;
+        let pmatValue = pmatField.value;
+
+        // update all pallet inputs in table rows
+        document.querySelectorAll("[name='pallet[]']").forEach(function (input) {
+            input.value = palletValue;
+        });
+
+        // update all packing material inputs in table rows
+        document.querySelectorAll("[name='p_mat[]']").forEach(function (input) {
+            input.value = pmatValue;
+        });
+    }
+
+    palletField.addEventListener("input", updatePackedItems);
+    pmatField.addEventListener("input", updatePackedItems);
+});
 </script>
-
-
 
 {% endblock %}

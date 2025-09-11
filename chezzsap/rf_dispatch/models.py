@@ -301,10 +301,15 @@ class Pallet(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pallet_no:
-            date_str = now().strftime("%Y-%m-%d")
-            time_str = now().strftime("%H%M%S%f")[:-2]
-            self.pallet_no = f"PLT-{date_str}-{time_str}"
+            last_pallet = Pallet.objects.order_by('-id').first()
+            if last_pallet and last_pallet.pallet_no.startswith("PLT-") and last_pallet.pallet_no[4:].isdigit():
+                next_id = int(last_pallet.pallet_no[4:]) + 1
+            else:
+                next_id = 1
+            self.pallet_no = f"PLT-{next_id:03d}"   # 👉 PLT-001, PLT-002, PLT-003
         super().save(*args, **kwargs)
+    def __str__(self):
+          return f"PLT {self.id}"
 
 class Vendor(models.Model):
     name = models.CharField(max_length=100)
@@ -547,25 +552,25 @@ from django.contrib.auth.models import User
 
 class Picking(models.Model):
     picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
-    pallet = models.CharField(max_length=100)
+    pallet = models.ForeignKey('Pallet', on_delete=models.CASCADE)   # 🔹 Link to Pallet
+    product = models.ForeignKey('Product', on_delete=models.CASCADE) # 🔹 Link to Product
     created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     location = models.CharField(max_length=100)
-    product = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    
-    PICKING_TYPE_CHOICES=[
+
+    PICKING_TYPE_CHOICES = [
         ('INBOUND', 'Inbound'),
         ('OUTBOUND', 'Outbound'),
     ]
-    picking_type=models.CharField(max_length=50,choices=PICKING_TYPE_CHOICES,default="Inbound")
+    picking_type = models.CharField(max_length=50, choices=PICKING_TYPE_CHOICES, default="Inbound")
 
     STATUS_CHOICES = [
-       
         ('In Progress', 'In Progress'),
         ('Completed', 'Completed'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='In Progress')
+
     def save(self, *args, **kwargs):
         if not self.picking_id:
             last_picking = Picking.objects.order_by('-picking_id').first()
@@ -573,12 +578,12 @@ class Picking(models.Model):
                 next_id = int(last_picking.picking_id[1:]) + 1
             else:
                 next_id = 1
-
             self.picking_id = f"P{next_id:03d}"  # Example: P001, P002
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.picking_id} - {self.product}"
+
     
 
 class Customer(models.Model):
@@ -795,7 +800,7 @@ from django.db import models
 
 
 class Packing(models.Model):
-    pallet = models.CharField(max_length=50)
+    pallet = models.ForeignKey(Pallet, on_delete=models.CASCADE, related_name="packings")
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     del_no = models.CharField(max_length=50)   
     gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
@@ -809,7 +814,7 @@ class Packing(models.Model):
 
 class PackedItem(models.Model):
     packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
-    pallet = models.CharField(max_length=50)
+    pallet = models.ForeignKey(Pallet, on_delete=models.CASCADE, related_name="items")
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     batch_no = models.CharField(max_length=50)
     serial_no = models.CharField(max_length=50)
@@ -817,8 +822,16 @@ class PackedItem(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        # Auto-fill pallet and p_mat from parent Packing
+        if self.packing:
+            self.pallet = self.packing.pallet
+            self.p_mat = self.packing.p_mat
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
+
 
 
 

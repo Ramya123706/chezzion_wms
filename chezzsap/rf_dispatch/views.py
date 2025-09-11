@@ -2137,26 +2137,16 @@ from .models import Picking
 from .forms import PickingForm
 
 def add_picking(request):
-    if request.method == 'POST':
-        picking_id = request.POST.get('picking_id')
-        pallet = request.POST.get('pallet')
-        location = request.POST.get('location')
-        product = request.POST.get('product')
-        quantity = request.POST.get('quantity')
-        status = request.POST.get('status')
+    if request.method == "POST":
+        form = PickingForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("pending_task")  
+    else:
+        form = PickingForm()
 
-     
-        Picking.objects.create(
-            picking_id=picking_id,
-            pallet=pallet,
-            location=location,
-            product=product,
-            quantity=quantity,
-            status=status
-        )
-     
-        return redirect('pending_task') 
-    return render(request, 'picking/add_picking.html')
+    return render(request, "picking/add_picking.html", {"form": form})
+
 
     
 def pending_task(request):
