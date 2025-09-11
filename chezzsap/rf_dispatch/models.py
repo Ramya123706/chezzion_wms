@@ -1,5 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import F, Sum
+from django.utils import timezone
+from django.utils.timezone import now
+from django.utils.html import format_html
+from django.shortcuts import render, redirect, get_object_or_404
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+import uuid
 from decimal import Decimal
 
 
@@ -35,9 +43,6 @@ class YardHdr(models.Model):
     def __str__(self):
         return str(self.truck_no)
 
-# models.py
-from django.db import models
-from django.contrib.auth.models import User
 
 class InspectionQuestion(models.Model):
     text = models.CharField(max_length=255)
@@ -56,25 +61,12 @@ class InspectionResponse(models.Model):
     def __str__(self):
         return f"{self.yard.truck_no} - {self.question.text} - {self.answer}"
 
-    
-
-# models.py
-from django.db import models
-
-# from django import forms
-
-# class WarehouseQuestion(models.Model):
-#     text = models.CharField(max_length=255, unique=True)
-#     is_active = models.BooleanField(default=True)
-
-#     def __str__(self):
-#         return self.text
-
 
 class TruckLog(models.Model):
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
+    time_taken = models.CharField(max_length=20, default='-')
     comment = models.TextField(blank=True)
     status = models.CharField(max_length=20, default='Not planned')
     status_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -83,7 +75,7 @@ class TruckLog(models.Model):
         return f"{self.truck_no.truck_no} - {self.status} @ {self.truck_date} {self.truck_time}"
 
 
-from .models import TruckLog
+
 
 def log_truck_status(truck_instance, status, user=None, comment=''):
     TruckLog.objects.create(
@@ -94,28 +86,6 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
     )
 
 
-# class StockUpload(models.Model):
-#     whs_no = models.CharField(max_length=20, primary_key=True)
-#     product = models.CharField(max_length=20)
-#     quantity = models.IntegerField()
-#     batch = models.CharField(max_length=20)
-#     bin = models.CharField(max_length=20)
-#     pallet = models.CharField(max_length=20)
-#     p_mat = models.CharField(max_length=20) 
-#     inspection = models.CharField(max_length=20)
-#     stock_type = models.CharField(max_length=20)
-#     wps = models.CharField(max_length=20)
-#     doc_no = models.CharField(max_length=20)
-#     pallet_status = models.CharField(max_length=20, default='Not planned')
-
-#     def __str__(self):
-#         return f"StockUpload(whs_no={self.whs_no}, product={self.product})"
-
-#     def save(self, *args, **kwargs):
-#         super().save(*args, **kwargs)
-#         inventory, created = Inventory.objects.get_or_create(product=self.product)
-#         inventory.total_quantity += self.quantity
-#         inventory.save()
 
 
 class Truck(models.Model):
@@ -177,44 +147,12 @@ class Bin(models.Model):
     def __str__(self):
         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
 
-# class Inventory(models.Model):
-#     product = models.CharField(max_length=50, unique=True)
-#     total_quantity = models.IntegerField(default=0)
 
-#     def __str__(self):
-#         return f"{self.product} - {self.total_quantity} units"
-
-
-# class Product(models.Model):
-#     product_id = models.CharField(max_length=50)
-#     name = models.CharField(max_length=255)
-#     quantity = models.IntegerField()
-#     pallet_no = models.CharField(max_length=50)
-#     sku = models.CharField(max_length=100)
-#     description = models.TextField()
-#     unit_of_measure = models.CharField(max_length=50)
-#     category = models.CharField(max_length=100)
-#     re_order_level = models.IntegerField()
-#     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-
-#     # Only this is the primary key
-#     id = models.AutoField(primary_key=True)
-
-#     def __str__(self):
-#         return self.name
-
-
-import uuid
-from django.dispatch import receiver
-from django.db.models.signals import post_save
 
 class Product(models.Model):
-    product_id = models.CharField(primary_key=True, max_length=50, unique=True)   # Your item_number
+    product_id = models.CharField(primary_key=True, max_length=50, unique=True) 
     name = models.CharField(max_length=255)
-    quantity = models.IntegerField(default=0)   # current stock
+    quantity = models.IntegerField(default=0)   
     pallet_no = models.CharField(max_length=50, blank=True, null=True)
     sku = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -229,7 +167,7 @@ class Product(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
     def save(self, *args, **kwargs):
-        is_new = self._state.adding  # new product?
+        is_new = self._state.adding  
         old_quantity = None
 
         if not is_new:
@@ -237,7 +175,6 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
 
-    # ✅ Update inventory only if quantity changed
         if is_new or (old_quantity != self.quantity):
             inventory, created = Inventory.objects.get_or_create(product=self)
             inventory.total_quantity = self.quantity
@@ -246,10 +183,6 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.product_id})"
-
-# Signal must be **outside** the model class
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 
@@ -268,16 +201,7 @@ def create_or_update_inventory(sender, instance, **kwargs):
         inventory.total_quantity = instance.quantity
         inventory.save()
 
-from django.utils import timezone
-from django.utils.timezone import now
-import uuid
-from django.db import models
-import uuid
 
-
-from django.db import models
-from django.utils.timezone import now
-import uuid
 
 class PackingMaterial(models.Model):
     material = models.CharField(max_length=100, unique=True)
@@ -342,11 +266,6 @@ class Customers(models.Model):
     def __str__(self):
         return self.name
 
-from django.db import models
-from django.db.models import F
-from .models import Product
-from django.db.models import Sum
-
 
   
 
@@ -354,7 +273,7 @@ class StockUpload(models.Model):
     id = models.AutoField(primary_key=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    category = models.CharField(max_length=100, blank=True, null=True)   # ✅ fixed
+    category = models.CharField(max_length=100, blank=True, null=True)   
     sub_category = models.CharField(max_length=100, blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
     quantity = models.IntegerField()
@@ -403,8 +322,6 @@ class StockUpload(models.Model):
 
 
 
-from django.db import models
-from django.utils.html import format_html
 
 class Inventory(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -458,25 +375,6 @@ class PurchaseOrder(models.Model):
         return f"PO-{self.po_number}"
 
 
-# class Bin(models.Model):
-#     whs_no = models.ForeignKey(
-#         Warehouse,
-#         on_delete=models.CASCADE,
-#         related_name="bins"  # use plural for clarity
-#     )
-#     bin_id = models.CharField(max_length=50, unique=True)  # Add max_length and make it unique if applicable
-#     capacity = models.IntegerField()
-#     category = models.CharField(max_length=100)  # Add max_length
-#     shelves = models.CharField(null=True, blank=True, max_length=100)  # Add max_length
-#     created_by = models.CharField(max_length=100, null=True, blank=True)
-#     updated_by = models.CharField(max_length=100, null=True, blank=True)
-#     existing_quantity = models.IntegerField(default=0)  # Add default value
-
-#     def __str__(self):
-#         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
-
-#    
-    
 
     
 
@@ -506,7 +404,6 @@ class Putaway(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(auto_now_add=True)
 
-    # Optional foreign keys
     warehouse = models.ForeignKey(
         "Warehouse", on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -535,14 +432,6 @@ class Putaway(models.Model):
         return f"{self.putaway_id} - {self.pallet} ({self.status})"
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.timezone import now
-from .models import Putaway
-
-
-
-from django.db import models
-from django.contrib.auth.models import User
 
 class Picking(models.Model):
     picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
@@ -573,7 +462,7 @@ class Picking(models.Model):
             else:
                 next_id = 1
 
-            self.picking_id = f"P{next_id:03d}"  # Example: P001, P002
+            self.picking_id = f"P{next_id:03d}"
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -671,9 +560,6 @@ class PurchaseItem(models.Model):
 
 
 
-from django.db import models
-from django.db import models
-
 STATUS_CHOICES = [
     ('Draft', 'Draft'),
     ('Confirm', 'Confirm'),
@@ -702,7 +588,6 @@ class SalesOrderCreation(models.Model):
         return f"{self.so_no} - {self.status}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate SO number if not exists
         if not self.so_no:
             last_so = SalesOrderCreation.objects.all().order_by('id').last()
             if last_so and last_so.so_no.startswith('SO'):
@@ -728,7 +613,6 @@ class SalesOrderItem(models.Model):
         return f"{self.product_name} ({self.quantity}) - {self.so_no.so_no}"
 
     def save(self, *args, **kwargs):
-        # Auto-calculate unit_total_price
         self.unit_total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
 
@@ -768,7 +652,6 @@ class OutboundDeliveryItem(models.Model):
     )
     dlv_it_no = models.CharField(max_length=50)  
 
-    # Instead of storing product_id/name as CharField, link to Product
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
@@ -790,7 +673,6 @@ class OutboundDeliveryItem(models.Model):
     def __str__(self):
         return f"{self.product.name} - Item {self.dlv_it_no}"
 
-from django.db import models
 
 
 class Packing(models.Model):
@@ -821,12 +703,11 @@ class PackedItem(models.Model):
 
 
 
-from django.db import models
-from django.utils.timezone import now
+
 
 class PostGoodsIssue(models.Model):
-    pgi_no = models.CharField(max_length=50, unique=True)  # Unique PGI number
-    delivery = models.OneToOneField(  # One PGI per delivery
+    pgi_no = models.CharField(max_length=50, unique=True)  
+    delivery = models.OneToOneField(  
         "rf_dispatch.OutboundDelivery",
         on_delete=models.CASCADE,
         related_name="pgi"
@@ -844,9 +725,6 @@ class PostGoodsIssue(models.Model):
         return f"PGI {self.pgi_no} for Delivery {self.delivery.dlv_no}"
 
 
-
-
-from django.db import models
 
 class GoodsReceipt(models.Model):
     gr_no = models.CharField(max_length=50, unique=True, editable=False)
@@ -889,7 +767,6 @@ class GoodsReceiptItem(models.Model):
     batch_number = models.CharField(max_length=50, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # default batch = inbound delivery batch if not provided
         if not self.batch_number and self.inbound_delivery_product.batch_number:
             self.batch_number = self.inbound_delivery_product.batch_number
         super().save(*args, **kwargs)
@@ -898,9 +775,6 @@ class GoodsReceiptItem(models.Model):
         return f"{self.goods_receipt.gr_no} - {self.inbound_delivery_product.product.name}"
 
 
-
-from django.db import models
-from django.contrib.auth.models import User
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
