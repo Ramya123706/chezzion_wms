@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4"><i class="fas fa-list"></i> Category List</h3>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Category Name</th>
+                <th>Description</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ category.category }}</td>
+                <td>{{ category.description }}</td>
+                <td>{{ category.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                        data-bs-target="#editCategoryModal{{ category.id }}">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+
+                    <a href="{% url 'delete_category' category.id %}" class="btn btn-sm btn-danger"
+                        onclick="return confirm('Are you sure you want to delete this category?');">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </td>
+            </tr>
+
+            <!-- Edit Category Modal -->
+            <div class="modal fade" id="editCategoryModal{{ category.id }}" tabindex="-1"
+                aria-labelledby="editCategoryModalLabel{{ category.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form method="POST" action="{% url 'edit_category' category.id %}">
+                            {% csrf_token %}
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editCategoryModalLabel{{ category.id }}">
+                                    Edit Category
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="id_category_{{ category.id }}" class="form-label"><b>Category Name</b></label>
+                                    <input type="text" name="category" class="form-control"
+                                        id="id_category_{{ category.id }}" value="{{ category.category }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="id_description_{{ category.id }}" class="form-label"><b>Description</b></label>
+                                    <textarea name="description" class="form-control"
+                                        id="id_description_{{ category.id }}" rows="3">{{ category.description }}</textarea>
+                                </div>
+
+                                <hr />
+
+                                <h6><b>Sub Categories</b></h6>
+                                <div id="editSubCategoryContainer{{ category.id }}">
+                                    {% for sub in category.subcategories.all %}
+                                    <div class="mb-2 subcategory-input d-flex align-items-center">
+                                        <input type="text" name="sub_category_{{ sub.id }}" class="form-control me-2"
+                                            value="{{ sub.name }}" required />
+                                        <button type="button" class="btn btn-danger remove-subcategory">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                <button type="button" class="btn btn-secondary mt-2 addMoreEditSubcategories"
+                                    data-category-id="{{ category.id }}">
+                                    <i class="fas fa-plus me-1"></i> Add More Subcategories
+                                </button>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No categories available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+        <a href="{% url 'create_category_with_subcategories' %}" class="btn btn-success">
+            <i class="fas fa-plus-circle me-1"></i> Add New Category
+        </a>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.addMoreEditSubcategories').forEach(button => {
+            button.addEventListener('click', function () {
+                const catId = button.getAttribute('data-category-id');
+                const container = document.getElementById('editSubCategoryContainer' + catId);
+
+                const div = document.createElement('div');
+                div.className = 'mb-2 subcategory-input d-flex align-items-center';
+                div.innerHTML = `
+                    <input type="text" name="sub_category_new_${Date.now()}" class="form-control me-2" placeholder="Enter Sub Category Name" required />
+                    <button type="button" class="btn btn-danger remove-subcategory">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+
+                container.appendChild(div);
+
+                div.querySelector('.remove-subcategory').addEventListener('click', function () {
+                    div.remove();
+                });
+            });
+        });
+
+        // Remove subcategory input when clicking trash icon
+        document.querySelectorAll('.remove-subcategory').forEach(btn => {
+            btn.addEventListener('click', function () {
+                btn.closest('.subcategory-input').remove();
+            });
+        });
+    });
+</script>
+
+{% endblock %}
