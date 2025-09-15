@@ -484,15 +484,11 @@ class PurchaseOrder(models.Model):
 #    
     
 
-    
-
 class Putaway(models.Model):
     putaway_id = models.CharField(max_length=50, unique=True, editable=False)
-    pallet = models.ForeignKey(
-        Pallet, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    location = models.CharField(max_length=100)
-
+    pallet = models.ForeignKey(Pallet, on_delete=models.SET_NULL, null=True, blank=True)
+    source_location = models.CharField(max_length=100)
+    destination_location = models.CharField(max_length=100)
     PUTAWAY_TASK_TYPE_CHOICES = [
         ("Putaway by HU", "Putaway by HU"),
         ("Putaway by Warehouse", "Putaway by Warehouse"),
@@ -507,21 +503,19 @@ class Putaway(models.Model):
         ("In Progress", "In Progress"),
         ("Completed", "Completed"),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="In Progress")
 
+    # ✅ Tracking fields
+    created_by = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    confirmed_at = models.CharField(max_length=100,null=True,blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    # Optional foreign keys
-    warehouse = models.ForeignKey(
-        "Warehouse", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    product = models.ForeignKey(
-        "Product", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    bin = models.ForeignKey(
-        "Bin", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    # Optional relations
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.putaway_id:
@@ -550,14 +544,23 @@ from .models import Putaway
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.db import models
+from django.utils import timezone
+
 class Picking(models.Model):
     picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
-    pallet = models.ForeignKey('Pallet', on_delete=models.CASCADE)   # 🔹 Link to Pallet
-    product = models.ForeignKey('Product', on_delete=models.CASCADE) # 🔹 Link to Product
-    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
-    location = models.CharField(max_length=100)
+    pallet = models.ForeignKey('Pallet', on_delete=models.CASCADE)  
+    product = models.ForeignKey('Product', on_delete=models.CASCADE) 
+    source_location = models.CharField(max_length=100)
+    destination_location = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+    confirmed_at = models.CharField(max_length=100, null=True,blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     PICKING_TYPE_CHOICES = [
         ('INBOUND', 'Inbound'),
@@ -578,7 +581,7 @@ class Picking(models.Model):
                 next_id = int(last_picking.picking_id[1:]) + 1
             else:
                 next_id = 1
-            self.picking_id = f"P{next_id:03d}"  # Example: P001, P002
+            self.picking_id = f"P{next_id:03d}" 
         super().save(*args, **kwargs)
 
     def __str__(self):
