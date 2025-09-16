@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2>Shipment Details</h2>
+
+    <div class="card shadow mt-3">
+        <div class="card-body">
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <th scope="row">Shipment No:</th>
+                        <td>:{{ shipment.shipment_no }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Truck Number:</th>
+                        <td>:{{ shipment.truck.truck_no }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Yard Scan Code:</th>
+                        <td>:{{ shipment.yard_hdr.scan_code }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Planned Dispatch Date:</th>
+                        <td>:{{ shipment.planned_dispatch_date }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status:</th>
+                        <td>:{{ shipment.shipment_status }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Created By:</th>
+                        <td>:{{ shipment.created_by }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Created At:</th>
+                        <td>:{{ shipment.created_at }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Last Updated:</th>
+                        <td>:{{ shipment.updated_at }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a href="{% url 'shipment_dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+</div>
+
+{% endblock %}
