@@ -17,8 +17,12 @@
                     <td>{{ task.pallet }}</td>
                 </tr>
                 <tr>
-                    <th>Location</th>
-                    <td>{{ task.location }}</td>
+                    <th>Source Location</th>
+                    <td>{{ task.source_location }}</td>
+                </tr>
+                 <tr>
+                    <th>Destination Location</th>
+                    <td>{{ task.destination_location }}</td>
                 </tr>
                 <tr>
                     <th>Product</th>
@@ -43,6 +47,24 @@
                         </span>
                     </td>
                 </tr>
+
+                <!-- 🔹 Audit Information -->
+                <tr>
+                    <th>Created By</th>
+                    <td>{{ task.created_by }}</td>
+                </tr>
+                <tr>
+                    <th>Created At</th>
+                    <td>{{ task.created_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <th>Updated By</th>
+                    <td>{{ task.updated_by }}</td>
+                </tr>
+                <tr>
+                    <th>Updated At</th>
+                    <td>{{ task.updated_at|date:"Y-m-d H:i" }}</td>
+                </tr>
             </table>
         </div>
         <div class="card-footer text-center">
@@ -54,6 +76,14 @@
                    Mark Completed
                 </a>
             {% endif %}
+            
+    <form action="{% url 'delete_picking' task.picking_id %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger"
+                onclick="return confirm('Are you sure you want to delete this picking task?');">
+            Delete
+        </button>
+    </form>
         </div>
     </div>
 </div>

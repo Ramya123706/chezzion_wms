@@ -1522,28 +1522,28 @@ def putaway_task(request):
     products = Product.objects.all()
     warehouses = Warehouse.objects.all()
     bins = Bin.objects.all()
-    pallets = Pallet.objects.all()  
+    pallets = Pallet.objects.all()
 
     if request.method == "POST":
-        putaway_id = request.POST.get("putaway_id")
         pallet_id = request.POST.get("pallet")
-        location = request.POST.get("location")
+        source_location = request.POST.get("source_location")
+        destination_location = request.POST.get("destination_location")
         putaway_task_type = request.POST.get("putaway_task_type")
         status = request.POST.get("status")
-
-        # Optional fields
-        warehouse_id = request.POST.get("warehouse")
+        warehouse_id = request.POST.get("whs_no")
         product_id = request.POST.get("product")
         bin_id = request.POST.get("bin")
 
         putaway = Putaway(
-            putaway_id=putaway_id,
-            location=location,
+            source_location=source_location,
+            destination_location=destination_location,
             putaway_task_type=putaway_task_type,
             status=status,
+            created_by=request.user.username if request.user.is_authenticated else "System",
+            updated_by=request.user.username if request.user.is_authenticated else "System",
+            putaway_id=f"PUT-{now().strftime('%Y%m%d%H%M%S')}",  # optional: auto-generate ID
         )
 
-        # Set foreign keys
         if pallet_id:
             putaway.pallet_id = pallet_id
         if warehouse_id:
@@ -1554,9 +1554,11 @@ def putaway_task(request):
             putaway.bin_id = bin_id
 
         putaway.save()
-        return redirect("putaway_pending")  
+        messages.success(request, "Putaway task created successfully.")
+        return redirect("putaway_pending")
 
-    temp_putaway_id = f"PTY-{now().strftime('%Y%m%d%H%M%S')}"
+    temp_putaway_id = f"PUT-{now().strftime('%Y%m%d%H%M%S')}"
+
 
     context = {
         "putaway_id": temp_putaway_id,
@@ -1570,40 +1572,47 @@ def putaway_task(request):
 
 
 def putaway_pending(request):
-    pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
-    return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
+    pending_tasks = Putaway.objects.filter(status__iexact="In Progress").order_by("putaway_id")
+    return render(request, "putaway/pending_task.html", {"pending_tasks": pending_tasks})
 
 def edit_putaway(request, putaway_id):
-    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)  
-
-    if request.method == 'POST':
-        putaway.putaway_id = request.POST.get('putaway_id')
-        putaway.pallet = request.POST.get('pallet')
-        putaway.location = request.POST.get('location')
-        putaway.putaway_task_type = request.POST.get('putaway_task_type')
-        putaway.status = request.POST.get('status')
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
+    pallets = Pallet.objects.all() 
+    if request.method == "POST":
+        putaway.pallet = request.POST.get("pallet")
+        putaway.source_location = request.POST.get("source_location")
+        putaway.destination_location = request.POST.get("destination_location")
+        putaway.putaway_task_type = request.POST.get("putaway_task_type")
+        putaway.status = request.POST.get("status")
+        putaway.updated_by = request.user.username if request.user.is_authenticated else "System"
 
         putaway.save()
-        return redirect('putaway_pending')  
+        messages.success(request, "Putaway task updated successfully.")
+        return redirect("putaway_pending")
 
-    return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
 
+    return render(request, "putaway/edit_putaway.html", {"putaway": putaway})
 
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
     if putaway.status == "In Progress":
         putaway.status = "Completed"
+        putaway.confirmed_at = now()  
     else:
         putaway.status = "In Progress"
+        putaway.confirmed_at = None  
 
+    putaway.updated_by = request.user.username if request.user.is_authenticated else "System"
     putaway.save()
+
+    messages.info(request, f"Putaway {putaway.putaway_id} status updated.")
     return redirect("all_tasks")
 
-def delete_putaway(request,putaway_id):
+def delete_putaway(request, putaway_id):
     task = get_object_or_404(Putaway, putaway_id=putaway_id)
     task.delete()
-    messages.success(request, "Task deleted successfully.")
-    return redirect('putaway_pending')
+    messages.success(request, "Putaway task deleted successfully.")
+    return redirect("all_tasks")
 
 
 from .models import Warehouse 
@@ -1678,47 +1687,52 @@ def category_suggestions(request):
 from django.shortcuts import render, redirect
 from .models import Picking
 from .forms import PickingForm
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Picking
+from .forms import PickingForm
 
+# 🔹 Add Picking
 def add_picking(request):
-    if request.method == 'POST':
-        picking_id = request.POST.get('picking_id')
-        pallet = request.POST.get('pallet')
-        location = request.POST.get('location')
-        product = request.POST.get('product')
-        quantity = request.POST.get('quantity')
-        status = request.POST.get('status')
+    if request.method == "POST":
+        form = PickingForm(request.POST)
+        if form.is_valid():
+            picking = form.save(commit=False)
+            # Set created_by and updated_by automatically
+            picking.created_by = request.user.username if request.user.is_authenticated else "System"
+            picking.updated_by = request.user.username if request.user.is_authenticated else "System"
+            picking.confirmed_at = None  # Initially not confirmed
+            picking.save()
+            return redirect("pending_task")
+    else:
+        form = PickingForm()
 
-     
-        Picking.objects.create(
-            picking_id=picking_id,
-            pallet=pallet,
-            location=location,
-            product=product,
-            quantity=quantity,
-            status=status
-        )
-     
-        return redirect('pending_task') 
-    return render(request, 'picking/add_picking.html')
+    return render(request, "picking/add_picking.html", {"form": form})
 
-    
+
+# 🔹 Show Pending Pickings
 def pending_task(request):
-    pending_picking = Picking.objects.filter(status__iexact='In Progress').order_by('picking_id')
-    return render(request, 'picking/picking_pending_task.html', {'pending_picking': pending_picking})
+    pending_picking = Picking.objects.filter(status__iexact="In Progress").order_by("picking_id")
+    return render(request, "picking/picking_pending_task.html", {"pending_picking": pending_picking})
 
 
-
+# 🔹 Edit Picking
 def edit_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = PickingForm(request.POST, instance=picking)
         if form.is_valid():
-            form.save()
+            picking = form.save(commit=False)
+            # Update only updated_by
+            picking.updated_by = request.user.username if request.user.is_authenticated else "System"
+            picking.save()
+            return redirect("pending_task")
     else:
         form = PickingForm(instance=picking)
 
-    return render(request, 'picking/edit_picking.html', {'form': form, 'picking': picking})
+    return render(request, "picking/edit_picking.html", {"form": form, "picking": picking})
 
+
+# 🔹 Confirm / Toggle Picking Status
 def confirm_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
 
@@ -1727,15 +1741,19 @@ def confirm_picking(request, picking_id):
     else:
         picking.status = "In Progress"
 
+    # Track who updated it
+    picking.updated_by = request.user.username if request.user.is_authenticated else "System"
+    picking.confirmed_at = now() if picking.status == "Completed" else None
     picking.save()
-    return redirect("all_tasks") 
+
+    return redirect("all_tasks")
 
 
-
+# 🔹 Delete Picking
 def delete_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
     picking.delete()
-    return redirect('pending_task') 
+    return redirect("all_tasks")
 
 def customer(request):
     products = Product.objects.all()  
@@ -2572,10 +2590,10 @@ def add_packed_item(request, packing_id):
 
 def all_tasks(request):
     putaway_tasks = Putaway.objects.all().values(
-        "putaway_id", "pallet", "location", "putaway_task_type", "status", "created_at", "confirmed_at"
+        "putaway_id", "pallet", "source_location","destination_location","putaway_task_type", "status", "created_at", "confirmed_at"
     )
     picking_tasks = Picking.objects.all().values(
-        "picking_id", "pallet", "location", "product", "quantity", "picking_type", "status"
+        "picking_id", "pallet", "source_location","destination_location", "product", "quantity", "picking_type", "status"
     )
 
     for task in putaway_tasks:
@@ -3186,9 +3204,7 @@ def all_putaway_tasks(request):
     View to display all putaway tasks in a table.
     """
     tasks = Putaway.objects.all().order_by('-created_at')  # newest first
-    context = {
-        'tasks': tasks
-    }
+    context = {'tasks': tasks }
     return render(request, 'putaway/all_tasks.html', context)
 
 

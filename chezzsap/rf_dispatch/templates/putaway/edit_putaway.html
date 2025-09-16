@@ -17,18 +17,28 @@
                         <input type="text" name="putaway_id" value="{{ putaway.putaway_id }}" class="form-control" readonly>
                     </div>
 
-                    <!-- Pallet -->
-                    <div class="mb-3">
-                        <label class="form-label"><b>Pallet</b></label>
-                        <input type="text" name="pallet" value="{{ putaway.pallet }}" class="form-control" required>
-                    </div>
+                    <!-- Pallet Dropdown -->
+                  <div class="mb-3">
+                <label><b>Pallet</b></label>
+                <select name="pallet" class="form-select" required>
+  <option value="">--Select Pallet--</option>
+  {% for p in pallets %}
+    <option value="{{ p.id }}" {% if putaway.pallet and putaway.pallet.id == p.id %}selected{% endif %}>
+      {{ p.pallet_no }}
+    </option>
+  {% endfor %}
+</select>
+
 
                     <!-- Location -->
                     <div class="mb-3">
-                        <label class="form-label"><b>Location</b></label>
-                        <input type="text" name="location" value="{{ putaway.location }}" class="form-control" required>
+                        <label class="form-label"><b>Source Location</b></label>
+                        <input type="text" name="source_location" value="{{ putaway.source_location }}" class="form-control" required>
                     </div>
-
+                         <div class="mb-3">
+                        <label class="form-label"><b>Destination Location</b></label>
+                        <input type="text" name="destination_location" value="{{ putaway.destination_location }}" class="form-control" required>
+                    </div>
                     <!-- Putaway Task Type -->
                     <div class="mb-3">
                         <label class="form-label"><b>Putaway Task Type</b></label>
