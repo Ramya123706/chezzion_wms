@@ -11,6 +11,20 @@
       </div>
 
       <div class="card-body">
+        {% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+        {% if error_message %}
+        <div class="alert alert-danger">
+            {{ error_message }}
+        </div>
+        {% endif %}
+
         <form id="inspectionForm" method="POST">
           {% csrf_token %}
 
@@ -20,6 +34,7 @@
 
           {% if form.errors %}
             <div class="alert alert-danger">{{ form.errors }}</div>
+
           {% endif %}
 
           <!-- WHS No -->
@@ -45,6 +60,7 @@
                      placeholder="Enter Truck No" autocomplete="off">
               <div id="truck_suggestions" class="border p-2 bg-white"
                    style="position:absolute; z-index:999; display:none;"></div>
+
             </div>
           </div>
 
@@ -158,13 +174,14 @@
 
           <!-- Buttons -->
           <div class="d-flex mt-4">
-            <a href="{% url 'home' %}" class="btn btn-secondary m-3">
-              <i class="fa-solid fa-arrow-left"></i> F7 BACK
-            </a>
 
-            <button type="submit" class="btn btn-secondary m-3">
-              <i class="fa-solid fa-clipboard-check"></i> F2 PQC
-            </button>
+            <a class="btn btn-secondary m-3"> <i class="fa-solid fa-arrow-left"></i> F7 BACK </a>
+            <button type="submit" class="btn btn-secondary m-3"><i class="fa-solid fa-clipboard-check"></i> F2 PQC</button>
+            {% if request.user.is_superuser %}
+            <div class="mt-3 text-center">
+              <a href="{% url 'add_questions' %}" class="btn btn-primary"> <i class="fa-solid fa-plus"></i> Add Questions </a>
+            </div>
+            {% endif %}
           </div>
 
           {% if request.user.is_superuser %}
@@ -180,83 +197,93 @@
   </div>
 </div>
 
-<!-- Auto-fill Truck Status -->
+<!-- JavaScript to auto-fill Truck Status -->
 <script>
-document.getElementById("yardScanSelect").addEventListener("change", function () {
-  const value = this.value.toLowerCase();
-  let status = "";
 
-  if (value.startsWith("door")) status = "door";
-  else if (value.startsWith("parkinglot")) status = "parkinglot";
-  else if (value.startsWith("checkin")) status = "checkin";
-  else if (value.startsWith("gate")) status = "gate";
-  else if (value.startsWith("checkout")) status = "checkout";
+  document.getElementById("yardScanSelect").addEventListener("change", function () {
+    const value = this.value.toLowerCase();
+    let status = "";
 
-  document.getElementById("truckStatusInput").value = status;
-});
+    if (value.startsWith("door")) {
+      status = "door";
+    } else if (value.startsWith("parkinglot")) {
+      status = "parkinglot";
+    } else if (value.startsWith("checkin")) {
+      status = "checkin";
+    } else if (value.startsWith("gate")) {
+      status = "gate";
+    } else if (value.startsWith("checkout")) {
+      status = "checkout";
+    } else {
+      status = "";
+    }
+
+    document.getElementById("truckStatusInput").value = status;
+  });
 </script>
-
-<!-- Auto-fill current date and time -->
 <script>
-window.addEventListener('DOMContentLoaded', function () {
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().split(':').slice(0, 2).join(':');
 
-  document.querySelector('input[name="truck_date"]').value = dateStr;
-  document.querySelector('input[name="truck_time"]').value = timeStr;
-});
+  // Auto-fill current date and time on page load
+  window.addEventListener("DOMContentLoaded", function () {
+    const now = new Date();
+
+    // Format date as YYYY-MM-DD
+    const dateStr = now.toISOString().split("T")[0];
+
+    // Format time as HH:MM (24-hour format)
+    const timeStr = now.toTimeString().split(":").slice(0, 2).join(":");
+
+    // Set values to input fields
+    document.querySelector('input[name="truck_date"]').value = dateStr;
+    document.querySelector('input[name="truck_time"]').value = timeStr;
+  });
 </script>
-
-<!-- Fetch driver details based on truck no -->
 <script>
-document.querySelector('input[name="truck_no"]').addEventListener('change', function () {
-  const truckNo = this.value;
 
-  fetch(`/get-truck-details/?truck_no=${encodeURIComponent(truckNo)}`)
-    .then(response => response.json())
-    .then(data => {
-      document.querySelector('input[name="driver_name"]').value = data.driver_name;
-      document.querySelector('input[name="driver_phn_no"]').value = data.driver_phn_no;
-    });
-});
-</script>
+  document.querySelector('input[name="truck_no"]').addEventListener("change", function () {
+    const truckNo = this.value;
 
-<!-- Truck No suggestions -->
-<script>
-document.getElementById("truck_no_input").addEventListener("keyup", function () {
-  const query = this.value;
-  const suggestionBox = document.getElementById("truck_suggestions");
-
-  if (query.length > 0) {
-    fetch(`/ajax/truck-suggestions/?q=${query}`)
-      .then(response => response.json())
-      .then(data => {
-        suggestionBox.innerHTML = "";
-        if (data.results.length > 0) {
-          data.results.forEach(item => {
-            const div = document.createElement("div");
-            div.textContent = item.truck_no;
-            div.style.cursor = "pointer";
-            div.onclick = function () {
-              document.getElementById("truck_no_input").value = item.truck_no;
-              suggestionBox.style.display = "none";
-              document.getElementById("truck_no_input").dispatchEvent(new Event("change"));
-            };
-            suggestionBox.appendChild(div);
-          });
-          suggestionBox.style.display = "block";
-        } else {
-          suggestionBox.style.display = "none";
-        }
+    fetch(`/get-truck-details/?truck_no=${encodeURIComponent(truckNo)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        document.querySelector('input[name="driver_name"]').value = data.driver_name;
+        document.querySelector('input[name="driver_phn_no"]').value = data.driver_phn_no;
       });
-  } else {
-    suggestionBox.style.display = "none";
-  }
-});
+  });
 </script>
+<script>
+  document.getElementById("truck_no_input").addEventListener("keyup", function () {
+    const query = this.value;
+    const suggestionBox = document.getElementById("truck_suggestions");
 
-<!-- WHS No suggestions -->
+    if (query.length > 0) {
+      fetch(`/ajax/truck-suggestions/?q=${query}`)
+        .then((response) => response.json())
+        .then((data) => {
+          suggestionBox.innerHTML = "";
+          if (data.results.length > 0) {
+            data.results.forEach((item) => {
+              const div = document.createElement("div");
+              div.textContent = item.truck_no;
+              div.style.cursor = "pointer";
+              div.onclick = function () {
+                document.getElementById("truck_no_input").value = item.truck_no;
+                suggestionBox.style.display = "none";
+                // Optional: trigger change event
+                document.getElementById("truck_no_input").dispatchEvent(new Event("change"));
+              };
+              suggestionBox.appendChild(div);
+            });
+            suggestionBox.style.display = "block";
+          } else {
+            suggestionBox.style.display = "none";
+          }
+        });
+    } else {
+      suggestionBox.style.display = "none";
+    }
+  });
+</script>
 <script>
 document.getElementById("whs_no_input").addEventListener("keyup", function () {
   const query = this.value;
@@ -287,6 +314,7 @@ document.getElementById("whs_no_input").addEventListener("keyup", function () {
     suggestionBox.style.display = "none";
   }
 });
+
 </script>
 
 {% endblock %}

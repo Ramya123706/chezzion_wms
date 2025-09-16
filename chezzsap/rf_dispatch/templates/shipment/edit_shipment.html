@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+  <h2>Edit Shipment</h2>
+
+  <!-- Display messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label class="form-label">Truck Number</label>
+      <select name="truck_number" class="form-select" required>
+        <option value="">Select Truck</option>
+        {% for truck in available_trucks %}
+          <option value="{{ truck.id }}" {% if truck.id == shipment.truck.id %}selected{% endif %}>
+            {{ truck.truck_no }}
+          </option>
+        {% empty %}
+          <option value="">No available trucks</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Yard Scan Code</label>
+      <select name="yard" class="form-select" required>
+        <option value="">Select Yard</option>
+        {% for yard in yards %}
+          <option value="{{ yard.id }}" {% if yard.id == shipment.yard_hdr.id %}selected{% endif %}>
+            {{ yard.scan_code }}
+          </option>
+        {% empty %}
+          <option value="">No yards found</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Planned Dispatch</label>
+      <input type="date" name="planned_dispatch" class="form-control" value="{{ shipment.planned_dispatch_date|date:'Y-m-d' }}" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Status</label>
+      <select name="status" class="form-select" required>
+        <option value="Planned" {% if shipment.shipment_status == 'Planned' %}selected{% endif %}>Planned</option>
+        <option value="Assigned" {% if shipment.shipment_status == 'Assigned' %}selected{% endif %}>Assigned</option>
+        <option value="Confirmed" {% if shipment.shipment_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+        <option value="Completed" {% if shipment.shipment_status == 'Completed' %}selected{% endif %}>Completed</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Shipment</button>
+    <a href="{% url 'shipment_dashboard' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+
+{% endblock %}
