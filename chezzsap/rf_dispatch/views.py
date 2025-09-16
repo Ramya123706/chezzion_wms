@@ -2361,12 +2361,7 @@ def outbound_delivery_item_number():
 
 
 
-# Utility to safely convert to Decimal
-def safe_decimal(value):
-    try:
-        return Decimal(value)
-    except (TypeError, ValueError, InvalidOperation):
-        return Decimal("0")
+
 
 # Example outbound delivery number generator
 def generate_outbound_delivery_number():
@@ -2374,6 +2369,20 @@ def generate_outbound_delivery_number():
     next_id = last.id + 1 if last else 1
     return f"OBD{str(next_id).zfill(5)}"
 
+
+
+
+from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from itertools import zip_longest
+from decimal import Decimal
+
+def safe_decimal(value):
+    try:
+        return Decimal(value)
+    except (TypeError, ValueError, InvalidOperation):
+        return Decimal('0.00')
 
 def outbound(request):
     sales_orders = SalesOrderCreation.objects.all()
@@ -3390,30 +3399,35 @@ from django.shortcuts import render, get_object_or_404
 from .models import Shipment
 
 def shipment_detail(request, shipment_id):
-    # Get the shipment by ID, or 404 if not found
     shipment = get_object_or_404(Shipment, id=shipment_id)
 
+    # Get all PGIs linked to this shipment
+    linked_pgis = PostGoodsIssue.objects.filter(shipment=shipment)
+
     context = {
-        'shipment': shipment
+        'shipment': shipment,
+        'linked_pgis': linked_pgis
     }
     return render(request, 'shipment/shipment_detail.html', context)
 
-from django.shortcuts import get_object_or_404
 
 def edit_shipment(request, shipment_id):
     shipment = get_object_or_404(Shipment, id=shipment_id)
     
-    # Fetch trucks that are not assigned to other shipments OR the current truck
-    # assigned_truck_ids = Shipment.objects.exclude(id=shipment.id).values_list('truck_id', flat=True)
-    # available_trucks = Truck.objects.exclude(id__in=assigned_truck_ids)
     available_trucks = Truck.objects.all()
     yards = YardHdr.objects.all()
+
+    # Fetch PGIs that are not assigned to other shipments OR currently linked to this shipment
+    unassigned_pgis = PostGoodsIssue.objects.filter(
+        Q(shipment__isnull=True) | Q(shipment=shipment)
+    )
 
     if request.method == 'POST':
         truck_id = request.POST.get('truck_number')
         yard_id = request.POST.get('yard')
         planned_dispatch = request.POST.get('planned_dispatch')
         status = request.POST.get('status')
+        selected_pgis = request.POST.getlist('pgis')
 
         try:
             truck = Truck.objects.get(id=truck_id)
@@ -3425,6 +3439,11 @@ def edit_shipment(request, shipment_id):
             shipment.planned_dispatch_date = planned_dispatch
             shipment.shipment_status = status
             shipment.save()
+
+            # Update PGIs: first unlink all PGIs currently linked
+            PostGoodsIssue.objects.filter(shipment=shipment).update(shipment=None)
+            # Link selected PGIs to this shipment
+            PostGoodsIssue.objects.filter(id__in=selected_pgis).update(shipment=shipment)
 
             messages.success(request, 'Shipment updated successfully.')
             return redirect('shipment_dashboard')
@@ -3441,9 +3460,11 @@ def edit_shipment(request, shipment_id):
     context = {
         'shipment': shipment,
         'available_trucks': available_trucks,
-        'yards': yards
+        'yards': yards,
+        'unassigned_pgis': unassigned_pgis
     }
     return render(request, 'shipment/edit_shipment.html', context)
+
 
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages

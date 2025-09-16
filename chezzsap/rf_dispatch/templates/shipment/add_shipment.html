@@ -18,16 +18,16 @@
 
     <div class="mb-3">
       <label class="form-label">Truck Number</label>
-      <select name="truck_number" required>
+      <select name="truck_number" class="form-select" required>
         {% for truck in available_trucks %}
             <option value="{{ truck.id }}">{{ truck.truck_no }}</option>
         {% endfor %}
-    </select>
+      </select>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Yard Scan Code</label>
-      <select name="yard" required>
+      <select name="yard"  class="form-select" required>
         {% for yard in yards %}
             <option value="{{ yard.id }}">{{ yard.whs_no }}</option>
         {% endfor %}

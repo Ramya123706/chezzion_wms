@@ -231,4 +231,8 @@ urlpatterns = [
     path('edit_shipment/<int:shipment_id>/', views.edit_shipment, name='edit_shipment'),
     path('delete_shipment/<int:shipment_id>/', views.delete_shipment, name='delete_shipment'),
 
+    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
+
+ 
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
