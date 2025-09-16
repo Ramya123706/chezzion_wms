@@ -106,44 +106,20 @@
                 <div class="col-lg-6 col-md-12 mb-3">
                     <div class="table-responsive shadow-sm rounded">
                         <table class="table table-striped table-hover table-bordered">
+                            {% load custom_tags %}
                             <tbody>
                                 <tr>
                                     <th colspan="2" class="text-center bg-warning text-dark">
                                         <i class="fas fa-clipboard-check"></i> Truck Inspection Details
                                     </th>
                                 </tr>
-                                <tr>
-                                    <th><i class="fas fa-lock"></i> Lock Secure</th>
-                                    <td>{{ truck.is_the_lock_secure }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-broom"></i> Truck Clean</th>
-                                    <td>{{ truck.is_the_truck_clean }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-hard-hat"></i> Driver Safe</th>
-                                    <td>{{ truck.is_the_driver_safe }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-box"></i> Pallet Stable</th>
-                                    <td>{{ truck.is_the_pallet_stable }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-thermometer-half"></i> Temperature Ideal</th>
-                                    <td>{{ truck.is_the_temperature_ideal }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-fan"></i> AC Working</th>
-                                    <td>{{ truck.is_the_ac_working }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-wind"></i> Good Odor</th>
-                                    <td>{{ truck.does_the_truck_have_a_good_odor }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-level-up-alt"></i> Dock Level OK</th>
-                                    <td>{{ truck.is_the_truck_dock_level_ok }}</td>
-                                </tr>
+
+                                {% for question in inspection_qs %}
+                                    <tr>
+                                        <th>{{ question.text }}</th>
+                                        <td>{{ inspection_map|get_item:question.id|default:"No answer" }}</td>
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>

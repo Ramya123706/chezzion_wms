@@ -374,27 +374,25 @@ def truck_list(request):
 
 def truck_detail(request, truck_no):
     try:
-        # Fetch the latest YardHdr for this truck number
         truck = YardHdr.objects.filter(truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
         if not truck:
             return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
 
-        # Log status only on POST
-        if request.method == 'POST':
-            new_status = request.POST.get('status', 'Viewed')
-            comment = request.POST.get('comment', '')
-            log_truck_status(truck_instance=truck, status=new_status, comment=comment)
-
-        # Fetch ALL logs related to this truck
         logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
+        inspection_qs = InspectionQuestion.objects.all()
+        inspection_as = InspectionResponse.objects.filter(yard=truck)
+        inspection_map = {resp.question.id: resp.answer for resp in inspection_as}
 
         return render(request, 'truck_screen/truck_detail.html', {
             'truck': truck,
-            'logs': logs
+            'logs': logs,
+            'inspection_qs': inspection_qs,
+            'inspection_map': inspection_map,
         })
 
     except YardHdr.DoesNotExist:
         return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
+
 
 
 
@@ -768,9 +766,14 @@ def product_list(request):
 
 
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.utils import timezone
+from .models import Category, SubCategory, Product
 
 def add_product(request):
     if request.method == 'POST':
+        # Get form data
         name = request.POST.get('name')
         product_id = request.POST.get('id')
         quantity = request.POST.get('quantity')
@@ -778,38 +781,24 @@ def add_product(request):
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        re_order_level = request.POST.get('re_order_level')
-        images = request.FILES.get('images')
-        unit_price = request.POST.get('unit_price')
-        # Fix: get sub_category from POST data
+        category_id = request.POST.get('category')
         sub_category_id = request.POST.get('subcategory')
-        sub_category = None
-        if sub_category_id:
-            try:
-                from .models import SubCategory
-                sub_category = SubCategory.objects.get(id=sub_category_id)
-            except Exception:
-                sub_category = None
+        re_order_level = request.POST.get('re_order_level')
+        unit_price = request.POST.get('unit_price')
+        images = request.FILES.get('images')
+
+        # Basic validation
+        if not name or not product_id or not category_id:
+            messages.error(request, "Please fill in required fields: Name, Product ID, Category.")
+            return render(request, 'product/add_product.html', {
+                'categories': Category.objects.all(),
+                'subcategories': SubCategory.objects.all(),
+            })
 
         try:
-            name = request.POST.get('name')
-            product_id = request.POST.get('product_id')
-            quantity = request.POST.get('quantity')
-            pallet_no = request.POST.get('pallet_no')
-            sku = request.POST.get('sku')
-            description = request.POST.get('description')
-            unit_of_measure = request.POST.get('unit_of_measure')
-            category_id = request.POST.get('category')
-            sub_category_id = request.POST.get('subcategory')
-            re_order_level = request.POST.get('re_order_level')
-            unit_price = request.POST.get('unit_price')
-            images = request.FILES.get('images')
-
-            # ✅ Get category
+            # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
 
-            # ✅ Get subcategory
             sub_category = None
             if sub_category_id:
                 try:
@@ -817,7 +806,7 @@ def add_product(request):
                 except SubCategory.DoesNotExist:
                     sub_category = None
 
-            # ✅ Create product
+            # Create Product
             product = Product.objects.create(
                 product_id=product_id,
                 name=name,
@@ -835,16 +824,19 @@ def add_product(request):
                 updated_at=timezone.now(),
             )
 
+            messages.success(request, "Product added successfully!")
             return redirect('product_detail', product_id=product.product_id)
 
+        except Category.DoesNotExist:
+            messages.error(request, "Selected category does not exist.")
         except Exception as e:
-            messages.error(request, f"Error adding product: {e}")
+            messages.error(request, f"Unexpected error: {e}")
 
+    # GET request or on error
     return render(request, 'product/add_product.html', {
         'categories': Category.objects.all(),
         'subcategories': SubCategory.objects.all(),
     })
-
 
 
 def bulk_upload_products(request):
@@ -1530,28 +1522,28 @@ def putaway_task(request):
     products = Product.objects.all()
     warehouses = Warehouse.objects.all()
     bins = Bin.objects.all()
-    pallets = Pallet.objects.all()  
+    pallets = Pallet.objects.all()
 
     if request.method == "POST":
-        putaway_id = request.POST.get("putaway_id")
         pallet_id = request.POST.get("pallet")
-        location = request.POST.get("location")
+        source_location = request.POST.get("source_location")
+        destination_location = request.POST.get("destination_location")
         putaway_task_type = request.POST.get("putaway_task_type")
         status = request.POST.get("status")
-
-        # Optional fields
-        warehouse_id = request.POST.get("warehouse")
+        warehouse_id = request.POST.get("whs_no")
         product_id = request.POST.get("product")
         bin_id = request.POST.get("bin")
 
         putaway = Putaway(
-            putaway_id=putaway_id,
-            location=location,
+            source_location=source_location,
+            destination_location=destination_location,
             putaway_task_type=putaway_task_type,
             status=status,
+            created_by=request.user.username if request.user.is_authenticated else "System",
+            updated_by=request.user.username if request.user.is_authenticated else "System",
+            putaway_id=f"PUT-{now().strftime('%Y%m%d%H%M%S')}",  # optional: auto-generate ID
         )
 
-        # Set foreign keys
         if pallet_id:
             putaway.pallet_id = pallet_id
         if warehouse_id:
@@ -1562,9 +1554,11 @@ def putaway_task(request):
             putaway.bin_id = bin_id
 
         putaway.save()
-        return redirect("putaway_pending")  
+        messages.success(request, "Putaway task created successfully.")
+        return redirect("putaway_pending")
 
-    temp_putaway_id = f"PTY-{now().strftime('%Y%m%d%H%M%S')}"
+    temp_putaway_id = f"PUT-{now().strftime('%Y%m%d%H%M%S')}"
+
 
     context = {
         "putaway_id": temp_putaway_id,
@@ -1578,40 +1572,47 @@ def putaway_task(request):
 
 
 def putaway_pending(request):
-    pending_tasks = Putaway.objects.filter(status__iexact='In Progress').order_by('putaway_id')
-    return render(request, 'putaway/pending_task.html', {'pending_tasks': pending_tasks})
+    pending_tasks = Putaway.objects.filter(status__iexact="In Progress").order_by("putaway_id")
+    return render(request, "putaway/pending_task.html", {"pending_tasks": pending_tasks})
 
 def edit_putaway(request, putaway_id):
-    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)  
-
-    if request.method == 'POST':
-        putaway.putaway_id = request.POST.get('putaway_id')
-        putaway.pallet = request.POST.get('pallet')
-        putaway.location = request.POST.get('location')
-        putaway.putaway_task_type = request.POST.get('putaway_task_type')
-        putaway.status = request.POST.get('status')
+    putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
+    pallets = Pallet.objects.all() 
+    if request.method == "POST":
+        putaway.pallet = request.POST.get("pallet")
+        putaway.source_location = request.POST.get("source_location")
+        putaway.destination_location = request.POST.get("destination_location")
+        putaway.putaway_task_type = request.POST.get("putaway_task_type")
+        putaway.status = request.POST.get("status")
+        putaway.updated_by = request.user.username if request.user.is_authenticated else "System"
 
         putaway.save()
-        return redirect('putaway_pending')  
+        messages.success(request, "Putaway task updated successfully.")
+        return redirect("putaway_pending")
 
-    return render(request, 'putaway/edit_putaway.html', {'putaway': putaway})
 
+    return render(request, "putaway/edit_putaway.html", {"putaway": putaway})
 
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
     if putaway.status == "In Progress":
         putaway.status = "Completed"
+        putaway.confirmed_at = now()  
     else:
         putaway.status = "In Progress"
+        putaway.confirmed_at = None  
 
+    putaway.updated_by = request.user.username if request.user.is_authenticated else "System"
     putaway.save()
+
+    messages.info(request, f"Putaway {putaway.putaway_id} status updated.")
     return redirect("all_tasks")
 
-def delete_putaway(request,putaway_id):
+def delete_putaway(request, putaway_id):
     task = get_object_or_404(Putaway, putaway_id=putaway_id)
     task.delete()
-    messages.success(request, "Task deleted successfully.")
-    return redirect('putaway_pending')
+    messages.success(request, "Putaway task deleted successfully.")
+    return redirect("all_tasks")
 
 
 from .models import Warehouse 
@@ -1686,47 +1687,52 @@ def category_suggestions(request):
 from django.shortcuts import render, redirect
 from .models import Picking
 from .forms import PickingForm
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Picking
+from .forms import PickingForm
 
+# 🔹 Add Picking
 def add_picking(request):
-    if request.method == 'POST':
-        picking_id = request.POST.get('picking_id')
-        pallet = request.POST.get('pallet')
-        location = request.POST.get('location')
-        product = request.POST.get('product')
-        quantity = request.POST.get('quantity')
-        status = request.POST.get('status')
+    if request.method == "POST":
+        form = PickingForm(request.POST)
+        if form.is_valid():
+            picking = form.save(commit=False)
+            # Set created_by and updated_by automatically
+            picking.created_by = request.user.username if request.user.is_authenticated else "System"
+            picking.updated_by = request.user.username if request.user.is_authenticated else "System"
+            picking.confirmed_at = None  # Initially not confirmed
+            picking.save()
+            return redirect("pending_task")
+    else:
+        form = PickingForm()
 
-     
-        Picking.objects.create(
-            picking_id=picking_id,
-            pallet=pallet,
-            location=location,
-            product=product,
-            quantity=quantity,
-            status=status
-        )
-     
-        return redirect('pending_task') 
-    return render(request, 'picking/add_picking.html')
+    return render(request, "picking/add_picking.html", {"form": form})
 
-    
+
+# 🔹 Show Pending Pickings
 def pending_task(request):
-    pending_picking = Picking.objects.filter(status__iexact='In Progress').order_by('picking_id')
-    return render(request, 'picking/picking_pending_task.html', {'pending_picking': pending_picking})
+    pending_picking = Picking.objects.filter(status__iexact="In Progress").order_by("picking_id")
+    return render(request, "picking/picking_pending_task.html", {"pending_picking": pending_picking})
 
 
-
+# 🔹 Edit Picking
 def edit_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = PickingForm(request.POST, instance=picking)
         if form.is_valid():
-            form.save()
+            picking = form.save(commit=False)
+            # Update only updated_by
+            picking.updated_by = request.user.username if request.user.is_authenticated else "System"
+            picking.save()
+            return redirect("pending_task")
     else:
         form = PickingForm(instance=picking)
 
-    return render(request, 'picking/edit_picking.html', {'form': form, 'picking': picking})
+    return render(request, "picking/edit_picking.html", {"form": form, "picking": picking})
 
+
+# 🔹 Confirm / Toggle Picking Status
 def confirm_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
 
@@ -1735,15 +1741,19 @@ def confirm_picking(request, picking_id):
     else:
         picking.status = "In Progress"
 
+    # Track who updated it
+    picking.updated_by = request.user.username if request.user.is_authenticated else "System"
+    picking.confirmed_at = now() if picking.status == "Completed" else None
     picking.save()
-    return redirect("all_tasks") 
+
+    return redirect("all_tasks")
 
 
-
+# 🔹 Delete Picking
 def delete_picking(request, picking_id):
     picking = get_object_or_404(Picking, picking_id=picking_id)
     picking.delete()
-    return redirect('pending_task') 
+    return redirect("all_tasks")
 
 def customer(request):
     products = Product.objects.all()  
@@ -2351,12 +2361,7 @@ def outbound_delivery_item_number():
 
 
 
-# Utility to safely convert to Decimal
-def safe_decimal(value):
-    try:
-        return Decimal(value)
-    except (TypeError, ValueError, InvalidOperation):
-        return Decimal("0")
+
 
 # Example outbound delivery number generator
 def generate_outbound_delivery_number():
@@ -2364,6 +2369,20 @@ def generate_outbound_delivery_number():
     next_id = last.id + 1 if last else 1
     return f"OBD{str(next_id).zfill(5)}"
 
+
+
+
+from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from itertools import zip_longest
+from decimal import Decimal
+
+def safe_decimal(value):
+    try:
+        return Decimal(value)
+    except (TypeError, ValueError, InvalidOperation):
+        return Decimal('0.00')
 
 def outbound(request):
     sales_orders = SalesOrderCreation.objects.all()
@@ -2580,10 +2599,10 @@ def add_packed_item(request, packing_id):
 
 def all_tasks(request):
     putaway_tasks = Putaway.objects.all().values(
-        "putaway_id", "pallet", "location", "putaway_task_type", "status", "created_at", "confirmed_at"
+        "putaway_id", "pallet", "source_location","destination_location","putaway_task_type", "status", "created_at", "confirmed_at"
     )
     picking_tasks = Picking.objects.all().values(
-        "picking_id", "pallet", "location", "product", "quantity", "picking_type", "status"
+        "picking_id", "pallet", "source_location","destination_location", "product", "quantity", "picking_type", "status"
     )
 
     for task in putaway_tasks:
@@ -3194,9 +3213,7 @@ def all_putaway_tasks(request):
     View to display all putaway tasks in a table.
     """
     tasks = Putaway.objects.all().order_by('-created_at')  # newest first
-    context = {
-        'tasks': tasks
-    }
+    context = {'tasks': tasks }
     return render(request, 'putaway/all_tasks.html', context)
 
 
@@ -3286,3 +3303,245 @@ def edit_category_view(request, id):
         category.save()
     return redirect('category_list')
 
+# ---------------
+# shipment
+# ---------------   
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Shipment
+
+from django.shortcuts import render
+
+
+@login_required
+def shipment_dashboard(request):
+    shipments = Shipment.objects.all().order_by('-created_at')
+    return render(request, 'shipment/shipment_dashboard.html', {'shipments': shipments})
+
+
+
+import datetime
+import random
+from django.utils.crypto import get_random_string
+
+import datetime
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.utils.crypto import get_random_string
+from django.contrib.auth.decorators import login_required
+from .models import Shipment, Truck, YardHdr
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Shipment, Truck, YardHdr
+from django.db import IntegrityError
+
+
+
+
+from django.db import IntegrityError
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .models import Shipment, Truck, YardHdr, PostGoodsIssue
+
+def add_shipment(request):
+    available_trucks = Truck.objects.all()
+    yards = YardHdr.objects.all()
+    unassigned_pgis = PostGoodsIssue.objects.filter(shipment__isnull=True)
+
+    if request.method == 'POST':
+        truck_id = request.POST.get('truck_number')
+        yard_id = request.POST.get('yard')
+        planned_dispatch = request.POST.get('planned_dispatch')
+        status = request.POST.get('status')
+        selected_pgis = request.POST.getlist('pgis')  # List of selected PGI IDs
+
+        try:
+            truck = Truck.objects.get(id=truck_id)
+            yard_hdr = YardHdr.objects.get(id=yard_id)
+
+            shipment_no = f"SHIP-{Shipment.objects.count() + 1:05d}"
+
+            shipment = Shipment.objects.create(
+                shipment_no=shipment_no,
+                truck=truck,
+                yard_hdr=yard_hdr,
+                planned_dispatch_date=planned_dispatch,
+                shipment_status=status,
+                created_by=request.user.username if request.user.is_authenticated else 'admin'
+            )
+
+            # Link selected PGIs to the created Shipment
+            PostGoodsIssue.objects.filter(id__in=selected_pgis).update(shipment=shipment)
+
+            messages.success(request, 'Shipment added successfully, and PGIs linked.')
+            return redirect('shipment_dashboard')
+
+        except Truck.DoesNotExist:
+            messages.error(request, 'Invalid Truck selected.')
+        except YardHdr.DoesNotExist:
+            messages.error(request, 'Invalid Yard selected.')
+        except IntegrityError as e:
+            messages.error(request, f'Database error: {str(e)}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    context = {
+        'available_trucks': available_trucks,
+        'yards': yards,
+        'unassigned_pgis': unassigned_pgis,
+    }
+    return render(request, 'shipment/add_shipment.html', context)
+
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Shipment
+
+def shipment_detail(request, shipment_id):
+    shipment = get_object_or_404(Shipment, id=shipment_id)
+
+    # Get all PGIs linked to this shipment
+    linked_pgis = PostGoodsIssue.objects.filter(shipment=shipment)
+
+    context = {
+        'shipment': shipment,
+        'linked_pgis': linked_pgis
+    }
+    return render(request, 'shipment/shipment_detail.html', context)
+
+
+def edit_shipment(request, shipment_id):
+    shipment = get_object_or_404(Shipment, id=shipment_id)
+    
+    available_trucks = Truck.objects.all()
+    yards = YardHdr.objects.all()
+
+    # Fetch PGIs that are not assigned to other shipments OR currently linked to this shipment
+    unassigned_pgis = PostGoodsIssue.objects.filter(
+        Q(shipment__isnull=True) | Q(shipment=shipment)
+    )
+
+    if request.method == 'POST':
+        truck_id = request.POST.get('truck_number')
+        yard_id = request.POST.get('yard')
+        planned_dispatch = request.POST.get('planned_dispatch')
+        status = request.POST.get('status')
+        selected_pgis = request.POST.getlist('pgis')
+
+        try:
+            truck = Truck.objects.get(id=truck_id)
+            yard_hdr = YardHdr.objects.get(id=yard_id)
+
+            # Update shipment
+            shipment.truck = truck
+            shipment.yard_hdr = yard_hdr
+            shipment.planned_dispatch_date = planned_dispatch
+            shipment.shipment_status = status
+            shipment.save()
+
+            # Update PGIs: first unlink all PGIs currently linked
+            PostGoodsIssue.objects.filter(shipment=shipment).update(shipment=None)
+            # Link selected PGIs to this shipment
+            PostGoodsIssue.objects.filter(id__in=selected_pgis).update(shipment=shipment)
+
+            messages.success(request, 'Shipment updated successfully.')
+            return redirect('shipment_dashboard')
+
+        except Truck.DoesNotExist:
+            messages.error(request, 'Invalid Truck selected.')
+        except YardHdr.DoesNotExist:
+            messages.error(request, 'Invalid Yard selected.')
+        except IntegrityError as e:
+            messages.error(request, f'Database error: {str(e)}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    context = {
+        'shipment': shipment,
+        'available_trucks': available_trucks,
+        'yards': yards,
+        'unassigned_pgis': unassigned_pgis
+    }
+    return render(request, 'shipment/edit_shipment.html', context)
+
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+
+def delete_shipment(request, shipment_id):
+    shipment = get_object_or_404(Shipment, id=shipment_id)
+    try:
+        shipment.delete()
+        messages.success(request, 'Shipment deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting shipment: {str(e)}')
+    return redirect('shipment_dashboard')
+
+
+from .forms import SortingForm
+from .models import Sorting, SalesOrderCreation, OutboundDelivery
+from django.utils.timezone import now
+
+def create_sorting(request):
+    sales_orders = SalesOrderCreation.objects.all()
+    delivery_no = f"OD{now().strftime('%Y%m%d%H%M%S')}"
+
+    if request.method == "POST":
+        so_no = request.POST.get("so_no")  # dropdown value = id
+        so_obj = get_object_or_404(SalesOrderCreation, pk=so_no)
+        warehouse = so_obj.whs_no
+
+        # Step 1: Create OutboundDelivery
+        outbound_delivery = OutboundDelivery.objects.create(
+            dlv_no=delivery_no,
+            so_no=so_no,
+            whs_no=warehouse,
+            whs_address=so_obj.whs_address,
+            ord_date=so_obj.order_date,
+            del_date=so_obj.delivery_date,
+            sold_to=so_obj.customer_id,
+            
+          
+        )
+
+        # Step 2: Bind SortingForm with POST data
+        form = SortingForm(request.POST)
+        if form.is_valid():
+            sorting = form.save(commit=False)
+            sorting.outbound = outbound_delivery  # link to new outbound
+            if request.user.is_authenticated:
+                sorting.created_by = request.user.username
+            sorting.save()
+            return redirect("sorting_detail", id=sorting.id)
+    else:
+        form = SortingForm()
+
+    return render(request, "sorting/create_sorting_task.html",{"form": form, "sales_orders": sales_orders, "delivery_no": delivery_no}, )
+
+
+def sorting_detail(request, id):
+    sorting = get_object_or_404(Sorting, pk=id)
+    return render(request, "sorting/sorting_detail.html", {"sorting": sorting})
+
+
+def sorting_edit(request, id):
+    sorting = get_object_or_404(Sorting, pk=id)
+
+    if request.method == "POST":
+        form = SortingForm(request.POST, instance=sorting)
+        if form.is_valid():
+            updated_sorting = form.save(commit=False)
+            if request.user.is_authenticated:
+                updated_sorting.updated_by = request.user.username
+            updated_sorting.save()
+            return redirect("sorting_detail", id=sorting.id)
+    else:
+        form = SortingForm(instance=sorting)
+
+    return render(request, "sorting/sorting_edit.html", {"form": form, "sorting": sorting})
+
+
+def sorting_list(request):
+    sortings = Sorting.objects.all().order_by("-sorted_at")
+    return render(request, "sorting/sorting_list.html", {"sortings": sortings})

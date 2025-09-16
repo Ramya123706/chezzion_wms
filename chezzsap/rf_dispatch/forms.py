@@ -178,7 +178,7 @@ from .models import Putaway
 class PutawayForm(forms.ModelForm):
     class Meta:
         model = Putaway
-        exclude = ['created_at', 'confirmed_at']
+        exclude = ['created_at', 'created_by','updated_at','updated_by']
         fields = '__all__'
 
 
@@ -186,13 +186,23 @@ class PutawayForm(forms.ModelForm):
 
 from django import forms
 from .models import Picking, Customer
-
 class PickingForm(forms.ModelForm):
     class Meta:
         model = Picking
-        fields = ['id', 'pallet', 'location', 'product', 'quantity','picking_type','status']
-        exclude = ['created_at']
+        fields = ['pallet', 'product', 'source_location','destination_location', 'quantity', 'picking_type', 'status']
+        exclude = ["created_at", "updated_at", "created_by", "updated_by","confirmed_at"]
 
+
+        widgets = {
+            'pallet': forms.Select(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'source_location': forms.TextInput(attrs={'class': 'form-control'}),
+            'destination_location': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'picking_type': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+     
 from .models import Customer
 
 class CustomerForm(forms.ModelForm):
@@ -306,6 +316,20 @@ class GoodsReceiptForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['inbound_delivery'].queryset = InboundDelivery.objects.filter(gr__isnull=True)
 
+from .models import Sorting
 
+class SortingForm(forms.ModelForm):
+    class Meta:
+        model = Sorting
+        fields = ['outbound', 'pallet', 'product', 'quantity', 'warehouse', 'status']
+        exclude = ['sorted_at', 'created_by', 'updated_by']
+        widgets = {
+            'outbound': forms.Select(attrs={'class': 'form-control'}),
+            'pallet': forms.Select(attrs={'class': 'form-control'}),
+            'product': forms.Select(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'warehouse': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
 
     

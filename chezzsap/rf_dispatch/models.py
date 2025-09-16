@@ -163,7 +163,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
-    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="products", default=True, null=True, blank=True) 
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="products",null=True, blank=True) 
     re_order_level = models.IntegerField(default=10)
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -237,10 +237,15 @@ class Pallet(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pallet_no:
-            date_str = now().strftime("%Y-%m-%d")
-            time_str = now().strftime("%H%M%S%f")[:-2]
-            self.pallet_no = f"PLT-{date_str}-{time_str}"
+            last_pallet = Pallet.objects.order_by('-id').first()
+            if last_pallet and last_pallet.pallet_no.startswith("PLT-") and last_pallet.pallet_no[4:].isdigit():
+                next_id = int(last_pallet.pallet_no[4:]) + 1
+            else:
+                next_id = 1
+            self.pallet_no = f"PLT-{next_id:03d}"   # 👉 PLT-001, PLT-002, PLT-003
         super().save(*args, **kwargs)
+    def __str__(self):
+          return f"PLT {self.id}"
 
 class Vendor(models.Model):
     name = models.CharField(max_length=100)
@@ -389,15 +394,11 @@ class PurchaseOrder(models.Model):
 
 
 
-    
-
 class Putaway(models.Model):
     putaway_id = models.CharField(max_length=50, unique=True, editable=False)
-    pallet = models.ForeignKey(
-        Pallet, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    location = models.CharField(max_length=100)
-
+    pallet = models.ForeignKey(Pallet, on_delete=models.SET_NULL, null=True, blank=True)
+    source_location = models.CharField(max_length=100)
+    destination_location = models.CharField(max_length=100)
     PUTAWAY_TASK_TYPE_CHOICES = [
         ("Putaway by HU", "Putaway by HU"),
         ("Putaway by Warehouse", "Putaway by Warehouse"),
@@ -412,10 +413,15 @@ class Putaway(models.Model):
         ("In Progress", "In Progress"),
         ("Completed", "Completed"),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="In Progress")
 
+    # ✅ Tracking fields
+    created_by = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    confirmed_at = models.DateTimeField(auto_now_add=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    confirmed_at = models.CharField(max_length=100,null=True,blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
     warehouse = models.ForeignKey(
         "Warehouse", on_delete=models.SET_NULL, null=True, blank=True
@@ -446,27 +452,36 @@ class Putaway(models.Model):
 
 
 
+from django.db import models
+from django.utils import timezone
+
 class Picking(models.Model):
     picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
-    pallet = models.CharField(max_length=100)
-    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
-    location = models.CharField(max_length=100)
-    product = models.CharField(max_length=100)
+    pallet = models.ForeignKey('Pallet', on_delete=models.CASCADE)  
+    product = models.ForeignKey('Product', on_delete=models.CASCADE) 
+    source_location = models.CharField(max_length=100)
+    destination_location = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    
-    PICKING_TYPE_CHOICES=[
+
+    created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
+    confirmed_at = models.CharField(max_length=100, null=True,blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    PICKING_TYPE_CHOICES = [
         ('INBOUND', 'Inbound'),
         ('OUTBOUND', 'Outbound'),
     ]
-    picking_type=models.CharField(max_length=50,choices=PICKING_TYPE_CHOICES,default="Inbound")
+    picking_type = models.CharField(max_length=50, choices=PICKING_TYPE_CHOICES, default="Inbound")
 
     STATUS_CHOICES = [
-       
         ('In Progress', 'In Progress'),
         ('Completed', 'Completed'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='In Progress')
+
     def save(self, *args, **kwargs):
         if not self.picking_id:
             last_picking = Picking.objects.order_by('-picking_id').first()
@@ -474,12 +489,13 @@ class Picking(models.Model):
                 next_id = int(last_picking.picking_id[1:]) + 1
             else:
                 next_id = 1
+            self.picking_id = f"P{next_id:03d}" 
 
-            self.picking_id = f"P{next_id:03d}"
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.picking_id} - {self.product}"
+
     
 
 class Customer(models.Model):
@@ -621,6 +637,8 @@ class SalesOrderItem(models.Model):
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     
     def __str__(self):
         return f"{self.product_name} ({self.quantity}) - {self.so_no.so_no}"
@@ -689,7 +707,7 @@ class OutboundDeliveryItem(models.Model):
 
 
 class Packing(models.Model):
-    pallet = models.CharField(max_length=50)
+    pallet = models.ForeignKey(Pallet, on_delete=models.CASCADE, related_name="packings")
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     del_no = models.CharField(max_length=50)   
     gross_wt = models.DecimalField(max_digits=10, decimal_places=2)
@@ -703,7 +721,7 @@ class Packing(models.Model):
 
 class PackedItem(models.Model):
     packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
-    pallet = models.CharField(max_length=50)
+    pallet = models.ForeignKey(Pallet, on_delete=models.CASCADE, related_name="items")
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     batch_no = models.CharField(max_length=50)
     serial_no = models.CharField(max_length=50)
@@ -711,11 +729,15 @@ class PackedItem(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        # Auto-fill pallet and p_mat from parent Packing
+        if self.packing:
+            self.pallet = self.packing.pallet
+            self.p_mat = self.packing.p_mat
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Item {self.serial_no} (Pallet {self.pallet})"
-
-
-
 
 
 class PostGoodsIssue(models.Model):
@@ -724,6 +746,14 @@ class PostGoodsIssue(models.Model):
         "rf_dispatch.OutboundDelivery",
         on_delete=models.CASCADE,
         related_name="pgi"
+    )
+    shipment = models.ForeignKey(
+        "rf_dispatch.Shipment",
+        on_delete=models.CASCADE,
+        related_name="pgis",
+        default=None,
+        null=True,
+        blank=True
     )
     posting_date = models.DateField(auto_now_add=True)
     posted_by = models.CharField(max_length=100)  
@@ -798,5 +828,24 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+# ---------------
+# Shipment Model
+# ---------------
+from django.db import models
+
+class Shipment(models.Model):
+    shipment_no = models.CharField(max_length=100, unique=True)
+    truck = models.ForeignKey(Truck, null=True, blank=True, on_delete=models.SET_NULL)
+    yard_hdr = models.ForeignKey(YardHdr, null=True, blank=True, on_delete=models.SET_NULL)
+    planned_dispatch_date = models.DateField()
+    shipment_status = models.CharField(max_length=50, default='Planned')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+     
+    def __str__(self):
+        return f"Shipment {self.shipment_no} - {self.shipment_status}"
 
 

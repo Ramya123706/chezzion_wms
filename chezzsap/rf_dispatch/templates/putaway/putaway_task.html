@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 <div class="container mt-5">
   <div class="col-md-8 col-sm-12 mx-auto">
     <div class="card">
@@ -27,21 +28,25 @@
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by HU" />
-              <div class="mb-3">
-                <label>Pallet</label>
+             <div class="mb-3">
+                <label><b>Pallet</b></label>
                 <select name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
-                  <option value="{{ p.id }}">{{ p.pallet_id }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Location</label>
-                <input type="text" name="location" class="form-control" required />
+                <label><b>Source Location</b></label>
+                <input type="text" name="source_location" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label>Status</label>
+                <label><b>Destination Location</b></label>
+                <input type="text" name="destination_location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label><b>Status</b></label>
                 <select name="status" class="form-select">
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
@@ -57,30 +62,34 @@
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by Warehouse" />
-              <div class="mb-3">
-                <label>Pallet</label>
+             <div class="mb-3">
+                <label><b>Pallet</b></label>
                 <select name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
-                  <option value="{{ p.id }}">{{ p.pallet_id }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Location</label>
-                <input type="text" name="location" class="form-control" required />
+                <label><b>Source Location</b></label>
+                <input type="text" name="source_location" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label>Warehouse</label>
-                <select name="warehouse" class="form-select" required>
+                <label><b>Destination Location</b></label>
+                <input type="text" name="destination_location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label><b>Warehouse</b></label>
+                <select name="whs_no" class="form-select" required>
                   <option value="">--Select Warehouse--</option>
                   {% for wh in warehouses %}
-                  <option value="{{ wh.id }}">{{ wh.whs_no }} - {{ wh.name }}</option>
+                  <option value="{{ wh.whs_no }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Status</label>
+                <label><b>Status</b></label>
                 <select name="status" class="form-select">
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
@@ -96,30 +105,34 @@
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by Product" />
-              <div class="mb-3">
-                <label>Pallet</label>
+           <div class="mb-3">
+                <label><b>Pallet</b></label>
                 <select name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
-                  <option value="{{ p.id }}">{{ p.pallet_id }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Location</label>
-                <input type="text" name="location" class="form-control" required />
+                <label><b>Source Location</b></label>
+                <input type="text" name="source_location" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label>Product</label>
+                <label><b>Destination Location</b></label>
+                <input type="text" name="destination_location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label><b>Product</b></label>
                 <select name="product" class="form-select" required>
                   <option value="">--Select Product--</option>
                   {% for prod in products %}
-                  <option value="{{ prod.id }}">{{ prod.name }}</option>
+                  <option value="{{ prod.product_id }}">{{ prod.name }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Status</label>
+                <label><b>Status</b></label>
                 <select name="status" class="form-select">
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
@@ -136,29 +149,33 @@
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by Bin" />
               <div class="mb-3">
-                <label>Pallet</label>
+                <label><b>Pallet</b></label>
                 <select name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
-                  <option value="{{ p.id }}">{{ p.pallet_no }} {% if p.description %}- {{ p.description }}{% endif %}</option>
+                  <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Location</label>
-                <input type="text" name="location" class="form-control" required />
+                <label><b>Source Location</b></label>
+                <input type="text" name="source_location" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label>Bin</label>
+                <label><b>Destination Location</b></label>
+                <input type="text" name="destination_location" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label><b>Bin</b></label>
                 <select name="bin" class="form-select" required>
                   <option value="">--Select Bin--</option>
                   {% for b in bins %}
-                  <option value="{{ b.id }}">{{ b.bin_no }} - {{ b.name }}</option>
+                  <option value="{{ b.id }}">{{ b.bin_type }}-{{ b.bin_id }}</option>
                   {% endfor %}
                 </select>
               </div>
               <div class="mb-3">
-                <label>Status</label>
+                <label><b>Status</b></label>
                 <select name="status" class="form-select">
                   <option value="In Progress">In Progress</option>
                   <option value="Completed">Completed</option>
