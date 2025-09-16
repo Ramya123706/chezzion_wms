@@ -99,9 +99,10 @@
                             <select id="subcategory" name="subcategory" class="form-select">
                                 <option value="">-- Select Subcategory --</option>
                                 {% for sub in subcategories %}
-                                <option value="{{ sub.id }}" {% if request.POST.subcategory == sub.id|stringformat:"s" %}selected{% endif %}>
+                                <option value="{{ sub.id }}" {% if form.sub_category.value == sub.id|stringformat:"s" %}selected{% endif %}>
                                     {{ sub.name }}
                                 </option>
+
                                 {% endfor %}
                             </select>
                         </div>
