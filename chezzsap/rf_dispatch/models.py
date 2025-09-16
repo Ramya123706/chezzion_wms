@@ -608,6 +608,8 @@ class SalesOrderItem(models.Model):
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     unit_total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     
     def __str__(self):
         return f"{self.product_name} ({self.quantity}) - {self.so_no.so_no}"
@@ -809,14 +811,8 @@ class Shipment(models.Model):
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
-
-
+     
     def __str__(self):
         return f"Shipment {self.shipment_no} - {self.shipment_status}"
 
-class ShipmentPGI(models.Model):
-    shipment = models.ForeignKey('Shipment', on_delete=models.CASCADE)
-    pgi = models.ForeignKey('PostGoodsIssue', on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"

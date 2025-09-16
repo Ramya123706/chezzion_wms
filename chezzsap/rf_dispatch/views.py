@@ -3314,19 +3314,22 @@ from django.db import IntegrityError
 
 
 
+from django.db import IntegrityError
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .models import Shipment, Truck, YardHdr, PostGoodsIssue
+
 def add_shipment(request):
-    # # Exclude trucks that are already assigned to a shipment
-    # assigned_truck_ids = Shipment.objects.values_list('truck_id', flat=True)
-    # available_trucks = Truck.objects.exclude(id__in=assigned_truck_ids)
-    # Fetch all trucks
     available_trucks = Truck.objects.all()
     yards = YardHdr.objects.all()
+    unassigned_pgis = PostGoodsIssue.objects.filter(shipment__isnull=True)
 
     if request.method == 'POST':
         truck_id = request.POST.get('truck_number')
         yard_id = request.POST.get('yard')
         planned_dispatch = request.POST.get('planned_dispatch')
         status = request.POST.get('status')
+        selected_pgis = request.POST.getlist('pgis')  # List of selected PGI IDs
 
         try:
             truck = Truck.objects.get(id=truck_id)
@@ -3334,7 +3337,7 @@ def add_shipment(request):
 
             shipment_no = f"SHIP-{Shipment.objects.count() + 1:05d}"
 
-            Shipment.objects.create(
+            shipment = Shipment.objects.create(
                 shipment_no=shipment_no,
                 truck=truck,
                 yard_hdr=yard_hdr,
@@ -3343,7 +3346,10 @@ def add_shipment(request):
                 created_by=request.user.username if request.user.is_authenticated else 'admin'
             )
 
-            messages.success(request, 'Shipment added successfully.')
+            # Link selected PGIs to the created Shipment
+            PostGoodsIssue.objects.filter(id__in=selected_pgis).update(shipment=shipment)
+
+            messages.success(request, 'Shipment added successfully, and PGIs linked.')
             return redirect('shipment_dashboard')
 
         except Truck.DoesNotExist:
@@ -3357,9 +3363,11 @@ def add_shipment(request):
 
     context = {
         'available_trucks': available_trucks,
-        'yards': yards
+        'yards': yards,
+        'unassigned_pgis': unassigned_pgis,
     }
     return render(request, 'shipment/add_shipment.html', context)
+
 
 
 from django.shortcuts import render, get_object_or_404

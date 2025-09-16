@@ -18,26 +18,20 @@
 
     <div class="mb-3">
       <label class="form-label">Truck Number</label>
-      <select name="truck_number" class="form-select" required>
-        <option value="">Select Truck</option>
+      <select name="truck_number" required>
         {% for truck in available_trucks %}
-          <option value="{{ truck.id }}">{{ truck.truck_no }}</option>
-        {% empty %}
-          <option value="">No available trucks</option>
+            <option value="{{ truck.id }}">{{ truck.truck_no }}</option>
         {% endfor %}
-      </select>
+    </select>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Yard Scan Code</label>
-      <select name="yard" class="form-select" required>
-        <option value="">Select Yard</option>
+      <select name="yard" required>
         {% for yard in yards %}
-          <option value="{{ yard.id }}">{{ yard.scan_code }}</option>
-        {% empty %}
-          <option value="">No yards found</option>
+            <option value="{{ yard.id }}">{{ yard.whs_no }}</option>
         {% endfor %}
-      </select>
+    </select>
     </div>
 
     <div class="mb-3">
@@ -54,6 +48,14 @@
         <option value="Confirmed">Confirmed</option>
         <option value="Completed">Completed</option>
       </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Select PGIs</label>
+      <select name="pgis" multiple>
+        {% for pgi in unassigned_pgis %}
+            <option value="{{ pgi.id }}">{{ pgi.pgi_no }}</option>
+        {% endfor %}
+    </select>
     </div>
 
     <button type="submit" class="btn btn-primary">Save Shipment</button>
