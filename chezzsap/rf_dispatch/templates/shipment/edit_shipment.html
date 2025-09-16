@@ -58,6 +58,18 @@
         <option value="Completed" {% if shipment.shipment_status == 'Completed' %}selected{% endif %}>Completed</option>
       </select>
     </div>
+    <div class="mb-3">
+  <label class="form-label">Select PGIs</label>
+  <select name="pgis" class="form-select" multiple size="5">
+    {% for pgi in unassigned_pgis %}
+      <option value="{{ pgi.id }}" {% if pgi.shipment and pgi.shipment.id == shipment.id %}selected{% endif %}>
+        {{ pgi.pgi_no }}
+      </option>
+    {% endfor %}
+  </select>
+  <small class="form-text text-muted">Hold Ctrl (Cmd on Mac) to select multiple PGIs.</small>
+</div>
+
 
     <button type="submit" class="btn btn-primary">Update Shipment</button>
     <a href="{% url 'shipment_dashboard' %}" class="btn btn-secondary">Cancel</a>
