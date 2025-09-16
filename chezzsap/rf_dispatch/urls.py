@@ -51,7 +51,8 @@ urlpatterns = [
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
     path('trucks/', views.truck_list, name='truck_list'),
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
-
+    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
+    
     # Inspection
     path("inspection/", views.inspection_view, name="inspection"),  
     path("inspection/<str:truck_no>/", views.inspection_view, name="inspection"),

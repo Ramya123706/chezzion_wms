@@ -150,7 +150,12 @@ class Bin(models.Model):
 
 
 class Product(models.Model):
-    product_id = models.CharField(primary_key=True, max_length=50, unique=True) 
+    product_id = models.CharField(
+        primary_key=True,
+        max_length=50,
+        unique=True,
+        editable=False   # prevents showing in admin form
+    )
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   
     pallet_no = models.CharField(max_length=50, blank=True, null=True)
@@ -163,27 +168,35 @@ class Product(models.Model):
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    
+
     def save(self, *args, **kwargs):
         is_new = self._state.adding  
-        old_quantity = None
 
+        # 🔹 Auto-generate product_id only for new products
+        if is_new and not self.product_id:
+            last = Product.objects.order_by("-created_at").first()
+            if last and last.product_id.startswith("P"):
+                next_num = int(last.product_id[1:]) + 1
+            else:
+                next_num = 1
+            self.product_id = f"P{next_num:05d}"   # Example: P00001, P00002...
+
+        # 🔹 Track old quantity for inventory sync
+        old_quantity = None
         if not is_new:
             old_quantity = Product.objects.get(pk=self.pk).quantity
 
         super().save(*args, **kwargs)
 
+        # 🔹 Update Inventory after save
         if is_new or (old_quantity != self.quantity):
             inventory, created = Inventory.objects.get_or_create(product=self)
             inventory.total_quantity = self.quantity
             inventory.save()
 
-
     def __str__(self):
         return f"{self.name} ({self.product_id})"
-
 
 
 
