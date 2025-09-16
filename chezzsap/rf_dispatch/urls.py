@@ -252,4 +252,13 @@ urlpatterns = [
     path('accounts/profile/change-password/', views.change_password, name='change_password'),
     path('acccounts/superadmin/', views.superadmin_base_view, name='superadmin'),
     path('accounts/superadmin/dashboard/', views.superadmin_dashboard, name='superadmin_dashboard'),
+    
+    path("sorting/create/", views.create_sorting, name="sorting_create"),
+    path("sorting/<int:id>/", views.sorting_detail, name="sorting_detail"),
+    path("sorting/<int:id>/edit/", views.sorting_edit, name="sorting_edit"),
+    path("sorting/", views.sorting_list, name="sorting_list"),
+    
+
+    
+    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

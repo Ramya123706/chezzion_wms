@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Edit Sorting Task</h2>
+
+    <form method="post" class="card p-4 shadow-sm">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <b>Please fix the following errors:</b>
+                {{ form.errors }}
+            </div>
+        {% endif %}
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <b>Outbound Delivery</b>
+                {{ form.outbound }}
+            </div>
+            <div class="col-md-6">
+                <b>Pallet</b>
+                {{ form.pallet }}
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <b>Product</b>
+                {{ form.product }}
+            </div>
+            <div class="col-md-6">
+                <b>Quantity</b>
+                {{ form.quantity }}
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <b>Warehouse</b>
+                {{ form.warehouse }}
+            </div>
+            <div class="col-md-6">
+                <b>Status</b>
+                {{ form.status }}
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Update</button>
+        <a href="{% url 'sorting_detail' sorting.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
