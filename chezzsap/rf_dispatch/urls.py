@@ -223,4 +223,12 @@ urlpatterns = [
     path('list_category/', views.category_list_view, name='category_list'),
     path('category/edit/<int:id>/', views.edit_category_view, name='edit_category'),
     path('category/delete/<int:id>/', views.delete_category_view, name='delete_category'),
+
+    # shipment
+    path('create-shipment/', views.shipment_dashboard, name='shipment_dashboard'),
+    path('add_shipment/', views.add_shipment, name='add_shipment'),
+    path('shipment/<int:shipment_id>/', views.shipment_detail, name='shipment_detail'),
+    path('edit_shipment/<int:shipment_id>/', views.edit_shipment, name='edit_shipment'),
+    path('delete_shipment/<int:shipment_id>/', views.delete_shipment, name='delete_shipment'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

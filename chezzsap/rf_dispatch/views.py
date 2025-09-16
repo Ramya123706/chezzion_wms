@@ -374,27 +374,25 @@ def truck_list(request):
 
 def truck_detail(request, truck_no):
     try:
-        # Fetch the latest YardHdr for this truck number
         truck = YardHdr.objects.filter(truck_no=truck_no).order_by('-truck_date', '-truck_time').first()
         if not truck:
             return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
 
-        # Log status only on POST
-        if request.method == 'POST':
-            new_status = request.POST.get('status', 'Viewed')
-            comment = request.POST.get('comment', '')
-            log_truck_status(truck_instance=truck, status=new_status, comment=comment)
-
-        # Fetch ALL logs related to this truck
         logs = TruckLog.objects.filter(truck_no=truck).order_by('-truck_date', '-truck_time')
+        inspection_qs = InspectionQuestion.objects.all()
+        inspection_as = InspectionResponse.objects.filter(yard=truck)
+        inspection_map = {resp.question.id: resp.answer for resp in inspection_as}
 
         return render(request, 'truck_screen/truck_detail.html', {
             'truck': truck,
-            'logs': logs
+            'logs': logs,
+            'inspection_qs': inspection_qs,
+            'inspection_map': inspection_map,
         })
 
     except YardHdr.DoesNotExist:
         return render(request, 'truck_screen/truck_detail.html', {'error': 'Truck not found'})
+
 
 
 
@@ -768,9 +766,14 @@ def product_list(request):
 
 
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.utils import timezone
+from .models import Category, SubCategory, Product
 
 def add_product(request):
     if request.method == 'POST':
+        # Get form data
         name = request.POST.get('name')
         product_id = request.POST.get('id')
         quantity = request.POST.get('quantity')
@@ -778,38 +781,24 @@ def add_product(request):
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
-        category = request.POST.get('category')
-        re_order_level = request.POST.get('re_order_level')
-        images = request.FILES.get('images')
-        unit_price = request.POST.get('unit_price')
-        # Fix: get sub_category from POST data
+        category_id = request.POST.get('category')
         sub_category_id = request.POST.get('subcategory')
-        sub_category = None
-        if sub_category_id:
-            try:
-                from .models import SubCategory
-                sub_category = SubCategory.objects.get(id=sub_category_id)
-            except Exception:
-                sub_category = None
+        re_order_level = request.POST.get('re_order_level')
+        unit_price = request.POST.get('unit_price')
+        images = request.FILES.get('images')
+
+        # Basic validation
+        if not name or not product_id or not category_id:
+            messages.error(request, "Please fill in required fields: Name, Product ID, Category.")
+            return render(request, 'product/add_product.html', {
+                'categories': Category.objects.all(),
+                'subcategories': SubCategory.objects.all(),
+            })
 
         try:
-            name = request.POST.get('name')
-            product_id = request.POST.get('product_id')
-            quantity = request.POST.get('quantity')
-            pallet_no = request.POST.get('pallet_no')
-            sku = request.POST.get('sku')
-            description = request.POST.get('description')
-            unit_of_measure = request.POST.get('unit_of_measure')
-            category_id = request.POST.get('category')
-            sub_category_id = request.POST.get('subcategory')
-            re_order_level = request.POST.get('re_order_level')
-            unit_price = request.POST.get('unit_price')
-            images = request.FILES.get('images')
-
-            # ✅ Get category
+            # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
 
-            # ✅ Get subcategory
             sub_category = None
             if sub_category_id:
                 try:
@@ -817,7 +806,7 @@ def add_product(request):
                 except SubCategory.DoesNotExist:
                     sub_category = None
 
-            # ✅ Create product
+            # Create Product
             product = Product.objects.create(
                 product_id=product_id,
                 name=name,
@@ -835,16 +824,19 @@ def add_product(request):
                 updated_at=timezone.now(),
             )
 
+            messages.success(request, "Product added successfully!")
             return redirect('product_detail', product_id=product.product_id)
 
+        except Category.DoesNotExist:
+            messages.error(request, "Selected category does not exist.")
         except Exception as e:
-            messages.error(request, f"Error adding product: {e}")
+            messages.error(request, f"Unexpected error: {e}")
 
+    # GET request or on error
     return render(request, 'product/add_product.html', {
         'categories': Category.objects.all(),
         'subcategories': SubCategory.objects.all(),
     })
-
 
 
 def bulk_upload_products(request):
@@ -3286,3 +3278,157 @@ def edit_category_view(request, id):
         category.save()
     return redirect('category_list')
 
+# ---------------
+# shipment
+# ---------------   
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Shipment
+
+from django.shortcuts import render
+
+
+@login_required
+def shipment_dashboard(request):
+    shipments = Shipment.objects.all().order_by('-created_at')
+    return render(request, 'shipment/shipment_dashboard.html', {'shipments': shipments})
+
+
+
+import datetime
+import random
+from django.utils.crypto import get_random_string
+
+import datetime
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.utils.crypto import get_random_string
+from django.contrib.auth.decorators import login_required
+from .models import Shipment, Truck, YardHdr
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Shipment, Truck, YardHdr
+from django.db import IntegrityError
+
+
+
+
+def add_shipment(request):
+    # # Exclude trucks that are already assigned to a shipment
+    # assigned_truck_ids = Shipment.objects.values_list('truck_id', flat=True)
+    # available_trucks = Truck.objects.exclude(id__in=assigned_truck_ids)
+    # Fetch all trucks
+    available_trucks = Truck.objects.all()
+    yards = YardHdr.objects.all()
+
+    if request.method == 'POST':
+        truck_id = request.POST.get('truck_number')
+        yard_id = request.POST.get('yard')
+        planned_dispatch = request.POST.get('planned_dispatch')
+        status = request.POST.get('status')
+
+        try:
+            truck = Truck.objects.get(id=truck_id)
+            yard_hdr = YardHdr.objects.get(id=yard_id)
+
+            shipment_no = f"SHIP-{Shipment.objects.count() + 1:05d}"
+
+            Shipment.objects.create(
+                shipment_no=shipment_no,
+                truck=truck,
+                yard_hdr=yard_hdr,
+                planned_dispatch_date=planned_dispatch,
+                shipment_status=status,
+                created_by=request.user.username if request.user.is_authenticated else 'admin'
+            )
+
+            messages.success(request, 'Shipment added successfully.')
+            return redirect('shipment_dashboard')
+
+        except Truck.DoesNotExist:
+            messages.error(request, 'Invalid Truck selected.')
+        except YardHdr.DoesNotExist:
+            messages.error(request, 'Invalid Yard selected.')
+        except IntegrityError as e:
+            messages.error(request, f'Database error: {str(e)}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    context = {
+        'available_trucks': available_trucks,
+        'yards': yards
+    }
+    return render(request, 'shipment/add_shipment.html', context)
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Shipment
+
+def shipment_detail(request, shipment_id):
+    # Get the shipment by ID, or 404 if not found
+    shipment = get_object_or_404(Shipment, id=shipment_id)
+
+    context = {
+        'shipment': shipment
+    }
+    return render(request, 'shipment/shipment_detail.html', context)
+
+from django.shortcuts import get_object_or_404
+
+def edit_shipment(request, shipment_id):
+    shipment = get_object_or_404(Shipment, id=shipment_id)
+    
+    # Fetch trucks that are not assigned to other shipments OR the current truck
+    # assigned_truck_ids = Shipment.objects.exclude(id=shipment.id).values_list('truck_id', flat=True)
+    # available_trucks = Truck.objects.exclude(id__in=assigned_truck_ids)
+    available_trucks = Truck.objects.all()
+    yards = YardHdr.objects.all()
+
+    if request.method == 'POST':
+        truck_id = request.POST.get('truck_number')
+        yard_id = request.POST.get('yard')
+        planned_dispatch = request.POST.get('planned_dispatch')
+        status = request.POST.get('status')
+
+        try:
+            truck = Truck.objects.get(id=truck_id)
+            yard_hdr = YardHdr.objects.get(id=yard_id)
+
+            # Update shipment
+            shipment.truck = truck
+            shipment.yard_hdr = yard_hdr
+            shipment.planned_dispatch_date = planned_dispatch
+            shipment.shipment_status = status
+            shipment.save()
+
+            messages.success(request, 'Shipment updated successfully.')
+            return redirect('shipment_dashboard')
+
+        except Truck.DoesNotExist:
+            messages.error(request, 'Invalid Truck selected.')
+        except YardHdr.DoesNotExist:
+            messages.error(request, 'Invalid Yard selected.')
+        except IntegrityError as e:
+            messages.error(request, f'Database error: {str(e)}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    context = {
+        'shipment': shipment,
+        'available_trucks': available_trucks,
+        'yards': yards
+    }
+    return render(request, 'shipment/edit_shipment.html', context)
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
+
+def delete_shipment(request, shipment_id):
+    shipment = get_object_or_404(Shipment, id=shipment_id)
+    try:
+        shipment.delete()
+        messages.success(request, 'Shipment deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting shipment: {str(e)}')
+    return redirect('shipment_dashboard')

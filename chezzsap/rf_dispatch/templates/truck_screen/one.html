@@ -7,8 +7,23 @@
         <h5 class="text-center mb-4 mt-3"><i class="fa-solid fa-truck-front"></i> Truck check-in and Check-out</h5>
       </div>
       <div class="card-body">
+        {% if messages %}
+  {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+        {% if error_message %}
+        <div class="alert alert-danger">
+            {{ error_message }}
+        </div>
+        {% endif %}
+
         <form id="inspectionForm" method="POST">
-          {% csrf_token %} {% if form.errors %}
+          {% csrf_token %} 
+          {% if form.errors %}
           <div class="alert alert-danger">{{ form.errors }}</div>
           {% endif %}
 

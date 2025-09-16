@@ -158,7 +158,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
-    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="products", default=True, null=True, blank=True) 
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="products",null=True, blank=True) 
     re_order_level = models.IntegerField(default=10)
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -712,6 +712,14 @@ class PostGoodsIssue(models.Model):
         on_delete=models.CASCADE,
         related_name="pgi"
     )
+    shipment = models.ForeignKey(
+        "rf_dispatch.Shipment",
+        on_delete=models.CASCADE,
+        related_name="pgis",
+        default=None,
+        null=True,
+        blank=True
+    )
     posting_date = models.DateField(auto_now_add=True)
     posted_by = models.CharField(max_length=100)  
     remarks = models.TextField(blank=True, null=True)
@@ -786,4 +794,29 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
+# ---------------
+# Shipment Model
+# ---------------
+from django.db import models
 
+class Shipment(models.Model):
+    shipment_no = models.CharField(max_length=100, unique=True)
+    truck = models.ForeignKey(Truck, null=True, blank=True, on_delete=models.SET_NULL)
+    yard_hdr = models.ForeignKey(YardHdr, null=True, blank=True, on_delete=models.SET_NULL)
+    planned_dispatch_date = models.DateField()
+    shipment_status = models.CharField(max_length=50, default='Planned')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=100, null=True, blank=True)
+
+
+    def __str__(self):
+        return f"Shipment {self.shipment_no} - {self.shipment_status}"
+
+class ShipmentPGI(models.Model):
+    shipment = models.ForeignKey('Shipment', on_delete=models.CASCADE)
+    pgi = models.ForeignKey('PostGoodsIssue', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"
