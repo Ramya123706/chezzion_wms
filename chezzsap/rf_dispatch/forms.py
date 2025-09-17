@@ -7,6 +7,7 @@ from .models import StockUpload
 from .models import Customers
 from .models import Vendor
 from .models import Truck
+from .models import Sorting
 
 class YardHdrForm(forms.ModelForm):
   
@@ -316,7 +317,6 @@ class GoodsReceiptForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['inbound_delivery'].queryset = InboundDelivery.objects.filter(gr__isnull=True)
 
-from .models import Sorting
 
 class SortingForm(forms.ModelForm):
     class Meta:
