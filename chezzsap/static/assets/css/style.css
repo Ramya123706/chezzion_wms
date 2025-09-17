@@ -58,19 +58,6 @@ table input {
     font-size: 1.2rem;
 }
 
-/* .header-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-align: center;
-      margin: 20px 0;
-    }
-.underline {
-      text-decoration: underline;
-      color: darkred;
-    } */
-
-
-
 
 
 
@@ -175,4 +162,115 @@ table input {
     font-size: 0.85rem;
     padding: 5px 10px;
     border-radius: 8px;
+}
+
+/* Sidebar */
+.sidebar {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #343a40;
+    color: #fff;
+    transition: all 0.3s;
+    overflow-y: auto;
+    padding-top: 100px;
+    /* to clear topbar */
+    z-index: 1000;
+}
+
+.sidebar a {
+    display: block;
+    color: #adb5bd;
+    padding: 12px 20px;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #495057;
+    color: #fff;
+}
+
+.sidebar .nav-header {
+    padding: 10px 20px;
+    font-size: 13px;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #6c757d;
+}
+
+/* Content */
+.content {
+    margin-left: 250px;
+    padding: 80px 20px 20px;
+    /* push below topbar */
+    transition: all 0.3s;
+}
+
+/* Topbar */
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    color: #fff;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.topbar .logo {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.topbar .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.topbar .topbar-right .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        left: -250px;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .content {
+        margin-left: 0;
+    }
+}
+
+.toggle-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+a.navbar-brand img {
+    width: 75px;
+}
+
+@media screen and (max-width: 768px) {
+    .d-btns {
+        flex-direction: column;
+    }
+
 }

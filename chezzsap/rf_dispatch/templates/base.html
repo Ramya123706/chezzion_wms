@@ -3,86 +3,220 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    {% load static %}
-    <title>RF Dispatch</title>
+    {% load static %} {% load custom_tags %}
+    <title>RF Dispatch - Dashboard</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
-
-    <!-- Font Awesome (Latest v6.5) -->
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
-    <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta name="theme-color" content="#000000">
-
-</head>
-
+  </head>
 
   <body>
-    <header>
-      <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-        <div class="container">
-          <!-- Brand Logo -->
-          <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
-            <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" width="100" alt="navbar logo" class="me-2" />
-          </a>
+    <!-- Overlay -->
+    <div class="overlay" onclick="toggleSidebar()"></div>
 
-          <!-- Search Form -->
-          <form class="d-flex mx-auto" role="search" method="get" action="{% url 'search' %}">
-            <input class="form-control me-2" type="search" placeholder="Search features..." name="q" aria-label="Search" />
+    <!-- Topbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3 topbar">
+      <div class="container-fluid">
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'index' %}">
+          <img src="https://chezzion.com/wp-content/themes/chezzion-2025/assets/images/logo.png" alt="navbar logo" class="me-2" />
+        </a>
+
+        <!-- Mobile Buttons: Search + User Image + Sidebar -->
+        <div class="d-flex align-items-center d-lg-none">
+          <!-- Search toggle button -->
+          <button class="btn me-2" type="button" onclick="toggleMobileSearch()">
+            <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+          </button>
+
+          <!-- User Image Dropdown -->
+          <li class="nav-item dropdown list-unstyled">
+            <a class="nav-link dropdown-toggle p-0" href="#" id="userDropdownMobile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {% if user.profile.image %}
+              <img src="{{ user.profile.image.url }}" alt="Profile Image" class="rounded-circle border" width="35" height="35" />
+              {% else %}
+              <i class="fa-solid fa-user-circle fa-lg"></i>
+              {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdownMobile">
+              <li>
+                <a class="dropdown-item" href="{% url 'profile_detail' %}"><i class="fa-solid fa-id-badge me-2"></i> Profile</a>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a class="dropdown-item" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Sidebar toggle button -->
+          <button class="btn btn-secondary ms-2" type="button" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars fa-lg"></i>
+          </button>
+        </div>
+
+        <div class="collapse navbar-collapse" id="topbarMenu">
+          <!-- Desktop Search Form -->
+          <form id="desktopSearchForm" class="d-flex mx-auto my-2 my-lg-0" role="search" method="get" action="{% url 'search' %}">
+            <input class="form-control me-2" type="search" placeholder="Search features..." name="q" aria-label="Search" required />
             <button class="btn btn-outline-primary d-flex align-items-center" type="submit">
               <i class="fa-solid fa-magnifying-glass me-1"></i> Search
             </button>
           </form>
 
-          <!-- User Dropdown -->
-          <div class="dropdown ms-3">
-            <a
-              class="btn btn-outline-light dropdown-toggle d-flex align-items-center text-dark"
-              href="#"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false">
-              {% if user.profile.image %}
-              <!-- Profile Image -->
-              <img src="{{ user.profile.image.url }}" alt="Profile Image" class="rounded-circle me-2 border" width="30" height="30" />
-              {% else %}
-              <!-- Default FA Icon -->
-              <i class="fa-solid fa-user-circle fa-lg me-2"></i>
-              {% endif %} {{ user.username }}
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <a class="dropdown-item" href="{% url 'profile_detail' %}"> <i class="fa-solid fa-id-badge me-2"></i> Profile </a>
-              </li>
-              <li>
-                <hr class="dropdown-divider" />
-              </li>
-
-              <li>
-                <a class="dropdown-item" href="{% url 'logout' %}"> <i class="fa-solid fa-right-from-bracket me-2"></i> Logout </a>
-              </li>
-            </ul>
-          </div>
+          <!-- Desktop User Dropdown -->
+          <ul class="navbar-nav ms-auto d-none d-lg-flex">
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle d-flex align-items-center"
+                href="#"
+                id="userDropdownDesktop"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+                {% if user.profile.image %}
+                <img src="{{ user.profile.image.url }}" alt="Profile Image" class="rounded-circle me-2 border" width="30" height="30" />
+                {% else %}
+                <i class="fa-solid fa-user-circle fa-lg me-2"></i>
+                {% endif %} {{ user.username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdownDesktop">
+                <li>
+                  <a class="dropdown-item" href="{% url 'profile_detail' %}"><i class="fa-solid fa-id-badge me-2"></i> Profile</a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </div>
-      </nav>
-    </header>
+      </div>
+    </nav>
 
-    <!-- Page Content -->
-    <main class="pb-5">
+    <!-- Sidebar -->
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <!-- General -->
+      <div class="nav-header">General</div>
+      <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"> <i class="fa-solid fa-house me-2"></i> Dashboard </a>
+
+      <!-- Warehouse -->
+      <div class="nav-header">Warehouse</div>
+      <a href="#warehouseMenu" data-bs-toggle="collapse">
+        <i class="fa-solid fa-warehouse me-2"></i> Warehouse <i class="fa-solid fa-angle-down float-end"></i>
+      </a>
+      <div
+        class="collapse ps-3 {% if '/warehouse/' in request.path or '/inventory/' in request.path or '/create_bin/' in request.path or '/stock_list/' in request.path or '/creating_pallet/' in request.path %}show{% endif %}"
+        id="warehouseMenu">
+        <a href="{% url 'warehouse_view' %}" class="{% if request.path == '/warehouse/' %}active{% endif %}"
+          ><i class="fa-solid fa-building me-1"></i> Warehouses</a
+        >
+        <a href="{% url 'inventory' %}" class="{% if request.path == '/inventory/' %}active{% endif %}"
+          ><i class="fa-solid fa-boxes-stacked me-1"></i> Inventory</a
+        >
+        <a href="{% url 'create_bin' %}" class="{% if request.path == '/create_bin/' %}active{% endif %}"
+          ><i class="fa-solid fa-cube me-1"></i> Bins</a
+        >
+        <a href="{% url 'stock_list' %}" class="{% if request.path == '/stock_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-layer-group me-1"></i> Stock</a
+        >
+        <a href="{% url 'creating_pallet' %}" class="{% if request.path == '/creating_pallet/' %}active{% endif %}"
+          ><i class="fa-solid fa-pallet me-1"></i> Pallets</a
+        >
+      </div>
+
+      <!-- Orders -->
+      <div class="nav-header">Orders</div>
+      <a href="#ordersMenu" data-bs-toggle="collapse">
+        <i class="fa-solid fa-file-invoice me-2"></i> Orders <i class="fa-solid fa-angle-down float-end"></i>
+      </a>
+      <div
+        class="collapse ps-3 {% if '/purchase_list/' in request.path or '/sales_order_list/' in request.path or '/outbound_list/' in request.path or '/inbound_delivery/' in request.path or '/packing_list/' in request.path or '/pgi_list/' in request.path or '/gr_list/' in request.path or '/sorting_list/' in request.path or '/shipment_dashboard/' in request.path %}show{% endif %}"
+        id="ordersMenu">
+        <a href="{% url 'purchase_list' %}" class="{% if request.path == '/purchase_list/' %}active{% endif %}">Purchases</a>
+        <a href="{% url 'sales_order_list' %}" class="{% if request.path == '/sales_order_list/' %}active{% endif %}">Sales</a>
+        <a href="{% url 'outbound_list' %}" class="{% if request.path == '/outbound_list/' %}active{% endif %}">Outbound</a>
+        <a href="{% url 'inbound_delivery' %}" class="{% if request.path == '/inbound_delivery/' %}active{% endif %}">Inbound</a>
+        <a href="{% url 'packing_list' %}" class="{% if request.path == '/packing_list/' %}active{% endif %}">Packing</a>
+        <a href="{% url 'pgi_list' %}" class="{% if request.path == '/pgi_list/' %}active{% endif %}">PGI</a>
+        <a href="{% url 'gr_list' %}" class="{% if request.path == '/gr_list/' %}active{% endif %}">GR</a>
+        <a href="{% url 'sorting_list' %}" class="{% if request.path == '/sorting_list/' %}active{% endif %}">Sorting</a>
+        <a href="{% url 'shipment_dashboard' %}" class="{% if request.path == '/shipment_dashboard/' %}active{% endif %}">Shipments</a>
+      </div>
+
+      <!-- Masters -->
+      <div class="nav-header">Masters</div>
+      <a href="#mastersMenu" data-bs-toggle="collapse">
+        <i class="fa-solid fa-cubes me-2"></i> Masters <i class="fa-solid fa-angle-down float-end"></i>
+      </a>
+      <div
+        class="collapse ps-3 {% if '/product_list/' in request.path or '/customers_list/' in request.path or '/vendor_list/' in request.path or '/category_list/' in request.path or '/material_list/' in request.path %}show{% endif %}"
+        id="mastersMenu">
+        <a href="{% url 'product_list' %}" class="{% if request.path == '/product_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-box me-1"></i> Products</a
+        >
+        <a href="{% url 'customers_list' %}" class="{% if request.path == '/customers_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-user-group me-1"></i> Customers</a
+        >
+        <a href="{% url 'vendor_list' %}" class="{% if request.path == '/vendor_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-truck-fast me-1"></i> Vendors</a
+        >
+        <a href="{% url 'category_list' %}" class="{% if request.path == '/category_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-tags me-1"></i> Categories</a
+        >
+        <a href="{% url 'material_list' %}" class="{% if request.path == '/material_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-layer-group me-1"></i> Materials</a
+        >
+      </div>
+
+      <!-- Inspection & Trucks -->
+      <div class="nav-header">Inspection & Trucks</div>
+      <a href="#inspectionMenu" data-bs-toggle="collapse">
+        <i class="fa-solid fa-truck me-2"></i> Inspection <i class="fa-solid fa-angle-down float-end"></i>
+      </a>
+      <div
+        class="collapse ps-3 {% if '/yard_checkin/' in request.path or '/inspection/' in request.path or '/truck_list/' in request.path or '/truck_status/' in request.path %}show{% endif %}"
+        id="inspectionMenu">
+        <a href="{% url 'yard_checkin' %}" class="{% if request.path == '/yard_checkin/' %}active{% endif %}">Yard Check-in</a>
+        <a href="{% url 'truck_list' %}" class="{% if request.path == '/truck_list/' %}active{% endif %}">Truck List</a>
+        <a href="{% url 'add_questions' %}" class="{% if request.path == '/add-questions/' %}active{% endif %}">Inspection Questions</a>
+      </div>
+
+      <!-- Admin -->
+      <div class="nav-header">Admin</div>
+      <a href="#adminMenu" data-bs-toggle="collapse">
+        <i class="fa-solid fa-user-gear me-2"></i> Admin <i class="fa-solid fa-angle-down float-end"></i>
+      </a>
+      <div
+        class="collapse ps-3 {% if '/user_list/' in request.path or '/profile_detail/' in request.path or '/superadmin_dashboard/' in request.path %}show{% endif %}"
+        id="adminMenu">
+        <a href="{% url 'user_list' %}" class="{% if request.path == '/user_list/' %}active{% endif %}"
+          ><i class="fa-solid fa-users me-1"></i> Users</a
+        >
+        <a href="{% url 'profile_detail' %}" class="{% if request.path == '/profile_detail/' %}active{% endif %}"
+          ><i class="fa-solid fa-id-badge me-1"></i> My Profile</a
+        >
+        <a href="{% url 'superadmin_dashboard' %}" class="{% if request.path == '/superadmin_dashboard/' %}active{% endif %}"
+          ><i class="fa-solid fa-shield-halved me-1"></i> Superadmin</a
+        >
+        <a href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
       <div class="container">
-        <!-- Messages -->
         {% if messages %} {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
           <i class="fas fa-info-circle me-2"></i>{{ message }}
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        {% endfor %} {% endif %}
-
-        <!-- Form Errors -->
-        {% if form.errors %}
+        {% endfor %} {% endif %} {% if form.errors %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
           <i class="fas fa-exclamation-triangle me-2"></i>
           <strong>Please fix the following errors:</strong>
@@ -95,31 +229,29 @@
         </div>
         {% endif %}
       </div>
+      {% block content %} {% endblock %}
+    </div>
 
-      {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="mt-5 fixed-bottom">
-      <div class="footer bg-dark text-white text-center py-3">&copy; 2025 Chezzion. All rights reserved.</div>
-    </footer>
-
-    <!-- JS files -->
+    <!-- JS -->
     <script src="{% static 'assets/js/jquery.min.js' %}"></script>
     <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
-</body>
-<script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register("{% static 'sw.js' %}")
-        .then(function(registration) {
-            console.log('Service Worker Registered');
-        })
-        .catch(function(error) {
-            console.log('Service Worker registration failed:', error);
-        });
-    }
-</script>
+    <script>
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("active");
+        document.querySelector(".overlay").classList.toggle("active");
+      }
 
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("{% static 'sw.js' %}")
+          .then(function (registration) {
+            console.log("Service Worker Registered");
+          })
+          .catch(function (error) {
+            console.log("Service Worker registration failed:", error);
+          });
+      }
+    </script>
+  </body>
 </html>
-
