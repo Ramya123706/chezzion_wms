@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="w-50">
+        <h2 class="mb-4 text-center">Create Sorting Task</h2>
+        <form method="post" class="card p-4 shadow-sm">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <b>Please fix the following errors:</b>
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="so_no" class="form-label"><b>Sales Order</b></label>
+     <select id="so_no" name="so_no" class="form-select">
+    <option value="">-- Select Sales Order --</option>
+    {% for so in sales_orders %}
+        <option value="{{ so.id }}">{{ so.so_no }}</option>
+    {% endfor %}
+</select>
+  </div>
+
+          <div class="mb-3">
+    <label for="outbound" class="form-label"><b>Outbound Delivery</b></label>
+    {{ form.outbound }}
+</div>
+
+
+            <div class="mb-3">
+                <label class="form-label"><b>Pallet</b></label>
+                {{ form.pallet }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><b>Product</b></label>
+                {{ form.product }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><b>Quantity</b></label>
+                {{ form.quantity }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><b>Warehouse</b></label>
+                {{ form.warehouse }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><b>Status</b></label>
+                {{ form.status }}
+            </div>
+
+<div class="d-flex justify-content-center">
+    <button type="submit" class="btn btn-primary ">Create</button>
+</div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -230,11 +230,13 @@ urlpatterns = [
     path('shipment/<int:shipment_id>/', views.shipment_detail, name='shipment_detail'),
     path('edit_shipment/<int:shipment_id>/', views.edit_shipment, name='edit_shipment'),
     path('delete_shipment/<int:shipment_id>/', views.delete_shipment, name='delete_shipment'),
-
-    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
+    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),    
+    path("sorting/create/", views.create_sorting, name="sorting_create"),
+    path("sorting/<int:id>/", views.sorting_detail, name="sorting_detail"),
+    path("sorting/<int:id>/edit/", views.sorting_edit, name="sorting_edit"),
+    path("sorting/", views.sorting_list, name="sorting_list"),
     
-    path('bin/<str:pk>/', views.bin_detail, name='bin_detail'),
 
- 
-
+    
+    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
