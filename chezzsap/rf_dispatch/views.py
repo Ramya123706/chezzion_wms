@@ -1380,6 +1380,9 @@ def create_bin(request):
         'categories': Category.objects.all(),
     })
 
+def bin_detail(request, pk):
+    bin_instance = get_object_or_404(Bin, pk=pk)
+    return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
 # -----------------
 # VENDOR
 # -----------------

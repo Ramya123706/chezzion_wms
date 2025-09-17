@@ -849,6 +849,7 @@ class Shipment(models.Model):
         return f"Shipment {self.shipment_no} - {self.shipment_status}"
 
 
+
     def __str__(self):
         return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"
 

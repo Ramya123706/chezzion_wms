@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2>Bin Details</h2>
+
+    <div class="card shadow mt-3">
+        <div class="card-body">
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <th scope="row" style="width: 500px;">Bin Number</th>
+                        <td>: {{ bin.bin_id }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Warehouse No</th>
+                        <td>: {{ bin.whs_no_id }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Bin Type</th>
+                        <td>: {{ bin.bin_type }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Capacity</th>
+                        <td>: {{ bin.capacity }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Existing Quantity</th>
+                        <td>: {{ bin.existing_quantity }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Category</th>
+                        <td>: {{ bin.category }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Sub Category</th>
+                        <td>: {{ bin.sub_category }}</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a href="{% url 'create_bin' %}" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left me-1"></i> Back to All Bins
+    </a>
+</div>
+
+{% endblock %}
