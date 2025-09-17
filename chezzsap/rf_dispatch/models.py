@@ -19,7 +19,7 @@ class YardHdr(models.Model):
     id = models.AutoField(primary_key=True)
     yard_id = models.CharField(max_length=100, null=True, blank=True)
     truck_no = models.CharField(max_length=100)
-    whs_no = models.CharField(max_length=5)
+    whs_no = models.CharField(max_length=50)
     truck_type = models.CharField(max_length=50, blank=True, null=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -55,7 +55,7 @@ class InspectionQuestion(models.Model):
 class InspectionResponse(models.Model):
     yard = models.ForeignKey(YardHdr, on_delete=models.CASCADE, related_name="inspections")
     question = models.ForeignKey(InspectionQuestion, on_delete=models.CASCADE)
-    answer = models.CharField(max_length=3, choices=YES_NO_CHOICES)
+    answer = models.CharField(max_length=10, choices=YES_NO_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -99,7 +99,7 @@ class Truck(models.Model):
 
     
 class Warehouse(models.Model):
-    whs_no = models.IntegerField(primary_key=True)
+    whs_no = models.CharField(primary_key=True, max_length=50)
     whs_name = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     phn_no = models.CharField(max_length=10)  

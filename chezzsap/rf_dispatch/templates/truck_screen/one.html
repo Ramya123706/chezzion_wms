@@ -1,137 +1,111 @@
 {% extends "base.html" %} {% block content %}
-
 <div class="container mt-5">
   <div class="col-md-6 col-sm-12 mx-auto">
-    <div class="card shadow-lg">
+    <div class="card shadow-lg rounded">
       <div class="card-header bg-light text-center">
-        <h5 class="text-center mb-4 mt-3"><i class="fa-solid fa-truck-front"></i> Truck check-in and Check-out</h5>
+        <h5 class="text-center mb-4 mt-3"><i class="fa-solid fa-truck-front me-2"></i>Truck Check-in / Check-out</h5>
       </div>
-
       <div class="card-body">
+        <!-- Messages -->
         {% if messages %} {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">{{ message }}</div>
+        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
         {% endfor %} {% endif %} {% if error_message %}
         <div class="alert alert-danger">{{ error_message }}</div>
         {% endif %}
 
+        <!-- Form -->
         <form id="inspectionForm" method="POST">
-          {% csrf_token %} {% if error_message %}
-          <div class="alert alert-danger">{{ error_message }}</div>
-          {% endif %} {% if form.errors %}
+          {% csrf_token %} {% if form.errors %}
           <div class="alert alert-danger">{{ form.errors }}</div>
-
           {% endif %}
 
           <!-- WHS No -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-warehouse"></i> WHS No </label>
-            <div class="col-sm-8">
-              <input type="text" id="whs_no_input" name="whs_no" class="form-control" placeholder="Enter WHS No" autocomplete="off" />
-              <div id="whs_suggestions" class="border p-2 bg-white" style="position: absolute; z-index: 999; display: none"></div>
-            </div>
+          <div class="mb-3 position-relative">
+            <label class="fw-bold"><i class="fa-solid fa-warehouse me-1"></i>WHS No</label>
+            <input type="text" id="whs_no_input" name="whs_no" class="form-control" placeholder="Enter WHS No" autocomplete="off" />
+            <div id="whs_suggestions" class="border bg-white position-absolute w-100 shadow-sm" style="z-index: 999; display: none"></div>
           </div>
 
           <!-- Truck No -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck"></i> Truck No </label>
-            <div class="col-sm-8">
-              <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off" />
-              <div id="truck_suggestions" class="border p-2 bg-white" style="position: absolute; z-index: 999; display: none"></div>
-            </div>
+          <div class="mb-3 position-relative">
+            <label class="fw-bold"><i class="fa-solid fa-truck me-1"></i>Truck No</label>
+            <input type="text" id="truck_no_input" name="truck_no" class="form-control" placeholder="Enter Truck No" autocomplete="off" />
+            <div id="truck_suggestions" class="border bg-white position-absolute w-100 shadow-sm" style="z-index: 999; display: none"></div>
           </div>
 
           <!-- Truck Type -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck-field"></i> Truck Type </label>
-            <div class="col-sm-8">
-              <select class="form-select" id="truckTypeSelect" name="truck_type">
-                <option value="Inbound">Inbound</option>
-                <option value="Outbound">Outbound</option>
-              </select>
-            </div>
+          <div class="mb-3">
+            <label class="fw-bold"><i class="fa-solid fa-truck-field me-1"></i>Truck Type</label>
+            <select class="form-select" id="truckTypeSelect" name="truck_type">
+              <option value="Inbound">Inbound</option>
+              <option value="Outbound">Outbound</option>
+            </select>
           </div>
 
-          <!-- Driver Name -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-user"></i> Driver Name </label>
-            <div class="col-sm-8">
+          <!-- Driver Name & Phone -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="fw-bold"><i class="fa-solid fa-user me-1"></i>Driver Name</label>
               <input type="text" class="form-control" name="driver_name" value="{{ truck.driver_name }}" />
             </div>
-          </div>
-
-          <!-- Driver Phone -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-phone"></i> Driver Phn No </label>
-            <div class="col-sm-8">
+            <div class="col-md-6">
+              <label class="fw-bold"><i class="fa-solid fa-phone me-1"></i>Driver Phn No</label>
               <input type="text" class="form-control" name="driver_phn_no" pattern="[0-9]{10}" value="{{ truck.driver_phn_no }}" required />
             </div>
           </div>
 
-          <!-- PO No -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-file-invoice"></i> PO No </label>
-            <div class="col-sm-8">
+          <!-- PO No, Date, Time -->
+          <div class="row g-3 mt-2">
+            <div class="col-md-6">
+              <label class="fw-bold"><i class="fa-solid fa-file-invoice me-1"></i>PO No</label>
               <input type="text" class="form-control" name="po_no" required />
             </div>
-          </div>
-
-          <!-- Truck Date -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-calendar-days"></i> Truck Date </label>
-            <div class="col-sm-8">
+            <div class="col-md-6">
+              <label class="fw-bold"><i class="fa-solid fa-calendar-days me-1"></i>Truck Date</label>
               <input type="date" class="form-control" name="truck_date" />
             </div>
           </div>
 
-          <!-- Truck Time -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-clock"></i> Truck Time </label>
-            <div class="col-sm-8">
+          <div class="row g-3 mt-2">
+            <div class="col-md-6">
+              <label class="fw-bold"><i class="fa-solid fa-clock me-1"></i>Truck Time</label>
               <input type="time" class="form-control" name="truck_time" />
             </div>
-          </div>
-
-          <!-- Seal No -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-lock"></i> Seal No </label>
-            <div class="col-sm-8">
+            <div class="col-md-6">
+              <label class="fw-bold"><i class="fa-solid fa-lock me-1"></i>Seal No</label>
               <input type="text" class="form-control" name="seal_no" required />
             </div>
           </div>
 
           <!-- Yard Scan -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-qrcode"></i> Yard Scan </label>
-            <div class="col-sm-8">
-              <select class="form-select" id="yardScanSelect" name="yard_scan">
-                <option value="" selected>Not Planned</option>
-                <option value="checkin">Checkin</option>
-                <option value="door1">Door 1</option>
-                <option value="door2">Door 2</option>
-                <option value="door3">Door 3</option>
-                <option value="parkinglot1">Parking Lot 1</option>
-                <option value="parkinglot2">Parking Lot 2</option>
-                <option value="parkinglot3">Parking Lot 3</option>
-                <option value="gate1">Gate 1</option>
-                <option value="gate2">Gate 2</option>
-                <option value="gate3">Gate 3</option>
-                <option value="checkout">Checkout</option>
-              </select>
-            </div>
+          <div class="mb-3">
+            <label class="fw-bold"><i class="fa-solid fa-qrcode me-1"></i>Yard Scan</label>
+            <select class="form-select" id="yardScanSelect" name="yard_scan">
+              <option value="" selected>Not Planned</option>
+              <option value="checkin">Checkin</option>
+              <option value="door1">Door 1</option>
+              <option value="door2">Door 2</option>
+              <option value="door3">Door 3</option>
+              <option value="parkinglot1">Parking Lot 1</option>
+              <option value="parkinglot2">Parking Lot 2</option>
+              <option value="parkinglot3">Parking Lot 3</option>
+              <option value="gate1">Gate 1</option>
+              <option value="gate2">Gate 2</option>
+              <option value="gate3">Gate 3</option>
+              <option value="checkout">Checkout</option>
+            </select>
           </div>
 
           <!-- Truck Status -->
-          <div class="mb-3 row">
-            <label class="col-sm-4 col-form-label fw-bold"> <i class="fa-solid fa-truck-ramp-box"></i> Truck Status </label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" id="truckStatusInput" name="truck_status" readonly />
-            </div>
+          <div class="mb-3">
+            <label class="fw-bold"><i class="fa-solid fa-truck-ramp-box me-1"></i>Truck Status</label>
+            <input type="text" class="form-control" id="truckStatusInput" name="truck_status" readonly />
           </div>
 
           <!-- Buttons -->
-          <div class="d-flex d-btns mt-4">
-            <a class="btn btn-secondary m-3"> <i class="fa-solid fa-arrow-left"></i> BACK </a>
-            <button type="submit" class="btn btn-secondary m-3"><i class="fa-solid fa-clipboard-check"></i> PQC</button>
+          <div class="d-flex justify-content-between mt-4">
+            <a class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>BACK</a>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-clipboard-check me-1"></i>PQC</button>
           </div>
         </form>
       </div>
@@ -139,120 +113,98 @@
   </div>
 </div>
 
-<!-- JavaScript to auto-fill Truck Status -->
+<!-- JS Scripts -->
 <script>
-  document.getElementById("yardScanSelect").addEventListener("change", function () {
-    const value = this.value.toLowerCase();
-    let status = "";
-
-    if (value.startsWith("door")) {
-      status = "door";
-    } else if (value.startsWith("parkinglot")) {
-      status = "parkinglot";
-    } else if (value.startsWith("checkin")) {
-      status = "checkin";
-    } else if (value.startsWith("gate")) {
-      status = "gate";
-    } else if (value.startsWith("checkout")) {
-      status = "checkout";
-    } else {
-      status = "";
-    }
-
-    document.getElementById("truckStatusInput").value = status;
+  // Yard Scan -> Truck Status
+  const yardSelect = document.getElementById("yardScanSelect");
+  const truckStatusInput = document.getElementById("truckStatusInput");
+  yardSelect.addEventListener("change", () => {
+    const val = yardSelect.value.toLowerCase();
+    truckStatusInput.value = val.startsWith("door")
+      ? "door"
+      : val.startsWith("parkinglot")
+      ? "parkinglot"
+      : val.startsWith("checkin")
+      ? "checkin"
+      : val.startsWith("gate")
+      ? "gate"
+      : val.startsWith("checkout")
+      ? "checkout"
+      : "";
   });
-</script>
-<script>
-  // Auto-fill current date and time on page load
-  window.addEventListener("DOMContentLoaded", function () {
+
+  // Auto-fill current date and time
+  window.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
-
-    // Format date as YYYY-MM-DD
-    const dateStr = now.toISOString().split("T")[0];
-
-    // Format time as HH:MM (24-hour format)
-    const timeStr = now.toTimeString().split(":").slice(0, 2).join(":");
-
-    // Set values to input fields
-    document.querySelector('input[name="truck_date"]').value = dateStr;
-    document.querySelector('input[name="truck_time"]').value = timeStr;
+    document.querySelector('input[name="truck_date"]').value = now.toISOString().split("T")[0];
+    document.querySelector('input[name="truck_time"]').value = now.toTimeString().split(":").slice(0, 2).join(":");
   });
-</script>
-<script>
-  document.querySelector('input[name="truck_no"]').addEventListener("change", function () {
-    const truckNo = this.value;
 
-    fetch(`/get-truck-details/?truck_no=${encodeURIComponent(truckNo)}`)
-      .then((response) => response.json())
+  // Auto-fill Driver details
+  const truckNoInput = document.getElementById("truck_no_input");
+  truckNoInput.addEventListener("change", function () {
+    fetch(`/get-truck-details/?truck_no=${encodeURIComponent(this.value)}`)
+      .then((res) => res.json())
       .then((data) => {
         document.querySelector('input[name="driver_name"]').value = data.driver_name;
         document.querySelector('input[name="driver_phn_no"]').value = data.driver_phn_no;
       });
   });
-</script>
-<script>
-  document.getElementById("truck_no_input").addEventListener("keyup", function () {
-    const query = this.value;
+
+  // Suggestions for Truck No
+  truckNoInput.addEventListener("keyup", function () {
+    const query = this.value.trim();
     const suggestionBox = document.getElementById("truck_suggestions");
+    if (!query) return (suggestionBox.style.display = "none");
 
-    if (query.length > 0) {
-      fetch(`/ajax/truck-suggestions/?q=${query}`)
-        .then((response) => response.json())
-        .then((data) => {
-          suggestionBox.innerHTML = "";
-          if (data.results.length > 0) {
-            data.results.forEach((item) => {
-              const div = document.createElement("div");
-              div.textContent = item.truck_no;
-              div.style.cursor = "pointer";
-              div.onclick = function () {
-                document.getElementById("truck_no_input").value = item.truck_no;
-                suggestionBox.style.display = "none";
-                // Optional: trigger change event
-                document.getElementById("truck_no_input").dispatchEvent(new Event("change"));
-              };
-              suggestionBox.appendChild(div);
-            });
-            suggestionBox.style.display = "block";
-          } else {
+    fetch(`/ajax/truck-suggestions/?q=${query}`)
+      .then((res) => res.json())
+      .then((data) => {
+        suggestionBox.innerHTML = "";
+        data.results.forEach((item) => {
+          const div = document.createElement("div");
+          div.textContent = item.truck_no;
+          div.className = "p-2 suggestion-item";
+          div.style.cursor = "pointer";
+          div.onmouseenter = () => (div.style.background = "#f0f0f0");
+          div.onmouseleave = () => (div.style.background = "#fff");
+          div.onclick = () => {
+            truckNoInput.value = item.truck_no;
             suggestionBox.style.display = "none";
-          }
+            truckNoInput.dispatchEvent(new Event("change"));
+          };
+          suggestionBox.appendChild(div);
         });
-    } else {
-      suggestionBox.style.display = "none";
-    }
+        suggestionBox.style.display = data.results.length ? "block" : "none";
+      });
   });
-</script>
-<script>
-  document.getElementById("whs_no_input").addEventListener("keyup", function () {
-    const query = this.value;
+
+  // Suggestions for WHS No
+  const whsInput = document.getElementById("whs_no_input");
+  whsInput.addEventListener("keyup", function () {
+    const query = this.value.trim();
     const suggestionBox = document.getElementById("whs_suggestions");
+    if (!query) return (suggestionBox.style.display = "none");
 
-    if (query.length > 0) {
-      fetch(`/ajax/whs-suggestions/?q=${query}`)
-        .then((response) => response.json())
-        .then((data) => {
-          suggestionBox.innerHTML = "";
-          if (data.results.length > 0) {
-            data.results.forEach((item) => {
-              const div = document.createElement("div");
-              div.textContent = item.whs_no;
-              div.style.cursor = "pointer";
-              div.onclick = function () {
-                document.getElementById("whs_no_input").value = item.whs_no;
-                suggestionBox.style.display = "none";
-              };
-              suggestionBox.appendChild(div);
-            });
-            suggestionBox.style.display = "block";
-          } else {
+    fetch(`/ajax/whs-suggestions/?q=${query}`)
+      .then((res) => res.json())
+      .then((data) => {
+        suggestionBox.innerHTML = "";
+        data.results.forEach((item) => {
+          const div = document.createElement("div");
+          div.textContent = item.whs_no;
+          div.className = "p-2 suggestion-item";
+          div.style.cursor = "pointer";
+          div.onmouseenter = () => (div.style.background = "#f0f0f0");
+          div.onmouseleave = () => (div.style.background = "#fff");
+          div.onclick = () => {
+            whsInput.value = item.whs_no;
             suggestionBox.style.display = "none";
-          }
+          };
+          suggestionBox.appendChild(div);
         });
-    } else {
-      suggestionBox.style.display = "none";
-    }
+        suggestionBox.style.display = data.results.length ? "block" : "none";
+      });
   });
 </script>
-
 {% endblock %}

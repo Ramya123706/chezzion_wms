@@ -1,8 +1,11 @@
 {% extends "base.html" %} {% block content %}
 <div class="container mt-5">
-  <!-- Header -->
-  <div class="bg-primary text-white text-center py-3 rounded-top shadow-sm mb-3">
-    <h2><i class="fas fa-boxes me-2"></i>Packing Materials</h2>
+  <!-- Header with Add Button -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="bg-primary text-white py-2 px-3 rounded shadow-sm flex-grow-1">
+      <h2 class="mb-0"><i class="fas fa-boxes me-2"></i>Packing Materials</h2>
+    </div>
+    <a href="{% url 'material_create' %}" class="btn btn-success ms-3 shadow-sm"> <i class="fas fa-plus me-1"></i> Add Material </a>
   </div>
 
   <!-- Table Card -->
@@ -15,7 +18,7 @@
               <th scope="col"><i class="fas fa-hashtag me-1"></i>ID</th>
               <th scope="col"><i class="fas fa-cube me-1"></i>Material</th>
               <th scope="col"><i class="fas fa-align-left me-1"></i>Description</th>
-              <th scope="col"><i class="fas fa-cogs me-1"></i>Actions</th>
+              <th scope="col" class="text-center"><i class="fas fa-cogs me-1"></i>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -24,7 +27,7 @@
               <td>{{ m.id }}</td>
               <td>{{ m.material }}</td>
               <td>{{ m.description }}</td>
-              <td>
+              <td class="text-center">
                 <a href="{% url 'material_edit' m.id %}" class="btn btn-sm btn-warning me-1"> <i class="fas fa-edit me-1"></i>Edit </a>
                 <a
                   href="{% url 'material_delete' m.id %}"
