@@ -232,6 +232,8 @@ urlpatterns = [
     path('delete_shipment/<int:shipment_id>/', views.delete_shipment, name='delete_shipment'),
 
     path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
+    
+    path('bin/<str:pk>/', views.bin_detail, name='bin_detail'),
 
  
 
