@@ -40,6 +40,19 @@
                         <th scope="row">Last Updated:</th>
                         <td>:{{ shipment.updated_at }}</td>
                     </tr>
+                    <tr>
+                        <th scope="row">Linked PGIs:</th>
+                        <td>
+                            {% if linked_pgis %}
+                                {% for pgi in linked_pgis %}
+                                    <a href="{% url 'pgi_detail' pgi.pgi_no %}">{{ pgi.pgi_no }}</a>{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                :None
+                            {% endif %}
+                        </td>
+                    </tr>
+
                 </tbody>
             </table>
         </div>
