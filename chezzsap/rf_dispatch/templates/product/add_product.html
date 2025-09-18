@@ -96,7 +96,7 @@
                             <label for="subcategory" class="form-label">
                                 <i class="fa-solid fa-list-ul me-1"></i> <b>Sub Category</b>
                             </label>
-                            <select id="subcategory" name="subcategory" class="form-select">
+                            <select id="subcategory" name="sub_category_id" class="form-select">
                                 <option value="">-- Select Subcategory --</option>
                                 {% for sub in subcategories %}
                                 <option value="{{ sub.id }}" {% if form.sub_category.value == sub.id|stringformat:"s" %}selected{% endif %}>

@@ -73,6 +73,9 @@ urlpatterns = [
     path('stock/<int:pk>/', views.stock_detail_view, name='stock_detail'),
     path('stocks/', views.stock_list, name='stock_list'),
     path('stocks/<int:pk>/edit/', views.stock_edit, name='stock_edit'),
+    path("get-bins/<int:subcategory_id>/", views.get_bins, name="get_bins"),
+
+
 
     # Warehouse
     path('warehouse/', views.warehouse_view, name='warehouse_view'),
@@ -83,6 +86,8 @@ urlpatterns = [
     # Inventory & Bin
     path('inventory/', views.inventory_view, name='inventory'),
     path('create_bin/', views.create_bin, name='create_bin'),
+    path('bin_detail/<str:pk>/', views.bin_detail, name='bin_detail'),
+    path('bin/edit/<int:bin_id>/', views.edit_bin, name='edit_bin'),
 
     # Customers
     path('add_customers/', views.add_customers, name='add_customers'),
@@ -230,11 +235,14 @@ urlpatterns = [
     path('shipment/<int:shipment_id>/', views.shipment_detail, name='shipment_detail'),
     path('edit_shipment/<int:shipment_id>/', views.edit_shipment, name='edit_shipment'),
     path('delete_shipment/<int:shipment_id>/', views.delete_shipment, name='delete_shipment'),
-    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),    
+    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"), 
+
+    # Sorting   
     path("sorting/create/", views.create_sorting, name="sorting_create"),
     path("sorting/<int:id>/", views.sorting_detail, name="sorting_detail"),
     path("sorting/<int:id>/edit/", views.sorting_edit, name="sorting_edit"),
     path("sorting/", views.sorting_list, name="sorting_list"),
+    path('delete_sort/<int:id>/', views.delete_sorting, name='delete_sorting'),
     
 
     
