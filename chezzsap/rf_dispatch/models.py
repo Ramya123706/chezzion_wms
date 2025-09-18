@@ -849,9 +849,10 @@ class SortStatus(models.TextChoices):
 class Sorting(models.Model):
     outbound = models.ForeignKey("OutboundDelivery",on_delete=models.CASCADE, related_name="sortings" )
     pallet = models.ForeignKey("Pallet",on_delete=models.CASCADE, related_name="sortings")
-    so_no = models.ForeignKey("SalesOrderCreation",on_delete=models.CASCADE, related_name="sortings" )
+    so_no = models.ForeignKey("SalesOrderCreation",on_delete=models.CASCADE,null=True, blank=True )
     product = models.ForeignKey("Product", on_delete=models.CASCADE,related_name="sortings" )
     quantity = models.PositiveIntegerField()
+    location = models.CharField(max_length=100, null=True, blank=True, default=None)
     warehouse = models.ForeignKey("Warehouse",on_delete=models.CASCADE,related_name="sortings", null=True, blank=True, default=None )
     status = models.CharField( max_length=50,choices=SortStatus.choices,default=SortStatus.PENDING )
     sorted_at = models.DateTimeField(auto_now_add=True)
@@ -859,7 +860,7 @@ class Sorting(models.Model):
     created_by = models.CharField(max_length=100, null=True, blank=True, default=None)
     updated_by = models.CharField(max_length=100, null=True, blank=True, default=None)
     class Meta:
-        ordering = ["-sorted_at"]
+        ordering = ["location"]
         indexes = [
             models.Index(fields=["status"]),
             models.Index(fields=["outbound"]),

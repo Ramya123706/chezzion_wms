@@ -3453,48 +3453,54 @@ def delete_shipment(request, shipment_id):
 from .forms import SortingForm
 from .models import Sorting, SalesOrderCreation, OutboundDelivery
 from django.utils.timezone import now
+from django.shortcuts import render, get_object_or_404, redirect
 
 def create_sorting(request):
     sales_orders = SalesOrderCreation.objects.all()
     delivery_no = f"OD{now().strftime('%Y%m%d%H%M%S')}"
 
     if request.method == "POST":
-        so_no = request.POST.get("so_no")  # dropdown value = id
-        so_obj = get_object_or_404(SalesOrderCreation, pk=so_no)
+        so_id = request.POST.get("so_no") 
+        so_obj = get_object_or_404(SalesOrderCreation, pk=so_id)
         warehouse = so_obj.whs_no
-
-        # Step 1: Create OutboundDelivery
         outbound_delivery = OutboundDelivery.objects.create(
             dlv_no=delivery_no,
-            so_no=so_no,
+            so_no=so_obj,  
             whs_no=warehouse,
             whs_address=so_obj.whs_address,
             ord_date=so_obj.order_date,
             del_date=so_obj.delivery_date,
             sold_to=so_obj.customer_id,
-            
-          
         )
-
-        # Step 2: Bind SortingForm with POST data
         form = SortingForm(request.POST)
         if form.is_valid():
             sorting = form.save(commit=False)
-            sorting.outbound = outbound_delivery  # link to new outbound
+            sorting.outbound = outbound_delivery  #
+            sorting.so_no = so_obj               
+            sorting.warehouse = warehouse  
+            if not sorting.location:
+              sorting.location = warehouse.default_location       
             if request.user.is_authenticated:
                 sorting.created_by = request.user.username
+                sorting.updated_by = request.user.username 
             sorting.save()
             return redirect("sorting_detail", id=sorting.id)
     else:
         form = SortingForm()
 
-    return render(request, "sorting/create_sorting_task.html",{"form": form, "sales_orders": sales_orders, "delivery_no": delivery_no}, )
-
+    return render(
+        request,
+        "sorting/create_sorting_task.html",
+        {
+            "form": form,
+            "sales_orders": sales_orders,
+            "delivery_no": delivery_no,
+        },
+    )
 
 def sorting_detail(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
     return render(request, "sorting/sorting_detail.html", {"sorting": sorting})
-
 
 def sorting_edit(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
@@ -3503,16 +3509,22 @@ def sorting_edit(request, id):
         form = SortingForm(request.POST, instance=sorting)
         if form.is_valid():
             updated_sorting = form.save(commit=False)
+            updated_sorting.so_no = sorting.so_no
+            updated_sorting.outbound = sorting.outbound
             if request.user.is_authenticated:
                 updated_sorting.updated_by = request.user.username
             updated_sorting.save()
-            return redirect("sorting_detail", id=sorting.id)
+            return redirect("sorting_detail", id=updated_sorting.id)
     else:
         form = SortingForm(instance=sorting)
 
-    return render(request, "sorting/sorting_edit.html", {"form": form, "sorting": sorting})
-
+    return render(
+        request,
+        "sorting/sorting_edit.html",
+        {"form": form, "sorting": sorting},
+    )
 
 def sorting_list(request):
-    sortings = Sorting.objects.all().order_by("-sorted_at")
+    sortings = Sorting.objects.all().order_by('location', '-sorted_at')
     return render(request, "sorting/sorting_list.html", {"sortings": sortings})
+

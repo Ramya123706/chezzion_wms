@@ -321,13 +321,14 @@ from .models import Sorting
 class SortingForm(forms.ModelForm):
     class Meta:
         model = Sorting
-        fields = ['outbound', 'pallet', 'product', 'quantity', 'warehouse', 'status']
+        fields = ['outbound', 'pallet', 'product', 'quantity','location','warehouse', 'status']
         exclude = ['sorted_at', 'created_by', 'updated_by']
         widgets = {
             'outbound': forms.Select(attrs={'class': 'form-control'}),
             'pallet': forms.Select(attrs={'class': 'form-control'}),
             'product': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
             'warehouse': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
         }
