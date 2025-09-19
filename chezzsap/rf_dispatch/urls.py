@@ -2,7 +2,6 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-
 from . import views
 from .views import yard_checkin_view, update_truck_status
 
@@ -51,6 +50,7 @@ urlpatterns = [
     path('truck/<str:truck_no>/status-log/', views.status_log_view, name='status_log_view'),
     path('trucks/', views.truck_list, name='truck_list'),
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
+    path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
 
     # Inspection
     path("inspection/", views.inspection_view, name="inspection"),  
@@ -76,9 +76,9 @@ urlpatterns = [
 
     # Warehouse
     path('warehouse/', views.warehouse_view, name='warehouse_view'),
-    path('warehouse/<int:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
-    path('warehouse_search/<int:whs_no>/', views.warehouse_search_view, name='warehouse_search_details'),
-    path('warehouse/edit/<int:whs_no>/', views.edit_warehouse, name='edit_warehouse'),
+    path('warehouse/<str:whs_no>/', views.warehouse_detail_view, name='warehouse_detail'),
+    path('warehouse_search/<str:whs_no>/', views.warehouse_search_view, name='warehouse_search_details'),
+    path('warehouse/edit/<str:whs_no>/', views.edit_warehouse, name='edit_warehouse'),
 
     # Inventory & Bin
     path('inventory/', views.inventory_view, name='inventory'),
