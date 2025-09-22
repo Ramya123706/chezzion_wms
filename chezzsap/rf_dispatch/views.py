@@ -1357,6 +1357,7 @@ def create_bin(request):
                 bin_id=request.POST.get('bin_id'),
                 bin_type=request.POST.get('bin_type'),
                 capacity=int(request.POST.get('capacity')),
+                location=request.POST.get('location'),
                 existing_quantity=request.POST.get('existing_quantity') or 0,
                 category=category,
                 sub_category=sub_category,
@@ -1380,9 +1381,21 @@ def create_bin(request):
         'categories': Category.objects.all(),
     })
 
-def bin_detail(request, pk):
-    bin_instance = get_object_or_404(Bin, pk=pk)
+def bin_detail(request, bin_id):
+    bin_instance = get_object_or_404(Bin, bin_id=bin_id)
     return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
+
+def get_bin_location(request, bin_id):
+    try:
+        bin_obj = Bin.objects.get(id=bin_id)
+        return JsonResponse({
+            "location": bin_obj.location
+        })
+    except Bin.DoesNotExist:
+        return JsonResponse({"error": "Bin not found"}, status=404)
+
+
+
 # -----------------
 # VENDOR
 # -----------------
@@ -1580,9 +1593,15 @@ def putaway_pending(request):
 
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
-    pallets = Pallet.objects.all() 
+    pallets = Pallet.objects.all()
+
     if request.method == "POST":
-        putaway.pallet = request.POST.get("pallet")
+        pallet_id = request.POST.get("pallet")
+        if pallet_id:
+            putaway.pallet = Pallet.objects.get(id=pallet_id)
+        else:
+            putaway.pallet = None
+
         putaway.source_location = request.POST.get("source_location")
         putaway.destination_location = request.POST.get("destination_location")
         putaway.putaway_task_type = request.POST.get("putaway_task_type")
@@ -1593,8 +1612,11 @@ def edit_putaway(request, putaway_id):
         messages.success(request, "Putaway task updated successfully.")
         return redirect("putaway_pending")
 
-
-    return render(request, "putaway/edit_putaway.html", {"putaway": putaway})
+    return render(
+        request,
+        "putaway/edit_putaway.html",
+        {"putaway": putaway, "pallets": pallets} 
+    )
 
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
@@ -2923,41 +2945,51 @@ def search(request):
 
 
 
- 
+import csv
+from django.contrib import messages
+from django.shortcuts import redirect
+from .models import Bin, Warehouse, Category, SubCategory
 def bulk_upload_bins(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
         csv_file = request.FILES["csv_file"]
- 
-        if not csv_file.name.endswith('.csv'):
+
+        if not csv_file.name.endswith(".csv"):
             messages.error(request, "File must be a CSV.")
             return redirect("create_bin")
- 
-        file_data = csv_file.read().decode("utf-8").splitlines()
-        reader = csv.DictReader(file_data)
- 
+
+        try:
+            file_data = csv_file.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(file_data)
+        except Exception:
+            messages.error(request, "Invalid CSV format.")
+            return redirect("create_bin")
+
         created, skipped = 0, 0
         for row in reader:
             try:
-                warehouse_code = row["Warehouse"]
-                bin_id = row["Bin ID"]
-                bin_type = row["Bin Type"]
-                capacity = row["Capacity"]
-                existing_quantity = row.get("Existing Quantity", 0)
-                category_name = row["Category"]
-                subcategory_name = row["Sub Category"]
- 
+                warehouse_code = row.get("Warehouse")
+                bin_id = row.get("Bin ID")
+                bin_type = row.get("Bin Type")
+                capacity = int(row.get("Capacity", 0))
+                existing_quantity = int(row.get("Existing Quantity", 0))
+                category_name = row.get("Category")
+                subcategory_name = row.get("Sub Category")
+
+                if not (warehouse_code and bin_id and category_name and subcategory_name):
+                    raise ValueError("Missing required fields")
+
                 # ✅ Get or create Warehouse
                 warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
- 
+
                 # ✅ Get or create Category
                 category, _ = Category.objects.get_or_create(category=category_name)
- 
+
                 # ✅ Get or create Subcategory
                 subcategory, _ = SubCategory.objects.get_or_create(
                     name=subcategory_name, category=category
                 )
- 
-                # ✅ Create Bin
+
+                # ✅ Create Bin with audit info
                 Bin.objects.create(
                     whs_no=warehouse,
                     bin_id=bin_id,
@@ -2966,17 +2998,19 @@ def bulk_upload_bins(request):
                     existing_quantity=existing_quantity,
                     category=category,
                     sub_category=subcategory,
+                    created_by=request.user.username if request.user.is_authenticated else "system",
+                    updated_by=request.user.username if request.user.is_authenticated else "system",
                 )
                 created += 1
             except Exception as e:
                 print("Skipping row:", row, "Error:", e)
                 skipped += 1
- 
+
         messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
         return redirect("create_bin")
- 
+
     return redirect("create_bin")
- 
+
  
 from .models import Profile
  
@@ -3589,3 +3623,35 @@ def sorting_list(request):
     sortings = Sorting.objects.all().order_by('location', '-sorted_at')
     return render(request, "sorting/sorting_list.html", {"sortings": sortings})
 
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Bin, BinLog
+@login_required
+def bin_log_view(request):
+    # Get the bin ID from the query string
+    bin_id_query = request.GET.get('bin_id', '').strip()
+    
+    logs = []
+    bin_details = None
+    error_message = ""
+
+    if bin_id_query:
+        try:
+            # Get the Bin object by bin_id (case-insensitive)
+            bin_details = Bin.objects.get(bin_id__iexact=bin_id_query)
+            
+            # Get related logs, ordered newest first
+            logs = BinLog.objects.filter(bin=bin_details).order_by('-created_at')
+
+        except Bin.DoesNotExist:
+            error_message = f"No bin found with ID: {bin_id_query}"
+
+    context = {
+        'logs': logs,
+        'bin_id_query': bin_id_query,  # used in template search box
+        'bin_details': bin_details,
+        'error_message': error_message,
+    }
+
+    return render(request, 'bin/bin_log.html', context)

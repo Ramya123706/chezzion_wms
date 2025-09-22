@@ -138,12 +138,13 @@ class Bin(models.Model):
     bin_id = models.CharField(max_length=50, unique=True) 
     bin_type = models.CharField(max_length=50)
     capacity = models.IntegerField()
+    location = models.CharField(max_length=100,null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
     existing_quantity = models.IntegerField(default=0)
-
+     
     def __str__(self):
         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
 
@@ -880,3 +881,16 @@ class Sorting(models.Model):
     def __str__(self):
         return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
 
+from django.db import models
+from django.contrib.auth.models import User
+
+class BinLog(models.Model):
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=100)  
+    whs_no = models.CharField(max_length=50)
+    remarks = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.bin.bin_code} - {self.action} at {self.created_at}"

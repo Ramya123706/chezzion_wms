@@ -42,6 +42,10 @@
               <label for="existing_quantity"><i class="fas fa-box me-1"></i><b>Existing Quantity</b></label>
               <input type="text" id="existing_quantity" name="existing_quantity" class="form-control" />
             </div>
+            <div class="mb-3">
+              <label for="location"><i class="fas fa-map-marker-alt me-1"></i><b>Location</b></label>
+              <input type="text" id="location" name="location" class="form-control" required />
+            </div>
 
             <div class="mb-3">
               <label for="category"><i class="fas fa-tags me-1"></i><b>Category</b></label>
@@ -97,7 +101,7 @@
     </div>
     <div class="card-body d-flex flex-wrap gap-3">
       {% for bin in bins %}
-      <a href="{% url 'bin_detail' bin.pk %}" class="card text-decoration-none text-white bg-success shadow-sm" style="width: 100px;">
+      <a href="{% url 'bin_detail' bin.bin_id %}" class="card text-decoration-none text-white bg-success shadow-sm" style="width: 100px;">
         <div class="card-body text-center p-3">
           <h5 class="card-title">{{ bin.bin_id }}</h5>
           <p class="card-text">{{ bin.capacity }} units</p>
