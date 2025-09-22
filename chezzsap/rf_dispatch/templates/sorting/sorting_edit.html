@@ -1,53 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Edit Sorting Task</h2>
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="col-md-8">
 
-    <form method="post" class="card p-4 shadow-sm">
-        {% csrf_token %}
-        {% if form.errors %}
-            <div class="alert alert-danger">
-                <b>Please fix the following errors:</b>
-                {{ form.errors }}
-            </div>
-        {% endif %}
+        <h2 class="mb-4 text-center"><b>Edit Sorting Task</b></h2>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <b>Outbound Delivery</b>
-                {{ form.outbound }}
-            </div>
-            <div class="col-md-6">
-                <b>Pallet</b>
-                {{ form.pallet }}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <b>Please fix the following errors:</b>
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Outbound Delivery</b></label>
+                        {{ form.outbound }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Pallet</b></label>
+                        {{ form.pallet }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Product</b></label>
+                        {{ form.product }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Quantity</b></label>
+                        {{ form.quantity }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Location</b></label>
+                        {{ form.location }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Warehouse</b></label>
+                        {{ form.warehouse }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><b>Status</b></label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" class="btn btn-success">Update</button>
+                        <a href="{% url 'sorting_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <b>Product</b>
-                {{ form.product }}
-            </div>
-            <div class="col-md-6">
-                <b>Quantity</b>
-                {{ form.quantity }}
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <b>Warehouse</b>
-                {{ form.warehouse }}
-            </div>
-            <div class="col-md-6">
-                <b>Status</b>
-                {{ form.status }}
-            </div>
-        </div>
-
-        <button type="submit" class="btn btn-success">Update</button>
-        <a href="{% url 'sorting_detail' sorting.id %}" class="btn btn-secondary">Cancel</a>
-    </form>
+    </div>
 </div>
 {% endblock %}

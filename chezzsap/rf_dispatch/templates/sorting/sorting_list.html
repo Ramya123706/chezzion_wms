@@ -2,23 +2,23 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4 text-center "><b>Sorting Tasks</b></h2>
+    <h2 class="mb-4 text-center"><b>Sorting Tasks List</b></h2>
 
     <div class="mb-3">
         <a href="{% url 'sorting_create' %}" class="btn btn-primary">+ Create Sorting Task</a>
     </div>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped table-hover align-middle text-center">
         <thead class="table-dark">
             <tr>
                 <th><b>ID</b></th>
-                <th><b>Outbound Delivery</b></th>
+                <th><b>Outbound</b></th>
                 <th><b>Pallet</b></th>
                 <th><b>Product</b></th>
                 <th><b>Quantity</b></th>
+                <th><b>Location</b></th>
                 <th><b>Warehouse</b></th>
                 <th><b>Status</b></th>
-                <th><b>Sorted At</b></th>
                 <th><b>Actions</b></th>
             </tr>
         </thead>
@@ -30,19 +30,23 @@
                 <td>{{ sorting.pallet }}</td>
                 <td>{{ sorting.product }}</td>
                 <td>{{ sorting.quantity }}</td>
-                <td>{{ sorting.warehouse|default:"—" }}</td>
+                <td>{{ sorting.location|default:"—" }}</td>
+                <td class="text-truncate" style="max-width: 200px;" title="{{ sorting.warehouse }}">
+                    {{ sorting.warehouse }}
+                </td>
                 <td>
                     <span class="badge
-                        {% if sorting.status == 'pending' %}bg-warning
-                        {% elif sorting.status == 'sorted' %}bg-info
-                        {% else %}bg-secondary{% endif %}">
+                        {% if sorting.status == 'Pending' %} bg-primary text-white
+                        {% elif sorting.status == 'Sorted' %} bg-success
+                        {% else %} bg-danger{% endif %}">
                         {{ sorting.get_status_display }}
                     </span>
                 </td>
-                <td>{{ sorting.sorted_at|date:"Y-m-d H:i" }}</td>
                 <td>
-                    <a href="{% url 'sorting_detail' sorting.id %}" class="btn btn-sm btn-info">View</a>
-                    <a href="{% url 'sorting_edit' sorting.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'sorting_detail' sorting.id %}" class="btn btn-danger btn-sm">View</a>
+                        <a href="{% url 'sorting_edit' sorting.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    </div>
                 </td>
             </tr>
             {% empty %}

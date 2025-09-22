@@ -1,37 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Sorting Task Details</h2>
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="col-md-8">
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title">Sorting #{{ sorting.id }}</h5>
-            <p class="card-text">
-                <b>Outbound Delivery:</b> {{ sorting.outbound }} <br>
-                <b>Pallet:</b> {{ sorting.pallet }} <br>
-                <b>Product:</b> {{ sorting.product }} <br>
-                <b>Quantity:</b> {{ sorting.quantity }} <br>
-                <b>Warehouse:</b> {{ sorting.warehouse|default:"—" }} <br>
-                <b>Status:</b> 
-                <span class="badge 
-                    {% if sorting.status == 'pending' %}bg-warning
-                    {% elif sorting.status == 'sorted' %}bg-info
-                    {% else %}bg-secondary{% endif %}">
-                    {{ sorting.get_status_display }}
-                </span><br>
-                <b>Sorted At:</b> {{ sorting.sorted_at|date:"Y-m-d H:i" }} <br>
-                <b>Last Updated:</b> {{ sorting.updated_at|date:"Y-m-d H:i" }} <br>
-                <b>Created By:</b> {{ sorting.created_by|default:"—" }} <br>
-                <b>Updated By:</b> {{ sorting.updated_by|default:"—" }}
-            </p>
+        <h2 class="mb-4 text-center"><b>Sorting Task Details</b></h2>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label"><b>Outbound Delivery</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.outbound }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><b>Pallet</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.pallet }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><b>Product</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.product }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><b>Quantity</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.quantity }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><b>Location</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.location|default:'—' }}" readonly>
+                </div>
+     
+                <div class="mb-3">
+                    <label class="form-label"><b>Warehouse</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.warehouse|default:'—' }}" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><b>Status</b></label>
+                    <input type="text" class="form-control" value="{{ sorting.get_status_display }}" readonly>
+                </div>
+
+        <div class="mt-3 text-center">
+            <a href="{% url 'sorting_list' %}" class="btn btn-secondary">Go to List</a>
+            <a href="{% url 'sorting_edit' sorting.id %}" class="btn btn-primary">Edit</a>
         </div>
     </div>
-
-    <div class="mt-3">
-        <a href="{% url 'sorting_list' %}" class="btn btn-secondary">Back to List</a>
-        <a href="{% url 'sorting_edit' sorting.id %}" class="btn btn-primary">Edit</a>
-        <!-- <a href="{% url 'sorting_delete' sorting.id %}" class="btn btn-danger">Delete</a> -->
-    </div>
 </div>
+
+            </div>
+        </div>
+
 {% endblock %}

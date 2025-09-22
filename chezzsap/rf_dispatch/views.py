@@ -2977,17 +2977,17 @@ def bulk_upload_bins(request):
  
     return redirect("create_bin")
  
-
-
+ 
+from .models import Profile
+ 
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-
         if not username or not password:
             messages.error(request, "Please enter both username and password")
-            return redirect("login")  
+            return redirect("login")
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -2996,75 +2996,76 @@ def login_view(request):
             return redirect("home")
         else:
             messages.error(request, "Invalid username or password")
-            return redirect("login") 
+            return redirect("login")
 
     return render(request, "account/login.html")
-
 
 @login_required
 def profile_detail_view(request):
     user = request.user
-    profile = getattr(user, 'profile', None)  
-    return render(request, 'account/profile_detail.html', {
-        'user': user,
-        'profile': profile,
+    profile, created = Profile.objects.get_or_create(user=user)
+    return render(request, "account/profile_detail.html", {
+        "user": user,
+        "profile": profile,
     })
     
-from .models import Profile
-
 @login_required
 def edit_profile(request):
     user = request.user
+    profile, created = Profile.objects.get_or_create(user=user)
 
-    profile, created = Profile.objects.get_or_create(user=user)  
-
-    if request.method == 'POST':
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.email = request.POST.get('email', user.email)
-
-        profile.phone = request.POST.get('phone', profile.phone)
-        profile.company_name = request.POST.get('company_name', profile.company_name)
-        profile.warehouse = request.POST.get('warehouse', profile.warehouse)
-
-        if 'image' in request.FILES:
-            profile.image = request.FILES['image']
+    if request.method == "POST":
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.email = request.POST.get("email", user.email)
+        profile.phone = request.POST.get("phone", profile.phone)
+        profile.company_name = request.POST.get("company_name", profile.company_name)
+        warehouse_id = request.POST.get("warehouse")
+        if warehouse_id:
+            profile.warehouse = Warehouse.objects.get(id=warehouse_id)
+        else:
+            profile.warehouse = None
+        if "image" in request.FILES:
+            profile.image = request.FILES["image"]
 
         user.save()
         profile.save()
 
-        return redirect('profile_detail')
-
-    return render(request, 'account/profile_edit.html', {'profile': profile})
-
+        messages.success(request, "Profile updated successfully.")
+        return redirect("profile_detail")
+    warehouses = Warehouse.objects.all()
+    return render(request, "account/profile_edit.html", {
+        "profile": profile,
+        "warehouses": warehouses,
+    })
 
 @login_required
 def change_password(request):
-    if request.method == 'POST':
-        old_password = request.POST.get('old_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
+    if request.method == "POST":
+        old_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
 
         user = request.user
         if not user.check_password(old_password):
             messages.error(request, "Old password is incorrect.")
-            return redirect('change_password')
+            return redirect("change_password")
         if new_password != confirm_password:
             messages.error(request, "New password and Confirm password do not match.")
-            return redirect('change_password')
+            return redirect("change_password")
+
         user.set_password(new_password)
         user.save()
         update_session_auth_hash(request, user)
 
         messages.success(request, "Your password has been changed successfully.")
-        return redirect('profile_detail')
+        return redirect("profile_detail")
 
-    return render(request, 'account/change_password.html')
-
+    return render(request, "account/change_password.html")
 
 def logout_view(request):
     logout(request)
-    return render(request, 'account/logout.html')
+    return render(request, "account/logout.html")
 
 def bulk_upload_bins(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
@@ -3121,35 +3122,57 @@ def bulk_upload_bins(request):
 
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Profile, Warehouse
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Profile, Warehouse
 
 def add_user(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        phone = request.POST.get('phn_no')
+        username = request.POST.get('username') 
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone = request.POST.get('phone')
         company_name = request.POST.get('company_name')
-        warehouse = request.POST.get('warehouse')
+        warehouse_id = request.POST.get('warehouse')
         image = request.FILES.get('image')
 
+        # Create User safely
         user = User.objects.create_user(
             username=username,
             email=email,
-            password=password
+            password=password,
+            first_name=first_name,
+            last_name=last_name
         )
+        warehouse = Warehouse.objects.get(whs_no=warehouse_id) if warehouse_id else None
 
-        # Create a profile automatically
-        Profile.objects.get_or_create(
+        # Create Profile
+        Profile.objects.create(
             user=user,
             phone=phone,
             company_name=company_name,
             warehouse=warehouse,
-            image=image)
+            image=image
+        )
 
-        return redirect('user_list')  # or wherever you want
-    return render(request, 'account/add_user.html')
+        return redirect('user_list')
+    if request.user.is_superuser:
+        warehouses = Warehouse.objects.all()
+    else:
 
+        profile = getattr(request.user, "profile", None)
+        if profile and profile.warehouse:
+            warehouses = Warehouse.objects.filter(whs_no=profile.warehouse.whs_no)
+        else:
+            warehouses = Warehouse.objects.none() 
 
+    return render(request, 'account/add_user.html', {'warehouses': warehouses})
 
 # User Detail
 def user_detail(request, user_id):
@@ -3160,35 +3183,41 @@ def user_detail(request, user_id):
 # Edit User
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
+    profile, created = Profile.objects.get_or_create(user=user)
+
     if request.method == 'POST':
         user.first_name = request.POST.get('first_name')
         user.last_name = request.POST.get('last_name')
         user.email = request.POST.get('email')
         user.save()
 
-        profile, created = Profile.objects.get_or_create(user=user)
-        profile.phn_no = request.POST.get('phn_no')
+        profile.phone = request.POST.get('phone')
         profile.company_name = request.POST.get('company_name')
-        profile.warehouse = request.POST.get('warehouse')
+
+        warehouse_id = request.POST.get('warehouse')
+        profile.warehouse = Warehouse.objects.get(pk=warehouse_id) if warehouse_id else None
+
         if request.FILES.get('image'):
             profile.image = request.FILES['image']
-        profile.save()
 
+        profile.save()
         return redirect('user_detail', user_id=user.id)
 
-    return render(request, 'account/edit_user.html', {'user': user})
+    warehouses = Warehouse.objects.all()
+    return render(request, 'account/edit_user.html', {'user': user, 'warehouses': warehouses})
 
+
+# Delete User
 def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.delete()
     return redirect('user_list')
-    
+
+
+# User List
 def user_list(request):
     users = User.objects.all().select_related('profile')
     return render(request, 'account/user_list.html', {'users': users})
-
-
-
 
 
 def get_po_products(request, po_id):
@@ -3485,48 +3514,54 @@ def delete_shipment(request, shipment_id):
 from .forms import SortingForm
 from .models import Sorting, SalesOrderCreation, OutboundDelivery
 from django.utils.timezone import now
+from django.shortcuts import render, get_object_or_404, redirect
 
 def create_sorting(request):
     sales_orders = SalesOrderCreation.objects.all()
     delivery_no = f"OD{now().strftime('%Y%m%d%H%M%S')}"
 
     if request.method == "POST":
-        so_no = request.POST.get("so_no")  # dropdown value = id
-        so_obj = get_object_or_404(SalesOrderCreation, pk=so_no)
+        so_id = request.POST.get("so_no") 
+        so_obj = get_object_or_404(SalesOrderCreation, pk=so_id)
         warehouse = so_obj.whs_no
-
-        # Step 1: Create OutboundDelivery
         outbound_delivery = OutboundDelivery.objects.create(
             dlv_no=delivery_no,
-            so_no=so_no,
+            so_no=so_obj,  
             whs_no=warehouse,
             whs_address=so_obj.whs_address,
             ord_date=so_obj.order_date,
             del_date=so_obj.delivery_date,
             sold_to=so_obj.customer_id,
-            
-          
         )
-
-        # Step 2: Bind SortingForm with POST data
         form = SortingForm(request.POST)
         if form.is_valid():
             sorting = form.save(commit=False)
-            sorting.outbound = outbound_delivery  # link to new outbound
+            sorting.outbound = outbound_delivery  #
+            sorting.so_no = so_obj               
+            sorting.warehouse = warehouse  
+            if not sorting.location:
+              sorting.location = warehouse.default_location       
             if request.user.is_authenticated:
                 sorting.created_by = request.user.username
+                sorting.updated_by = request.user.username 
             sorting.save()
             return redirect("sorting_detail", id=sorting.id)
     else:
         form = SortingForm()
 
-    return render(request, "sorting/create_sorting_task.html",{"form": form, "sales_orders": sales_orders, "delivery_no": delivery_no}, )
-
+    return render(
+        request,
+        "sorting/create_sorting_task.html",
+        {
+            "form": form,
+            "sales_orders": sales_orders,
+            "delivery_no": delivery_no,
+        },
+    )
 
 def sorting_detail(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
     return render(request, "sorting/sorting_detail.html", {"sorting": sorting})
-
 
 def sorting_edit(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
@@ -3535,16 +3570,22 @@ def sorting_edit(request, id):
         form = SortingForm(request.POST, instance=sorting)
         if form.is_valid():
             updated_sorting = form.save(commit=False)
+            updated_sorting.so_no = sorting.so_no
+            updated_sorting.outbound = sorting.outbound
             if request.user.is_authenticated:
                 updated_sorting.updated_by = request.user.username
             updated_sorting.save()
-            return redirect("sorting_detail", id=sorting.id)
+            return redirect("sorting_detail", id=updated_sorting.id)
     else:
         form = SortingForm(instance=sorting)
 
-    return render(request, "sorting/sorting_edit.html", {"form": form, "sorting": sorting})
-
+    return render(
+        request,
+        "sorting/sorting_edit.html",
+        {"form": form, "sorting": sorting},
+    )
 
 def sorting_list(request):
-    sortings = Sorting.objects.all().order_by("-sorted_at")
+    sortings = Sorting.objects.all().order_by('location', '-sorted_at')
     return render(request, "sorting/sorting_list.html", {"sortings": sortings})
+
