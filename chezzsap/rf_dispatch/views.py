@@ -189,7 +189,7 @@ def inspection_view(request, truck_no):
             return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
  
         yard_instance = YardHdr.objects.create(
-            whs_no = page1_data['whs_no'],
+            whs_no_id = page1_data['whs_no'],
             truck_no = page1_data['truck_no'],
             truck_type = page1_data['truck_type'],
             driver_name = page1_data['driver_name'],
@@ -422,9 +422,6 @@ def update_truck_status(request, truck_no):
 # -------------
 
  
-from django.shortcuts import render, get_object_or_404
-from .models import Category, Warehouse, PackingMaterial, Product, Bin, StockUpload
-
 def batch_product_view(request):
     query = ""
     categories = Category.objects.all()  # Make sure categories is always defined
@@ -797,7 +794,7 @@ def product_detail_view(request, product_id):
 def product_list(request):
     products = Product.objects.all().order_by('-created_at')
 
-    paginator = Paginator(products, 8)  # 8 per page
+    paginator = Paginator(products, 8)  
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1230,10 +1227,34 @@ def delete_pallet(request, pallet_no):
 # PURCHASE ORDER
 # -------------------
 
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.utils.timezone import now
+from .models import PurchaseOrder, Product, PurchaseItem, Vendor
+
+
+def generate_po_number():
+    today = now().strftime("%Y%m%d")
+    last_po = PurchaseOrder.objects.filter(po_number__startswith=today).order_by('-id').first()
+    if last_po:
+        last_num = int(last_po.po_number[-4:])  # last 4 digits
+        new_num = last_num + 1
+    else:
+        new_num = 1
+    return f"{today}{new_num:04d}"
+
+import datetime
+from django.utils.crypto import get_random_string
+
+def generate_invoice_number():
+    today = datetime.date.today().strftime("%Y%m%d")
+    random_part = get_random_string(4, allowed_chars="0123456789")
+    return f"INV-{today}-{random_part}"
+
 def add_purchase(request):
     if request.method == 'POST':
         try:
-           
+            # --- Create Purchase Order ---
             po = PurchaseOrder.objects.create(
                 company_name=request.POST.get('company_name'),
                 company_address=request.POST.get('company_address'),
@@ -1241,8 +1262,8 @@ def add_purchase(request):
                 company_email=request.POST.get('company_email'),
                 company_website=request.POST.get('company_website'),
                 po_date=request.POST.get('po_date'),
-                po_number=request.POST.get('po_number'),
-                customer_number=request.POST.get('customer_number'),
+                po_number=generate_po_number(),
+                invoice_number=generate_invoice_number(),
                 vendor_company_name=request.POST.get('vendor_company_name'),
                 vendor_contact_name=request.POST.get('vendor_contact_name'),
                 vendor_phone=request.POST.get('vendor_phone'),
@@ -1251,52 +1272,69 @@ def add_purchase(request):
                 vendor_email=request.POST.get('vendor_email'),
             )
 
-            
+            # --- Get product item details ---
             item_numbers = request.POST.getlist('item_number[]')
             product_names = request.POST.getlist('product_name[]')
             quantities = request.POST.getlist('quantity[]')
             unit_prices = request.POST.getlist('unit_price[]')
+            warehouses = request.POST.getlist('warehouse[]')  # NEW
 
             for i in range(len(item_numbers)):
                 item_number = (item_numbers[i] or '').strip()
                 product_name = (product_names[i] or '').strip()
                 quantity_raw = (quantities[i] or '').strip()
                 unit_price_raw = (unit_prices[i] or '').strip()
+                warehouse_id = warehouses[i] or None  # NEW
 
-                if not item_number or not product_name or not quantity_raw or not unit_price_raw:
-                    continue
+                if not all([product_name, quantity_raw, unit_price_raw]):
+                    continue  # skip incomplete rows
 
                 try:
                     quantity = int(quantity_raw)
                     unit_price = Decimal(unit_price_raw)
                 except (ValueError, TypeError):
-                    continue  
+                    continue
 
-                
-                product, created = Product.objects.get_or_create(
-                    product_id=item_number,
-                    defaults={
-                        'name': product_name,
-                        'quantity': 0,  
-                        'pallet_no': f"PALLET-{item_number}",
-                        'sku': f"SKU-{item_number}",
-                        'description': product_name,
-                        'unit_of_measure': "pcs",
-                        're_order_level': 10,   
-                    }
-                )
+                # --- Try finding product ---
+                product = None
+                if item_number:
+                    product = Product.objects.filter(product_id=item_number).first()
 
-               
-                product.quantity += quantity
-                product.save()   
+                if not product and product_name:
+                    product = Product.objects.filter(name__iexact=product_name).first()
 
-                
+                # --- If product not found → create new one ---
+                if not product:
+                    product = Product.objects.create(
+                        product_id=item_number or f"ID-{uuid.uuid4().hex[:6]}",
+                        name=product_name,
+                        quantity=0,  # inventory remains 0 until GR
+                        pallet_no=f"PALLET-{item_number or product_name[:5].upper()}",
+                        sku=f"SKU-{item_number or product_name[:5].upper()}",
+                        unit_price=unit_price,
+                        description=product_name,
+                        unit_of_measure="pcs",
+                        re_order_level=10,
+                    )
+                    messages.info(request, f"New product created: {product.name}")
+
+                # --- Update unit price if changed ---
+                if product.unit_price != unit_price:
+                    product.unit_price = unit_price
+                    product.save()
+
+                # --- Link product with purchase order including warehouse ---
+                warehouse_obj = None
+                if warehouse_id:
+                    warehouse_obj = Warehouse.objects.filter(pk=warehouse_id).first()
+
                 PurchaseItem.objects.create(
                     purchase_order=po,
                     product=product,
                     quantity=quantity,
                     unit_price=unit_price,
-                    total_price=quantity * unit_price
+                    total_price=quantity * unit_price,
+                    warehouse=warehouse_obj  # NEW
                 )
 
             return redirect('purchase_detail', pk=po.pk)
@@ -1304,26 +1342,41 @@ def add_purchase(request):
         except Exception as e:
             return render(request, 'purchase_order/add_purchase.html', {
                 'error': str(e),
-                'data': request.POST
+                'data': request.POST,
+                'vendors': Vendor.objects.all(),
+                'warehouses': Warehouse.objects.all(),  # make sure warehouses are passed
             })
 
-    return render(request, 'purchase_order/add_purchase.html')
+    # GET request → render template
+    return render(request, 'purchase_order/add_purchase.html', {
+        'vendors': Vendor.objects.all(),
+        'warehouses': Warehouse.objects.all(),  # pass warehouses to template
+    })
+
 
 def purchase_detail(request, pk):
-    po = PurchaseOrder.objects.get(pk=pk)
+    po = get_object_or_404(PurchaseOrder, pk=pk)
     return render(request, "purchase_order/purchase_detail.html", {"po": po})
 
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML, CSS
+from django.contrib.staticfiles import finders
 
 def download_po_pdf(request, pk): 
     po = get_object_or_404(PurchaseOrder, pk=pk)
     html_string = render_to_string('purchase_order/purchase_order_pdf.html', {'po': po})
 
-    html = HTML(string=html_string)
-    pdf = html.write_pdf()
+    # Find CSS if using static files
+    css_path = finders.find('css/purchase_order.css')
+    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+    pdf = html.write_pdf(stylesheets=[CSS(css_path)] if css_path else None)
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="purchase_order_{pk}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="purchase_order_{pk}.pdf"'
     return response
+
+
 
 
 
@@ -1386,8 +1439,7 @@ def rf_ptl(request):
 # -----------------
 # BIN
 # -----------------
-
-
+from .utils import generate_bin_id  
 def create_bin(request):
     if request.method == 'POST':
         try:
@@ -1400,17 +1452,19 @@ def create_bin(request):
             if sub_category_id:
                 sub_category = SubCategory.objects.get(id=sub_category_id)
 
+            bin_id = generate_bin_id(warehouse)
+
             Bin.objects.create(
                 whs_no=warehouse,
-                bin_id=request.POST.get('bin_id'),
+                bin_id=bin_id,
                 bin_type=request.POST.get('bin_type'),
                 capacity=int(request.POST.get('capacity')),
                 location=request.POST.get('location'),
-                existing_quantity=request.POST.get('existing_quantity') or 0,
+                existing_quantity=int(request.POST.get('existing_quantity') or 0),
                 category=category,
                 sub_category=sub_category,
-                updated_by=request.POST.get('updated_by'),
-                created_by=request.POST.get('created_by')
+                updated_by=request.POST.get('updated_by') or "system",
+                created_by=request.POST.get('created_by') or "system"
             )
 
             return redirect('create_bin')
@@ -1429,8 +1483,8 @@ def create_bin(request):
         'categories': Category.objects.all(),
     })
 
+
 def bin_detail(request, bin_id):
-    # bin_instance = get_object_or_404(Bin, bin_id=bin_id)
     return render(request, 'bin/bin_detail.html', {'bin_id': bin_id})
 
 def get_bin_location(request, bin_id):
@@ -1498,8 +1552,8 @@ def load_subcategories(request):
     return JsonResponse({"subcategories": list(subcategories)})
 
 
-def bin_detail(request, pk):
-    bin_instance = get_object_or_404(Bin, pk=pk)
+def bin_detail(request, bin_id):
+    bin_instance = get_object_or_404(Bin, bin_id=bin_id)
     return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
 
 
@@ -1956,7 +2010,7 @@ def inbound_delivery(request):
     warehouses = Warehouse.objects.all().order_by('whs_no')
     vendors = Vendor.objects.all()
     purchase_orders = PurchaseOrder.objects.all()
-    products_list = Product.objects.all().order_by('name')  
+    products_list = Product.objects.all().order_by('name')
 
     if request.method == 'POST':
         inbound_delivery_number = generate_inbound_delivery_number()
@@ -1977,8 +2031,7 @@ def inbound_delivery(request):
             remarks=request.POST.get('remarks')
         )
 
-        product_ids = request.POST.getlist('product[]') 
-        descriptions = request.POST.getlist('product_description[]')
+        product_ids = request.POST.getlist('product[]')
         qty_delivered = request.POST.getlist('quantity_delivered[]')
         qty_received = request.POST.getlist('quantity_received[]')
         unit_of_measure = request.POST.getlist('unit_of_measure[]')
@@ -1992,14 +2045,10 @@ def inbound_delivery(request):
             try:
                 product_obj = Product.objects.get(product_id=pid)
             except Product.DoesNotExist:
-                continue  
-            delivered_qty = int(qty_delivered[i]) if qty_delivered[i] else 0
-            received_qty = int(qty_received[i]) if qty_received[i] else 0
-            uom = unit_of_measure[i] or product_obj.unit_of_measure
-            batch = batch_number[i] if batch_number[i] else str(uuid.uuid4())[:8]
+                continue
 
-            # Create inbound delivery product record
-            inbound_item = InboundDeliveryproduct.objects.create(
+            # Create inbound delivery product record (no inventory update here)
+            InboundDeliveryproduct.objects.create(
                 delivery=delivery,
                 product=product_obj,
                 product_description=product_obj.name,
@@ -2008,12 +2057,6 @@ def inbound_delivery(request):
                 unit_of_measure=unit_of_measure[i],
                 batch_number=batch_number[i] if batch_number[i] else None
             )
-    
-
-            # Update Inventory
-            inventory, created = Inventory.objects.get_or_create(product=product_obj)
-            inventory.total_quantity += received_qty
-            inventory.save()
 
         return redirect('inbound_delivery')
 
@@ -2024,6 +2067,8 @@ def inbound_delivery(request):
         'purchase_orders': purchase_orders,
         'products': products_list
     })
+
+
 
 
 def generate_inbound_delivery_number():
@@ -2053,22 +2098,52 @@ def delivery_detail(request, inbound_delivery_number):
 
 
 
+# views.py (add this)
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from .models import PurchaseOrder, PurchaseItem, Vendor
+
 def get_po_products(request, po_id):
+    """
+    Return PO header + line items as JSON.
+    Attempts to find a Vendor record matching PO.vendor_company_name;
+    if found, returns vendor_id so the select can be auto-selected.
+    """
     try:
         po = PurchaseOrder.objects.get(pk=po_id)
-        
-        products = po.purchase_items.all() 
-        data = []
-        for item in products:
-            data.append({
-                "code": item.product.id,
-                "description": item.product.description,
-                "uom": item.product.unit_of_measure,
-                "quantity": item.quantity,
-            })
-        return JsonResponse({"products": data})
     except PurchaseOrder.DoesNotExist:
-        return JsonResponse({"products": []})
+        return JsonResponse({"error": "PO not found"}, status=404)
+
+    items_qs = PurchaseItem.objects.filter(purchase_order=po).select_related('product')
+
+    products = []
+    for it in items_qs:
+        prod = it.product
+        products.append({
+            "code": prod.product_id,
+            "description": prod.name,
+            "quantity": int(it.quantity),
+            "uom": prod.unit_of_measure or "",
+        })
+
+    # try to match vendor string to a Vendor record
+    vendor_obj = None
+    vendor_name = getattr(po, "vendor_company_name", "") or ""
+    if vendor_name:
+        vendor_obj = Vendor.objects.filter(name__iexact=vendor_name).first()
+
+    vendor_data = {
+        "vendor_id": vendor_obj.vendor_id if vendor_obj else None,
+        "display": f"{vendor_obj.vendor_id} - {vendor_obj.name}" if vendor_obj else vendor_name
+    }
+
+    data = {
+        "vendor": vendor_data,
+        "po_date": po.po_date.strftime("%Y-%m-%d") if getattr(po, "po_date", None) else "",
+        "products": products
+    }
+    return JsonResponse(data)
+
 
 
 def edit_inbound_delivery(request, inbound_delivery_number):
@@ -2997,21 +3072,33 @@ def create_gr(request):
         if form.is_valid():
             gr = form.save(commit=False)
 
-            # Auto-generate GR number
-            if not gr.gr_no:
-                last_gr = GoodsReceipt.objects.order_by("-id").first()
-                if last_gr and last_gr.gr_no.startswith("GR"):
-                    number = int(last_gr.gr_no.replace("GR", "")) + 1
-                else:
-                    number = 1
-                gr.gr_no = f"GR{number:05d}"  # GR00001, GR00002, etc.
-
+            # Auto-generate GR number (your model's save() already handles it)
             gr.save()
-            return redirect('inventory')  # After GR creation, go back to inventory
+
+            # Loop over inbound delivery products & create GR items
+            inbound_items = InboundDeliveryproduct.objects.filter(delivery=gr.inbound_delivery)
+
+            for inbound_item in inbound_items:
+                # Create GR item record
+                gr_item = GoodsReceiptItem.objects.create(
+                    goods_receipt=gr,
+                    inbound_delivery_product=inbound_item,
+                    quantity_received=inbound_item.quantity_received,
+                    batch_number=inbound_item.batch_number or str(uuid.uuid4())[:8]
+                )
+
+                # ✅ Update Inventory here
+                inventory, created = Inventory.objects.get_or_create(product=inbound_item.product)
+                inventory.total_quantity += inbound_item.quantity_received
+                inventory.save()
+
+            messages.success(request, f"Goods Receipt {gr.gr_no} created and inventory updated!")
+            return redirect('inventory')
+
     else:
         form = GoodsReceiptForm()
 
-    # Optional: list all inbound deliveries without GR yet
+    # Show inbound deliveries without GR yet
     pending_deliveries = InboundDelivery.objects.filter(gr__isnull=True)
 
     return render(

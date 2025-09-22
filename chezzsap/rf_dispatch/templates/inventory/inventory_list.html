@@ -7,38 +7,47 @@
     </h2>
 
     <!-- Filters & Search -->
-    <form method="get" class="row g-2 mb-3">
-        <div class="col-md-3">
-            <input type="text" name="search" class="form-control" placeholder="Search Product ID or Name" value="{{ search_query }}">
+    <form method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-12 col-md-3">
+            <label class="form-label d-none d-md-block">Search</label>
+            <input type="text" name="search" class="form-control" placeholder="Product ID or Name" value="{{ search_query }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-12 col-md-3">
+            <label class="form-label d-none d-md-block">Category</label>
             <select name="category" class="form-select">
                 <option value="">-- All Categories --</option>
                 {% for cat in categories %}
-                    <option value="{{ cat.id }}" {% if category_filter|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.category }}</option>
+                    <option value="{{ cat.id }}" {% if category_filter|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>
+                        {{ cat.category }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-12 col-md-3">
+            <label class="form-label d-none d-md-block">Subcategory</label>
             <select name="subcategory" class="form-select">
                 <option value="">-- All Subcategories --</option>
                 {% for sub in subcategories %}
-                    <option value="{{ sub.id }}" {% if subcategory_filter|stringformat:"s" == sub.id|stringformat:"s" %}selected{% endif %}>{{ sub.name }}</option>
+                    <option value="{{ sub.id }}" {% if subcategory_filter|stringformat:"s" == sub.id|stringformat:"s" %}selected{% endif %}>
+                        {{ sub.name }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-1">
+        <div class="col-6 col-md-1">
             <button type="submit" class="btn btn-primary w-100">Filter</button>
         </div>
-        <div class="col-md-2">
+        <div class="col-6 col-md-2">
             <a href="{% url 'inventory' %}" class="btn btn-secondary w-100">Reset</a>
         </div>
     </form>
 
     {% if inventory_data %}
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-bordered table-hover align-middle text-center">
-            <thead class="bg-warning text-dark">
+    
+    <!-- Table for md+ screens -->
+    <div class="table-responsive shadow-sm rounded d-none d-md-block">
+        <table class="table table-hover align-middle text-center mb-0">
+            <thead class="table-warning text-dark sticky-top">
                 <tr>
                     <th>Image</th>
                     <th>Product ID</th>
@@ -55,20 +64,20 @@
             <tbody>
                 {% for row in inventory_data %}
                 <tr class="{% if row.inventory.is_low_stock %}table-danger{% elif row.inventory.is_medium_stock %}table-warning{% else %}table-success{% endif %}">
-                    <td>
+                    <td class="align-middle">
                         {% if row.inventory.product.images %}
-                            <a class="text-decoration-none fw-bold" href="{% url 'product_detail' row.inventory.product.product_id %}">
-                            <img src="{{ row.inventory.product.images.url }}" style="width:50px;height:50px;" class="img-thumbnail">
+                            <a href="{% url 'product_detail' row.inventory.product.product_id %}">
+                                <img src="{{ row.inventory.product.images.url }}" class="rounded-circle" style="width:50px;height:50px;object-fit:cover;">
                             </a>
                         {% else %}
                             <i class="fas fa-box fa-2x text-muted"></i>
                         {% endif %}
                     </td>
-<td>
-    <a class="text-decoration-none fw-bold" href="{% url 'product_detail' row.inventory.product.product_id %}">
-        {{ row.inventory.product.product_id }}
-    </a>
-</td>
+                    <td>
+                        <a class="text-decoration-none fw-bold" href="{% url 'product_detail' row.inventory.product.product_id %}">
+                            {{ row.inventory.product.product_id }}
+                        </a>
+                    </td>
                     <td>{{ row.inventory.product.name }}</td>
                     <td>{{ row.inventory.product.category.category|default:"-" }}</td>
                     <td>{{ row.inventory.product.sub_category.name|default:"-" }}</td>
@@ -82,9 +91,49 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Cards for mobile screens -->
+    <div class="row row-cols-1 g-3 d-md-none">
+        {% for row in inventory_data %}
+        <div class="col">
+            <div class="card shadow-sm border {% if row.inventory.is_low_stock %}border-danger{% elif row.inventory.is_medium_stock %}border-warning{% else %}border-success{% endif %}">
+                <div class="card-body d-flex align-items-center">
+                    <div class="me-3">
+                        {% if row.inventory.product.images %}
+                            <a href="{% url 'product_detail' row.inventory.product.product_id %}">
+                                <img src="{{ row.inventory.product.images.url }}" class="rounded-circle" style="width:60px;height:60px;object-fit:cover;">
+                            </a>
+                        {% else %}
+                            <i class="fas fa-box fa-2x text-muted"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            <a href="{% url 'product_detail' row.inventory.product.product_id %}" class="text-decoration-none fw-bold">
+                                {{ row.inventory.product.product_id }} - {{ row.inventory.product.name }}
+                            </a>
+                        </h6>
+                        <p class="mb-1 small text-muted">
+                            Category: {{ row.inventory.product.category.category|default:"-" }} |
+                            Subcategory: {{ row.inventory.product.sub_category.name|default:"-" }}
+                        </p>
+                        <p class="mb-1 small">
+                            Qty: {{ row.inventory.total_quantity }} | UOM: {{ row.inventory.product.unit_of_measure }}
+                        </p>
+                        <p class="mb-0">
+                            PO: {{ row.po_number }} | GR: {{ row.gr_number }} | 
+                            {{ row.inventory.stock_status_badge|safe }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
     {% else %}
-    <div class="alert alert-info text-center">
-        No inventory records found.
+    <div class="alert alert-info text-center mt-3">
+        <i class="fas fa-info-circle me-2"></i>No inventory records found.
     </div>
     {% endif %}
 </div>
