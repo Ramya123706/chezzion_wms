@@ -158,8 +158,7 @@ class BinForm(forms.ModelForm):
     class Meta:
         model = Bin
         fields = '__all__'
-        exclude = ['created_by', 'updated_by', 'existing_quantity']  # Exclude fields that are not needed in the form
-
+        exclude = ["created_by", "updated_by"]
 from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -321,15 +320,37 @@ class GoodsReceiptForm(forms.ModelForm):
 class SortingForm(forms.ModelForm):
     class Meta:
         model = Sorting
-        fields = ['outbound', 'pallet', 'product', 'quantity', 'warehouse', 'status']
+        fields = ['outbound', 'pallet', 'product', 'quantity','location','warehouse', 'status']
         exclude = ['sorted_at', 'created_by', 'updated_by']
         widgets = {
             'outbound': forms.Select(attrs={'class': 'form-control'}),
             'pallet': forms.Select(attrs={'class': 'form-control'}),
             'product': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
             'warehouse': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
         }
+from .models import Profile
 
-    
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = '__all__'
+        
+        
+        # bin/forms.py
+from django import forms
+from .models import BinLog
+
+class BinLogForm(forms.ModelForm):
+    class Meta:
+        model = BinLog
+        fields = '__all__'
+        widgets = {
+            'bin': forms.Select(attrs={'class': 'form-control'}),
+            'action': forms.TextInput(attrs={'class': 'form-control'}),
+            'warehouse': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'created_by': forms.Select(attrs={'class': 'form-control'}),
+        }

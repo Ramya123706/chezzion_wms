@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Bin Logs</h2>
+
+    <!-- Search Form -->
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="bin_id" class="form-control" placeholder="Enter Bin ID" value="{{ bin_id|default:'' }}">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <!-- Error Message -->
+    {% if error_message %}
+        <div class="alert alert-warning">{{ error_message }}</div>
+    {% endif %}
+
+    <!-- Bin Details -->
+    {% if bin_details %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Bin: {{ bin_details.bin_code }}</h5>
+
+                <!-- Correct warehouse display -->
+               <p class="card-text">
+    Warehouse:
+    {% if bin_details.warehouse %}
+        {{ bin_details.warehouse.whs_no }} - {{ bin_details.warehouse.whs_name }}
+    {% else %}
+        -
+    {% endif %}
+</p>
+
+
+                <p class="card-text">
+                    Created By:
+                    {% if bin_details.created_by %}
+                        {{ bin_details.created_by.username }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </p>
+
+                <p class="card-text">
+                    Created At: {{ bin_details.created_at|date:"d-m-Y H:i:s" }}
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Logs -->
+    {% if logs %}
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Action</th>
+                    <th>Warehouse</th>
+                    <th>Remarks</th>
+                    <th>Created By</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ log.action }}</td>
+                        <td>{{ log.warehouse.whs_no }} - {{ log.warehouse.whs_name }}</td>
+                        <td>{{ log.remarks }}</td>
+                        <td>
+                            {% if log.created_by %}
+                                {{ log.created_by.username }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ log.created_at|date:"d-m-Y H:i:s" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No logs found.</p>
+    {% endif %}
+</div>
+{% endblock %}

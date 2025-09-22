@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django.shortcuts import render, redirect, get_object_or_404
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.core.exceptions import ValidationError
 import uuid
 from decimal import Decimal
 
@@ -129,6 +130,7 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return self.name
+    
 class Bin(models.Model):
     whs_no = models.ForeignKey(
         Warehouse,
@@ -137,16 +139,22 @@ class Bin(models.Model):
     )
     bin_id = models.CharField(max_length=50, unique=True) 
     bin_type = models.CharField(max_length=50)
-    capacity = models.IntegerField()
+    capacity = models.PositiveIntegerField()
+    location = models.CharField(max_length=100, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
-    existing_quantity = models.IntegerField(default=0)
+    existing_quantity = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
+    
+    def remaining_capacity(self):
+        return self.capacity - self.existing_quantity
 
+    def __str__(self):
+        return f"{self.bin_id} (Remaining: {self.remaining_capacity()}/{self.capacity})"
 
 
 class Product(models.Model):
@@ -224,7 +232,7 @@ class PackingMaterial(models.Model):
         return self.material
 
 class Pallet(models.Model):
-    pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
+    pallet_no = models.CharField(max_length=100, unique=True, editable=False, default='') 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
@@ -292,10 +300,10 @@ class StockUpload(models.Model):
     category = models.CharField(max_length=100, blank=True, null=True)   
     sub_category = models.CharField(max_length=100, blank=True, null=True) 
     description = models.TextField(blank=True, null=True)   
-    quantity = models.IntegerField()
+    quantity = models.PositiveIntegerField()
     batch = models.CharField(max_length=100, null=True, blank=True)
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE , null=True, blank=True)
-    pallet = models.CharField(max_length=50)
+    pallet = models.CharField(max_length=50, default='Not assigned', blank=True, null=True)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     inspection = models.CharField(max_length=50)
     stock_type = models.CharField(max_length=50)
@@ -305,38 +313,70 @@ class StockUpload(models.Model):
 
 
     def __str__(self):
-        return f"StockUpload(whs_no={self.whs_no}, product={self.product.name})"
+        return f"{self.product} in {self.bin} - {self.quantity}"
+    
+    def clean(self):
+        """Ensure quantity does not exceed bin remaining capacity"""
+        if self.bin and self.quantity > self.bin.remaining_capacity():
+            raise ValidationError(
+                f"Cannot assign {self.quantity} items to {self.bin.bin_id}. "
+                f"Only {self.bin.remaining_capacity()} remaining."
+            )
 
     def save(self, *args, **kwargs):
+        self.clean()  # Validate before saving
         super().save(*args, **kwargs)
 
+        # Update total quantity in Inventory
         total_quantity = StockUpload.objects.filter(product=self.product).aggregate(
             total=Sum('quantity')
         )['total'] or 0
-
         inventory, _ = Inventory.objects.get_or_create(product=self.product)
         inventory.total_quantity = total_quantity
         inventory.save()
 
-       
+        # Update quantity in Product
         self.product.quantity = total_quantity
         self.product.save()
 
+        # Update Bin existing quantity
+        if self.bin:
+            total_in_bin = StockUpload.objects.filter(bin=self.bin).aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            self.bin.existing_quantity = total_in_bin
+            self.bin.save()
+
     def delete(self, *args, **kwargs):
-        product = self.product  
+        product = self.product
+        bin_obj = self.bin
         super().delete(*args, **kwargs)
 
+        # Update Inventory
         total_quantity = StockUpload.objects.filter(product=product).aggregate(
             total=Sum('quantity')
         )['total'] or 0
-
         inventory, _ = Inventory.objects.get_or_create(product=product)
         inventory.total_quantity = total_quantity
         inventory.save()
+
+        # Update Product quantity
         product.quantity = total_quantity
         product.save()
 
-
+        # Update Bin existing quantity
+        if bin_obj:
+            bin_obj.existing_quantity = StockUpload.objects.filter(bin=bin_obj).aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            bin_obj.save()        # Update Bin existing quantity
+            
+        if bin_obj:
+            total_in_bin = StockUpload.objects.filter(bin=bin_obj).aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            bin_obj.existing_quantity = total_in_bin
+            bin_obj.save()
 
 
 class Inventory(models.Model):
@@ -842,7 +882,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, null=True)
     company_name = models.CharField(max_length=100, blank=True, null=True)
-    warehouse = models.CharField(max_length=100, blank=True, null=True)
+    warehouse = models.ForeignKey('Warehouse',on_delete=models.SET_NULL,blank=True,null=True,related_name="profiles" )    
     image = models.ImageField(upload_to='profiles/', default='profiles/default.png')
 
     def __str__(self):
@@ -867,16 +907,10 @@ class Shipment(models.Model):
     def __str__(self):
         return f"Shipment {self.shipment_no} - {self.shipment_status}"
 
-
-
-    def __str__(self):
-        return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"
-
 class SortStatus(models.TextChoices):
     PENDING = "Pending", "Pending"
     SORTED = "Sorted", "Sorted"
-   
-
+    
 class Sorting(models.Model):
     outbound = models.ForeignKey("OutboundDelivery",on_delete=models.CASCADE, related_name="sortings" )
     pallet = models.ForeignKey("Pallet",on_delete=models.CASCADE, related_name="sortings")
@@ -898,3 +932,46 @@ class Sorting(models.Model):
     def __str__(self):
         return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
 
+    def __str__(self):
+        return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"
+
+class SortStatus(models.TextChoices):
+    PENDING = "Pending", "Pending"
+    SORTED = "Sorted", "Sorted"
+   
+
+class Sorting(models.Model):
+    outbound = models.ForeignKey("OutboundDelivery",on_delete=models.CASCADE, related_name="sortings" )
+    pallet = models.ForeignKey("Pallet",on_delete=models.CASCADE, related_name="sortings")
+    so_no = models.ForeignKey("SalesOrderCreation",on_delete=models.CASCADE,null=True, blank=True )
+    product = models.ForeignKey("Product", on_delete=models.CASCADE,related_name="sortings" )
+    quantity = models.PositiveIntegerField()
+    location = models.CharField(max_length=100, null=True, blank=True, default=None)
+    warehouse = models.ForeignKey("Warehouse",on_delete=models.CASCADE,related_name="sortings", null=True, blank=True, default=None )
+    status = models.CharField( max_length=50,choices=SortStatus.choices,default=SortStatus.PENDING )
+    sorted_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=100, null=True, blank=True, default=None)
+    updated_by = models.CharField(max_length=100, null=True, blank=True, default=None)
+    class Meta:
+        ordering = ["location"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["outbound"]),
+        ]
+    def __str__(self):
+        return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
+
+from django.db import models
+from django.contrib.auth.models import User
+
+class BinLog(models.Model):
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=100)  
+    whs_no = models.CharField(max_length=50)
+    remarks = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.bin.bin_code} - {self.action} at {self.created_at}"

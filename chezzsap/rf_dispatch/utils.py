@@ -43,3 +43,34 @@ def safe_decimal(value, default=0):
         return Decimal(default) if value is None or value == "" else Decimal(value)
     except (InvalidOperation, ValueError):
         return Decimal(default)
+    
+
+# utils.py (you can put inside rf_dispatch/utils.py or a common utils folder)
+from .models import Bin
+
+def generate_bin_id(whs_no=None):
+    """
+    Generate a unique Bin ID.
+    Format:
+      - BIN0001, BIN0002... if no warehouse is passed
+      - WHS01-BIN0001 if warehouse is passed
+    """
+    if whs_no:
+        last_bin = Bin.objects.filter(whs_no=whs_no).order_by('-id').first()
+        if last_bin and "-" in last_bin.bin_id:
+            try:
+                last_num = int(last_bin.bin_id.split("-")[-1].replace("BIN", ""))
+            except ValueError:
+                last_num = 0
+            new_num = last_num + 1
+        else:
+            new_num = 1
+        return f"{whs_no.whs_no}-BIN{new_num:04d}"
+    else:
+        last_bin = Bin.objects.order_by('-id').first()
+        if last_bin and last_bin.bin_id.startswith("BIN"):
+            last_num = int(last_bin.bin_id.replace("BIN", ""))
+            new_num = last_num + 1
+        else:
+            new_num = 1
+        return f"BIN{new_num:04d}"

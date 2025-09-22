@@ -17,32 +17,37 @@
                         <input type="text" name="putaway_id" value="{{ putaway.putaway_id }}" class="form-control" readonly>
                     </div>
 
-                    <!-- Pallet Dropdown -->
-                  <div class="mb-3">
-                <label><b>Pallet</b></label>
-                <select name="pallet" class="form-select" required>
-  <option value="">--Select Pallet--</option>
-  {% for p in pallets %}
-    <option value="{{ p.id }}" {% if putaway.pallet and putaway.pallet.id == p.id %}selected{% endif %}>
-      {{ p.pallet_no }}
-    </option>
-  {% endfor %}
-</select>
+                    <!-- Pallet Dropdown (hide for Bin) -->
+                    {% if putaway.putaway_task_type != "Putaway by Bin" %}
+                    <div class="mb-3">
+                        <label><b>Pallet</b></label>
+                        <select name="pallet" class="form-select" required>
+                            <option value="">--Select Pallet--</option>
+                            {% for p in pallets %}
+                            <option value="{{ p.id }}" {% if putaway.pallet and putaway.pallet.id == p.id %}selected{% endif %}>
+                                {{ p.pallet_no }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
 
-
-                    <!-- Location -->
+                    <!-- Source Location -->
                     <div class="mb-3">
                         <label class="form-label"><b>Source Location</b></label>
                         <input type="text" name="source_location" value="{{ putaway.source_location }}" class="form-control" required>
                     </div>
-                         <div class="mb-3">
+
+                    <!-- Destination Location -->
+                    <div class="mb-3">
                         <label class="form-label"><b>Destination Location</b></label>
                         <input type="text" name="destination_location" value="{{ putaway.destination_location }}" class="form-control" required>
                     </div>
+
                     <!-- Putaway Task Type -->
                     <div class="mb-3">
                         <label class="form-label"><b>Putaway Task Type</b></label>
-                        <select name="putaway_task_type" class="form-control" required>
+                        <select name="putaway_task_type" class="form-control" required id="putaway_task_type">
                             <option value="Putaway by HU" {% if putaway.putaway_task_type == "Putaway by HU" %}selected{% endif %}>Putaway by HU</option>
                             <option value="Putaway by Warehouse" {% if putaway.putaway_task_type == "Putaway by Warehouse" %}selected{% endif %}>Putaway by Warehouse</option>
                             <option value="Putaway by Product" {% if putaway.putaway_task_type == "Putaway by Product" %}selected{% endif %}>Putaway by Product</option>
@@ -73,4 +78,24 @@
         </div>
     </div>
 </div>
+
+<!-- Optional: Dynamic hiding of Pallet field when user changes task type -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const taskTypeSelect = document.getElementById('putaway_task_type');
+    const palletDiv = document.querySelector('select[name="pallet"]')?.closest('.mb-3');
+
+    function togglePallet() {
+        if (!palletDiv) return;
+        if (taskTypeSelect.value === "Putaway by Bin") {
+            palletDiv.style.display = "none";
+        } else {
+            palletDiv.style.display = "block";
+        }
+    }
+
+    taskTypeSelect.addEventListener('change', togglePallet);
+    togglePallet(); // initial run
+});
+</script>
 {% endblock %}

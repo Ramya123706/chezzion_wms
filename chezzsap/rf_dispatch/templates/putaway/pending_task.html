@@ -29,7 +29,14 @@
                   {{ task.putaway_id }}
                 </a>
               </td>
-              <td>{{ task.pallet }}</td>
+              <!-- Pallet with safe check -->
+              <td>
+                {% if task.pallet %}
+                  {{ task.pallet.pallet_no }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
               <td>{{ task.source_location }}</td>
               <td>{{ task.destination_location }}</td>
               <td>{{ task.putaway_task_type }}</td>

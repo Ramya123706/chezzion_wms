@@ -25,6 +25,9 @@
                         <td>: {{ bin.capacity }}</td>
                     </tr>
                     <tr>
+                        <th scope="row">Location</th>
+                        <td>: {{ bin.location }}</td>
+                    <tr>
                         <th scope="row">Existing Quantity</th>
                         <td>: {{ bin.existing_quantity }}</td>
                     </tr>
@@ -45,6 +48,8 @@
     <a href="{% url 'create_bin' %}" class="btn btn-secondary mt-3">
         <i class="fas fa-arrow-left me-1"></i> Back to All Bins
     </a>
+    <a href="{% url 'edit_bin' bin.id %}" class="btn btn-primary mt-3">
+        <i class="fas fa-edit me-1"></i> Edit Bin
 </div>
 
 {% endblock %}

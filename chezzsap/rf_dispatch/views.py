@@ -424,7 +424,11 @@ def update_truck_status(request, truck_no):
  
 def batch_product_view(request):
     query = ""
- 
+    categories = Category.objects.all()  # Make sure categories is always defined
+    warehouse = Warehouse.objects.all()
+    materials = PackingMaterial.objects.all()
+    
+
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
         product_id = request.POST.get('product')
@@ -441,23 +445,23 @@ def batch_product_view(request):
         pallet_status = request.POST.get('pallet_status')
         category = request.POST.get('category')
         sub_category = request.POST.get('sub_category')
- 
+
         try:
             product_instance, _ = Product.objects.get_or_create(
                 product_id=product_id,
                 defaults={
-                    'name': request.POST.get('product', ''),
-                    'description': request.POST.get('description', '')
+                    'name': product_id,
+                    'description': description
                 }
             )
- 
-            warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
-            bin_instance = Bin.objects.filter(bin_id=bin_id).first()
+
+            warehouse_instance = get_object_or_404(Warehouse, whs_no=whs_no)
+            bin_instance = Bin.objects.filter(id=bin_id).first() 
             p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
             batch = request.POST.get('batch_input') or batch or ''
- 
+
             StockUpload.objects.create(
-                whs_no=warehouse,
+                whs_no=warehouse_instance,
                 product=product_instance,
                 description=description,
                 quantity=int(quantity or 0),
@@ -474,38 +478,76 @@ def batch_product_view(request):
                 sub_category=sub_category
             )
 
-
         except Exception as e:
             query = request.GET.get('search', '')
             stock_uploads = StockUpload.objects.all()
             return render(request, 'stock_upload/batch_product.html', {
                 'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
+                'warehouse': warehouse,
+                'materials': materials,
                 'stocks': stock_uploads,
                 'query': query,
-            })
-        except Exception as e:
-            query = request.GET.get('search', '')
-            stock_uploads = StockUpload.objects.all()
-            return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
+                'categories': categories,
                 'error': str(e),
-                'query': query,
-                'stocks': stock_uploads,
             })
 
+    # For both GET and successful POST
     stock_uploads = StockUpload.objects.all()
     query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
         'products': Product.objects.all(),
-        'warehouse': Warehouse.objects.all(),
-        'materials': PackingMaterial.objects.all(),
+        'warehouse': warehouse,
+        'materials': materials,
         'stocks': stock_uploads,
         'query': query,
+        'categories': categories,
     })
+
+
+from django.http import JsonResponse
+
+def get_bins(request, subcategory_id):
+    bins = Bin.objects.filter(sub_category_id=subcategory_id)
+    bin_list = []
+    for b in bins:
+        remaining = b.capacity - b.existing_quantity
+        bin_list.append({
+            "id": b.id,
+            "bin_id": b.bin_id,
+            "capacity": b.capacity,
+            "remaining": remaining,
+        })
+    return JsonResponse({"bins": bin_list})
+
+
+# from django.http import JsonResponse
+# from .models import SubCategory, Bin
+
+# def get_subcategories(request):
+#     category_id = request.GET.get('category_id')
+#     subcategories = SubCategory.objects.filter(category_id=category_id).values('id', 'name')
+#     data = {'subcategories': list(subcategories)}
+#     return JsonResponse(data)
+
+# def get_bins(request):
+#     category_id = request.GET.get('category_id')
+#     sub_category_id = request.GET.get('sub_category_id')
+
+#     bins = Bin.objects.filter(
+#         category_id=category_id,
+#         sub_category_id=sub_category_id
+#     ).values('id', 'bin_id', 'existing_quantity', 'capacity')
+
+#     # Prepare formatted data
+#     bin_list = [
+#         {
+#             'id': b['id'],
+#             'display': f"{b['bin_id']} (Remaining: {b['capacity'] - b['existing_quantity']}/{b['capacity']})"
+#         }
+#         for b in bins
+#     ]
+
+#     return JsonResponse({'bins': bin_list})
 
 
 
@@ -793,9 +835,11 @@ def add_product(request):
             return render(request, 'product/add_product.html', {
                 'categories': Category.objects.all(),
                 'subcategories': SubCategory.objects.all(),
+                'pallets': Pallet.objects.all(),
             })
 
         try:
+        
             # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
 
@@ -836,6 +880,7 @@ def add_product(request):
     return render(request, 'product/add_product.html', {
         'categories': Category.objects.all(),
         'subcategories': SubCategory.objects.all(),
+        'pallets': Pallet.objects.all(),
     })
 
 
@@ -1394,8 +1439,7 @@ def rf_ptl(request):
 # -----------------
 # BIN
 # -----------------
-
-
+from .utils import generate_bin_id  
 def create_bin(request):
     if request.method == 'POST':
         try:
@@ -1408,16 +1452,19 @@ def create_bin(request):
             if sub_category_id:
                 sub_category = SubCategory.objects.get(id=sub_category_id)
 
+            bin_id = generate_bin_id(warehouse)
+
             Bin.objects.create(
                 whs_no=warehouse,
-                bin_id=request.POST.get('bin_id'),
+                bin_id=bin_id,
                 bin_type=request.POST.get('bin_type'),
                 capacity=int(request.POST.get('capacity')),
-                existing_quantity=request.POST.get('existing_quantity') or 0,
+                location=request.POST.get('location'),
+                existing_quantity=int(request.POST.get('existing_quantity') or 0),
                 category=category,
                 sub_category=sub_category,
-                updated_by=request.POST.get('updated_by'),
-                created_by=request.POST.get('created_by')
+                updated_by=request.POST.get('updated_by') or "system",
+                created_by=request.POST.get('created_by') or "system"
             )
 
             return redirect('create_bin')
@@ -1436,9 +1483,21 @@ def create_bin(request):
         'categories': Category.objects.all(),
     })
 
-def bin_detail(request, pk):
-    bin_instance = get_object_or_404(Bin, pk=pk)
-    return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
+
+def bin_detail(request, bin_id):
+    return render(request, 'bin/bin_detail.html', {'bin_id': bin_id})
+
+def get_bin_location(request, bin_id):
+    try:
+        bin_obj = Bin.objects.get(id=bin_id)
+        return JsonResponse({
+            "location": bin_obj.location
+        })
+    except Bin.DoesNotExist:
+        return JsonResponse({"error": "Bin not found"}, status=404)
+
+
+
 # -----------------
 # VENDOR
 # -----------------
@@ -1491,6 +1550,104 @@ def load_subcategories(request):
     category_id = request.GET.get("category_id")
     subcategories = SubCategory.objects.filter(category_id=category_id).values("id", "name")
     return JsonResponse({"subcategories": list(subcategories)})
+
+
+def bin_detail(request, bin_id):
+    bin_instance = get_object_or_404(Bin, bin_id=bin_id)
+    return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
+
+
+from django.shortcuts import render, get_object_or_404
+
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Bin, Warehouse, Category, SubCategory
+
+def edit_bin(request, bin_id):
+    bin_obj = get_object_or_404(Bin, pk=bin_id)
+    categories = Category.objects.all()
+
+    if request.method == "POST":
+        whs_no = request.POST.get('whs_no')
+        bin_id_input = request.POST.get('bin_id')
+        bin_type = request.POST.get('bin_type')
+        capacity = request.POST.get('capacity')
+        category_id = request.POST.get('category')
+        subcategory_id = request.POST.get('subcategory')
+
+        # Fetch related model instances
+        whs_instance = get_object_or_404(Warehouse, whs_no=whs_no)
+        category_instance = get_object_or_404(Category, id=category_id)
+        subcategory_instance = get_object_or_404(SubCategory, id=subcategory_id)
+
+        # Update bin object
+        bin_obj.whs_no = whs_instance
+        bin_obj.bin_id = bin_id_input
+        bin_obj.bin_type = bin_type
+        bin_obj.capacity = capacity
+        bin_obj.category = category_instance
+        bin_obj.subcategory = subcategory_instance
+        bin_obj.save()
+
+        return redirect('bin_detail', bin_id=bin_obj.id)
+
+    return render(request, 'bin/bin_edit.html', {
+        'bin': bin_obj,
+        'categories': categories,
+    })
+
+
+# -----------------
+# VENDOR
+# -----------------
+
+def task(request):
+    return render(request, 'rf_pick_to_light/task_solving.html')
+
+
+
+
+# def add_category(request):
+#     if request.method == "POST":
+#         try:
+#             category_name = request.POST.get("category")
+#             description = request.POST.get("description")
+
+#             category = Category.objects.create(
+#                 category=category_name,
+#                 description=description
+#             )
+
+#             # Subcategories
+#             subcategories = []
+#             for key, value in request.POST.items():
+#                 if key.startswith("sub_category_") and value.strip():
+#                     subcat = SubCategory.objects.create(
+#                         category=category,
+#                         name=value.strip()
+#                     )
+#                     subcategories.append(subcat.name)
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "id": category.id,
+#                 "category": category.category,
+#                 "subcategories": subcategories
+#             })
+
+#         except Exception as e:
+#             return JsonResponse({"success": False, "message": str(e)})
+
+#     return JsonResponse({"success": False, "message": "Invalid request"})
+
+# def get_subcategories(request, category_id):
+#     category = get_object_or_404(Category, id=category_id)
+#     subcategories = list(category.subcategories.values("id", "name"))
+#     return JsonResponse({"subcategories": subcategories})
+
+# def load_subcategories(request):
+#     category_id = request.GET.get("category_id")
+#     subcategories = SubCategory.objects.filter(category_id=category_id).values("id", "name")
+#     return JsonResponse({"subcategories": list(subcategories)})
 
 
 
@@ -1636,9 +1793,15 @@ def putaway_pending(request):
 
 def edit_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
-    pallets = Pallet.objects.all() 
+    pallets = Pallet.objects.all()
+
     if request.method == "POST":
-        putaway.pallet = request.POST.get("pallet")
+        pallet_id = request.POST.get("pallet")
+        if pallet_id:
+            putaway.pallet = Pallet.objects.get(id=pallet_id)
+        else:
+            putaway.pallet = None
+
         putaway.source_location = request.POST.get("source_location")
         putaway.destination_location = request.POST.get("destination_location")
         putaway.putaway_task_type = request.POST.get("putaway_task_type")
@@ -1649,8 +1812,11 @@ def edit_putaway(request, putaway_id):
         messages.success(request, "Putaway task updated successfully.")
         return redirect("putaway_pending")
 
-
-    return render(request, "putaway/edit_putaway.html", {"putaway": putaway})
+    return render(
+        request,
+        "putaway/edit_putaway.html",
+        {"putaway": putaway, "pallets": pallets} 
+    )
 
 def confirm_putaway(request, putaway_id):
     putaway = get_object_or_404(Putaway, putaway_id=putaway_id)
@@ -1705,11 +1871,12 @@ def product_suggestions(request):
     products = Product.objects.filter(
         name__icontains=query
     ).values(
-        'product_id',   
-        'name',
-        'description',
-        'category'
-    )[:10]  
+    'product_id',
+    'name',
+    'description',
+    'category'
+    
+)[:10] 
 
 
     return JsonResponse({'results': list(products)})
@@ -3012,41 +3179,51 @@ def search(request):
 
 
 
- 
+import csv
+from django.contrib import messages
+from django.shortcuts import redirect
+from .models import Bin, Warehouse, Category, SubCategory
 def bulk_upload_bins(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
         csv_file = request.FILES["csv_file"]
- 
-        if not csv_file.name.endswith('.csv'):
+
+        if not csv_file.name.endswith(".csv"):
             messages.error(request, "File must be a CSV.")
             return redirect("create_bin")
- 
-        file_data = csv_file.read().decode("utf-8").splitlines()
-        reader = csv.DictReader(file_data)
- 
+
+        try:
+            file_data = csv_file.read().decode("utf-8").splitlines()
+            reader = csv.DictReader(file_data)
+        except Exception:
+            messages.error(request, "Invalid CSV format.")
+            return redirect("create_bin")
+
         created, skipped = 0, 0
         for row in reader:
             try:
-                warehouse_code = row["Warehouse"]
-                bin_id = row["Bin ID"]
-                bin_type = row["Bin Type"]
-                capacity = row["Capacity"]
-                existing_quantity = row.get("Existing Quantity", 0)
-                category_name = row["Category"]
-                subcategory_name = row["Sub Category"]
- 
+                warehouse_code = row.get("Warehouse")
+                bin_id = row.get("Bin ID")
+                bin_type = row.get("Bin Type")
+                capacity = int(row.get("Capacity", 0))
+                existing_quantity = int(row.get("Existing Quantity", 0))
+                category_name = row.get("Category")
+                subcategory_name = row.get("Sub Category")
+
+                if not (warehouse_code and bin_id and category_name and subcategory_name):
+                    raise ValueError("Missing required fields")
+
                 # ✅ Get or create Warehouse
                 warehouse, _ = Warehouse.objects.get_or_create(whs_no=warehouse_code)
- 
+
                 # ✅ Get or create Category
                 category, _ = Category.objects.get_or_create(category=category_name)
- 
+
                 # ✅ Get or create Subcategory
                 subcategory, _ = SubCategory.objects.get_or_create(
                     name=subcategory_name, category=category
                 )
- 
-                # ✅ Create Bin
+
+                # ✅ Create Bin with audit info
                 Bin.objects.create(
                     whs_no=warehouse,
                     bin_id=bin_id,
@@ -3055,28 +3232,30 @@ def bulk_upload_bins(request):
                     existing_quantity=existing_quantity,
                     category=category,
                     sub_category=subcategory,
+                    created_by=request.user.username if request.user.is_authenticated else "system",
+                    updated_by=request.user.username if request.user.is_authenticated else "system",
                 )
                 created += 1
             except Exception as e:
                 print("Skipping row:", row, "Error:", e)
                 skipped += 1
- 
+
         messages.success(request, f"Uploaded {created} bins, skipped {skipped}.")
         return redirect("create_bin")
- 
+
     return redirect("create_bin")
+
  
-
-
+from .models import Profile
+ 
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-
         if not username or not password:
             messages.error(request, "Please enter both username and password")
-            return redirect("login")  
+            return redirect("login")
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -3085,75 +3264,76 @@ def login_view(request):
             return redirect("home")
         else:
             messages.error(request, "Invalid username or password")
-            return redirect("login") 
+            return redirect("login")
 
     return render(request, "account/login.html")
-
 
 @login_required
 def profile_detail_view(request):
     user = request.user
-    profile = getattr(user, 'profile', None)  
-    return render(request, 'account/profile_detail.html', {
-        'user': user,
-        'profile': profile,
+    profile, created = Profile.objects.get_or_create(user=user)
+    return render(request, "account/profile_detail.html", {
+        "user": user,
+        "profile": profile,
     })
     
-from .models import Profile
-
 @login_required
 def edit_profile(request):
     user = request.user
+    profile, created = Profile.objects.get_or_create(user=user)
 
-    profile, created = Profile.objects.get_or_create(user=user)  
-
-    if request.method == 'POST':
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.email = request.POST.get('email', user.email)
-
-        profile.phone = request.POST.get('phone', profile.phone)
-        profile.company_name = request.POST.get('company_name', profile.company_name)
-        profile.warehouse = request.POST.get('warehouse', profile.warehouse)
-
-        if 'image' in request.FILES:
-            profile.image = request.FILES['image']
+    if request.method == "POST":
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.email = request.POST.get("email", user.email)
+        profile.phone = request.POST.get("phone", profile.phone)
+        profile.company_name = request.POST.get("company_name", profile.company_name)
+        warehouse_id = request.POST.get("warehouse")
+        if warehouse_id:
+            profile.warehouse = Warehouse.objects.get(id=warehouse_id)
+        else:
+            profile.warehouse = None
+        if "image" in request.FILES:
+            profile.image = request.FILES["image"]
 
         user.save()
         profile.save()
 
-        return redirect('profile_detail')
-
-    return render(request, 'account/profile_edit.html', {'profile': profile})
-
+        messages.success(request, "Profile updated successfully.")
+        return redirect("profile_detail")
+    warehouses = Warehouse.objects.all()
+    return render(request, "account/profile_edit.html", {
+        "profile": profile,
+        "warehouses": warehouses,
+    })
 
 @login_required
 def change_password(request):
-    if request.method == 'POST':
-        old_password = request.POST.get('old_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
+    if request.method == "POST":
+        old_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
 
         user = request.user
         if not user.check_password(old_password):
             messages.error(request, "Old password is incorrect.")
-            return redirect('change_password')
+            return redirect("change_password")
         if new_password != confirm_password:
             messages.error(request, "New password and Confirm password do not match.")
-            return redirect('change_password')
+            return redirect("change_password")
+
         user.set_password(new_password)
         user.save()
         update_session_auth_hash(request, user)
 
         messages.success(request, "Your password has been changed successfully.")
-        return redirect('profile_detail')
+        return redirect("profile_detail")
 
-    return render(request, 'account/change_password.html')
-
+    return render(request, "account/change_password.html")
 
 def logout_view(request):
     logout(request)
-    return render(request, 'account/logout.html')
+    return render(request, "account/logout.html")
 
 def bulk_upload_bins(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
@@ -3210,35 +3390,57 @@ def bulk_upload_bins(request):
 
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Profile, Warehouse
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Profile, Warehouse
 
 def add_user(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        phone = request.POST.get('phn_no')
+        username = request.POST.get('username') 
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone = request.POST.get('phone')
         company_name = request.POST.get('company_name')
-        warehouse = request.POST.get('warehouse')
+        warehouse_id = request.POST.get('warehouse')
         image = request.FILES.get('image')
 
+        # Create User safely
         user = User.objects.create_user(
             username=username,
             email=email,
-            password=password
+            password=password,
+            first_name=first_name,
+            last_name=last_name
         )
+        warehouse = Warehouse.objects.get(whs_no=warehouse_id) if warehouse_id else None
 
-        # Create a profile automatically
-        Profile.objects.get_or_create(
+        # Create Profile
+        Profile.objects.create(
             user=user,
             phone=phone,
             company_name=company_name,
             warehouse=warehouse,
-            image=image)
+            image=image
+        )
 
-        return redirect('user_list')  # or wherever you want
-    return render(request, 'account/add_user.html')
+        return redirect('user_list')
+    if request.user.is_superuser:
+        warehouses = Warehouse.objects.all()
+    else:
 
+        profile = getattr(request.user, "profile", None)
+        if profile and profile.warehouse:
+            warehouses = Warehouse.objects.filter(whs_no=profile.warehouse.whs_no)
+        else:
+            warehouses = Warehouse.objects.none() 
 
+    return render(request, 'account/add_user.html', {'warehouses': warehouses})
 
 # User Detail
 def user_detail(request, user_id):
@@ -3249,35 +3451,41 @@ def user_detail(request, user_id):
 # Edit User
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
+    profile, created = Profile.objects.get_or_create(user=user)
+
     if request.method == 'POST':
         user.first_name = request.POST.get('first_name')
         user.last_name = request.POST.get('last_name')
         user.email = request.POST.get('email')
         user.save()
 
-        profile, created = Profile.objects.get_or_create(user=user)
-        profile.phn_no = request.POST.get('phn_no')
+        profile.phone = request.POST.get('phone')
         profile.company_name = request.POST.get('company_name')
-        profile.warehouse = request.POST.get('warehouse')
+
+        warehouse_id = request.POST.get('warehouse')
+        profile.warehouse = Warehouse.objects.get(pk=warehouse_id) if warehouse_id else None
+
         if request.FILES.get('image'):
             profile.image = request.FILES['image']
-        profile.save()
 
+        profile.save()
         return redirect('user_detail', user_id=user.id)
 
-    return render(request, 'account/edit_user.html', {'user': user})
+    warehouses = Warehouse.objects.all()
+    return render(request, 'account/edit_user.html', {'user': user, 'warehouses': warehouses})
 
+
+# Delete User
 def delete_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.delete()
     return redirect('user_list')
-    
+
+
+# User List
 def user_list(request):
     users = User.objects.all().select_related('profile')
     return render(request, 'account/user_list.html', {'users': users})
-
-
-
 
 
 def get_po_products(request, po_id):
@@ -3574,44 +3782,58 @@ def delete_shipment(request, shipment_id):
 from .forms import SortingForm
 from .models import Sorting, SalesOrderCreation, OutboundDelivery
 from django.utils.timezone import now
-
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.timezone import now
-from .models import SalesOrderCreation, OutboundDelivery
+from .models import SalesOrderCreation, OutboundDelivery, Sorting
 from .forms import SortingForm
+
 
 def create_sorting(request):
     sales_orders = SalesOrderCreation.objects.all()
     delivery_no = f"OD{now().strftime('%Y%m%d%H%M%S')}"
 
     if request.method == "POST":
-        # get so_no from POST
-        so_no = request.POST.get("so_no")
-        so_instance = get_object_or_404(SalesOrderCreation, pk=so_no)
+        so_no = request.POST.get("so_no")  # Selected SalesOrder ID from dropdown
+        so_obj = get_object_or_404(SalesOrderCreation, pk=so_no)
+        warehouse = so_obj.whs_no
 
-        # warehouse from sales order
-        warehouse = so_instance.whs_no
-
-        # Step 1: Create OutboundDelivery
+        # Step 1: Create OutboundDelivery linked to SalesOrder
         outbound_delivery = OutboundDelivery.objects.create(
             dlv_no=delivery_no,
-            so_no=so_instance,   
+            so_no=so_obj,  # Assign SalesOrder instance
             whs_no=warehouse,
-            whs_address=so_instance.whs_address,
-            ord_date=so_instance.order_date,
-            del_date=so_instance.delivery_date,
-            sold_to=so_instance.customer_id,
+            whs_address=so_obj.whs_address,
+            ord_date=so_obj.order_date,
+            del_date=so_obj.delivery_date,
+            sold_to=so_obj.customer_id,
         )
 
-        # Step 2: Bind SortingForm with POST data
         form = SortingForm(request.POST)
         if form.is_valid():
             sorting = form.save(commit=False)
-            sorting.outbound = outbound_delivery  # link to new outbound
+            sorting.outbound = outbound_delivery  #
+            sorting.so_no = so_obj               
+            sorting.warehouse = warehouse  
+            if not sorting.location:
+              sorting.location = warehouse.default_location       
             if request.user.is_authenticated:
                 sorting.created_by = request.user.username
+                sorting.updated_by = request.user.username 
             sorting.save()
             return redirect("sorting_detail", id=sorting.id)
+        else:
+            # Handle invalid form
+            return render(
+                request,
+                "sorting/create_sorting_task.html",
+                {
+                    "form": form,
+                    "sales_orders": sales_orders,
+                    "delivery_no": delivery_no,
+                    "error": "Please correct the errors below.",
+                }
+            )
+
     else:
         form = SortingForm()
 
@@ -3622,14 +3844,14 @@ def create_sorting(request):
             "form": form,
             "sales_orders": sales_orders,
             "delivery_no": delivery_no,
-        },
+        }
     )
+
 
 
 def sorting_detail(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
     return render(request, "sorting/sorting_detail.html", {"sorting": sorting})
-
 
 def sorting_edit(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
@@ -3638,16 +3860,64 @@ def sorting_edit(request, id):
         form = SortingForm(request.POST, instance=sorting)
         if form.is_valid():
             updated_sorting = form.save(commit=False)
+            updated_sorting.so_no = sorting.so_no
+            updated_sorting.outbound = sorting.outbound
             if request.user.is_authenticated:
                 updated_sorting.updated_by = request.user.username
             updated_sorting.save()
-            return redirect("sorting_detail", id=sorting.id)
+            return redirect("sorting_detail", id=updated_sorting.id)
     else:
         form = SortingForm(instance=sorting)
 
-    return render(request, "sorting/sorting_edit.html", {"form": form, "sorting": sorting})
-
+    return render(
+        request,
+        "sorting/sorting_edit.html",
+        {"form": form, "sorting": sorting},
+    )
 
 def sorting_list(request):
-    sortings = Sorting.objects.all().order_by("-sorted_at")
+    sortings = Sorting.objects.all().order_by('location', '-sorted_at')
     return render(request, "sorting/sorting_list.html", {"sortings": sortings})
+
+
+def delete_sorting(request, id):
+    sorting = get_object_or_404(Sorting, pk=id)
+    try:
+        sorting.delete()
+        messages.success(request, 'Sorting task deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting sorting task: {str(e)}')
+    return redirect('sorting_list')
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from .models import Bin, BinLog
+@login_required
+def bin_log_view(request):
+    # Get the bin ID from the query string
+    bin_id_query = request.GET.get('bin_id', '').strip()
+    
+    logs = []
+    bin_details = None
+    error_message = ""
+
+    if bin_id_query:
+        try:
+            # Get the Bin object by bin_id (case-insensitive)
+            bin_details = Bin.objects.get(bin_id__iexact=bin_id_query)
+            
+            # Get related logs, ordered newest first
+            logs = BinLog.objects.filter(bin=bin_details).order_by('-created_at')
+
+        except Bin.DoesNotExist:
+            error_message = f"No bin found with ID: {bin_id_query}"
+
+    context = {
+        'logs': logs,
+        'bin_id_query': bin_id_query,  # used in template search box
+        'bin_details': bin_details,
+        'error_message': error_message,
+    }
+
+    return render(request, 'bin/bin_log.html', context)
