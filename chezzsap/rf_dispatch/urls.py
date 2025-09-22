@@ -83,6 +83,7 @@ urlpatterns = [
     # Inventory & Bin
     path('inventory/', views.inventory_view, name='inventory'),
     path('create_bin/', views.create_bin, name='create_bin'),
+    path('bin_detail/<str:pk>',views.bin_detail, name='bin_detail' ),
 
     # Customers
     path('add_customers/', views.add_customers, name='add_customers'),
