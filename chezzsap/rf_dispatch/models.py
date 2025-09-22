@@ -942,3 +942,16 @@ class Sorting(models.Model):
     def __str__(self):
         return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
 
+from django.db import models
+from django.contrib.auth.models import User
+
+class BinLog(models.Model):
+    bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=100)  
+    whs_no = models.CharField(max_length=50)
+    remarks = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.bin.bin_code} - {self.action} at {self.created_at}"

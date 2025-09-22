@@ -88,6 +88,9 @@ urlpatterns = [
     path('create_bin/', views.create_bin, name='create_bin'),
     path('bin_detail/<str:pk>/', views.bin_detail, name='bin_detail'),
     path('bin/edit/<int:bin_id>/', views.edit_bin, name='edit_bin'),
+    # path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
+    path("get-bin-location/<int:bin_id>/", views.get_bin_location, name="get_bin_location"),
+    path('logs/', views.bin_log_view, name='bin_log'),
 
     # Customers
     path('add_customers/', views.add_customers, name='add_customers'),
@@ -198,6 +201,7 @@ urlpatterns = [
     path("bulk-upload-bins/", views.bulk_upload_bins, name="bulk_upload_bins"),
     path('bulk-upload-products/', views.bulk_upload_products, name='bulk_upload_products'),
     path('batch-product/upload-csv/', views.batch_product_csv_upload, name='batch_product_csv_upload'),
+    
 
     # User / Auth
     path("login/", views.login_view, name="login"),
