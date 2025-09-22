@@ -140,6 +140,7 @@ class Bin(models.Model):
     bin_id = models.CharField(max_length=50, unique=True) 
     bin_type = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField()
+    location = models.CharField(max_length=100, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
@@ -886,34 +887,6 @@ class Shipment(models.Model):
      
     def __str__(self):
         return f"Shipment {self.shipment_no} - {self.shipment_status}"
-
-class SortStatus(models.TextChoices):
-    PENDING = "Pending", "Pending"
-    SORTED = "Sorted", "Sorted"
-    
-class Sorting(models.Model):
-    outbound = models.ForeignKey("OutboundDelivery",on_delete=models.CASCADE, related_name="sortings" )
-    pallet = models.ForeignKey("Pallet",on_delete=models.CASCADE, related_name="sortings")
-    so_no = models.ForeignKey("SalesOrderCreation",on_delete=models.CASCADE, related_name="sortings" )
-    product = models.ForeignKey("Product", on_delete=models.CASCADE,related_name="sortings" )
-    quantity = models.PositiveIntegerField()
-    warehouse = models.ForeignKey("Warehouse",on_delete=models.CASCADE,related_name="sortings", null=True, blank=True, default=None )
-    status = models.CharField( max_length=50,choices=SortStatus.choices,default=SortStatus.PENDING )
-    sorted_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.CharField(max_length=100, null=True, blank=True, default=None)
-    updated_by = models.CharField(max_length=100, null=True, blank=True, default=None)
-    class Meta:
-        ordering = ["-sorted_at"]
-        indexes = [
-            models.Index(fields=["status"]),
-            models.Index(fields=["outbound"]),
-        ]
-    def __str__(self):
-        return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
-
-    def __str__(self):
-        return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"
 
 class SortStatus(models.TextChoices):
     PENDING = "Pending", "Pending"
