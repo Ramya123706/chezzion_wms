@@ -20,7 +20,7 @@ class YardHdr(models.Model):
     id = models.AutoField(primary_key=True)
     yard_id = models.CharField(max_length=100, null=True, blank=True)
     truck_no = models.CharField(max_length=100)
-    whs_no = models.CharField(max_length=5)
+    whs_no = models.CharField(max_length=50)
     truck_type = models.CharField(max_length=50, blank=True, null=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -56,7 +56,7 @@ class InspectionQuestion(models.Model):
 class InspectionResponse(models.Model):
     yard = models.ForeignKey(YardHdr, on_delete=models.CASCADE, related_name="inspections")
     question = models.ForeignKey(InspectionQuestion, on_delete=models.CASCADE)
-    answer = models.CharField(max_length=3, choices=YES_NO_CHOICES)
+    answer = models.CharField(max_length=10, choices=YES_NO_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -100,7 +100,7 @@ class Truck(models.Model):
 
     
 class Warehouse(models.Model):
-    whs_no = models.IntegerField(primary_key=True)
+    whs_no = models.CharField(primary_key=True, max_length=50)
     whs_name = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     phn_no = models.CharField(max_length=10)  
@@ -157,7 +157,12 @@ class Bin(models.Model):
 
 
 class Product(models.Model):
-    product_id = models.CharField(primary_key=True, max_length=50, unique=True) 
+    product_id = models.CharField(
+        primary_key=True,
+        max_length=50,
+        unique=True,
+        editable=False   # prevents showing in admin form
+    )
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   
     pallet_no = models.CharField(max_length=50, blank=True, null=True)
@@ -170,27 +175,35 @@ class Product(models.Model):
     images = models.ImageField(upload_to='product_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    
+
     def save(self, *args, **kwargs):
         is_new = self._state.adding  
-        old_quantity = None
 
+        # 🔹 Auto-generate product_id only for new products
+        if is_new and not self.product_id:
+            last = Product.objects.order_by("-created_at").first()
+            if last and last.product_id.startswith("P"):
+                next_num = int(last.product_id[1:]) + 1
+            else:
+                next_num = 1
+            self.product_id = f"P{next_num:05d}"   # Example: P00001, P00002...
+
+        # 🔹 Track old quantity for inventory sync
+        old_quantity = None
         if not is_new:
             old_quantity = Product.objects.get(pk=self.pk).quantity
 
         super().save(*args, **kwargs)
 
+        # 🔹 Update Inventory after save
         if is_new or (old_quantity != self.quantity):
             inventory, created = Inventory.objects.get_or_create(product=self)
             inventory.total_quantity = self.quantity
             inventory.save()
 
-
     def __str__(self):
         return f"{self.name} ({self.product_id})"
-
 
 
 
@@ -218,7 +231,7 @@ class PackingMaterial(models.Model):
         return self.material
 
 class Pallet(models.Model):
-    pallet_no = models.CharField(max_length=100, unique=True, editable=False) 
+    pallet_no = models.CharField(max_length=100, unique=True, editable=False, default='') 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
@@ -291,7 +304,7 @@ class StockUpload(models.Model):
     quantity = models.PositiveIntegerField()
     batch = models.CharField(max_length=100, null=True, blank=True)
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE , null=True, blank=True)
-    pallet = models.CharField(max_length=50)
+    pallet = models.CharField(max_length=50, default='Not assigned', blank=True, null=True)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     inspection = models.CharField(max_length=50)
     stock_type = models.CharField(max_length=50)

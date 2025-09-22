@@ -430,6 +430,7 @@ def batch_product_view(request):
     categories = Category.objects.all()  # Make sure categories is always defined
     warehouse = Warehouse.objects.all()
     materials = PackingMaterial.objects.all()
+    
 
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
@@ -837,9 +838,11 @@ def add_product(request):
             return render(request, 'product/add_product.html', {
                 'categories': Category.objects.all(),
                 'subcategories': SubCategory.objects.all(),
+                'pallets': Pallet.objects.all(),
             })
 
         try:
+        
             # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
 
@@ -880,6 +883,7 @@ def add_product(request):
     return render(request, 'product/add_product.html', {
         'categories': Category.objects.all(),
         'subcategories': SubCategory.objects.all(),
+        'pallets': Pallet.objects.all(),
     })
 
 
