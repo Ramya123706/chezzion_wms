@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header text-white bg-primary d-flex align-items-center">
+          <i class="fas fa-boxes me-2"></i>
+          <h5 class="mb-0">Edit Bin</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'edit_bin' bin.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if error %}
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle me-1"></i>
+              <strong>Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="mb-3 position-relative">
+              <label><i class="fas fa-warehouse me-1"></i><b>Warehouse</b></label>
+              <input type="text" id="whs_no_input" name="whs_no" class="form-control" value="{{ bin.whs_no }}" autocomplete="off" />
+              <div id="whs_suggestions" class="border p-2 bg-white position-absolute w-100" style="z-index: 999; display: none"></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="bin_id"><i class="fas fa-barcode me-1"></i><b>Bin ID</b></label>
+              <input type="text" id="bin_id" name="bin_id" class="form-control" value="{{ bin.bin_id }}" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="bin_type"><i class="fas fa-layer-group me-1"></i><b>Bin Type</b></label>
+              <input type="text" id="bin_type" name="bin_type" class="form-control" value="{{ bin.bin_type }}" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="capacity"><i class="fas fa-weight-scale me-1"></i><b>Capacity</b></label>
+              <input type="text" id="capacity" name="capacity" class="form-control" value="{{ bin.capacity }}" required />
+            </div>
+
+            <div class="mb-3">
+              <label for="category"><i class="fas fa-tags me-1"></i><b>Category</b></label>
+              <select id="category" name="category" class="form-control" required>
+                <option value="">-- Select Category --</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if bin.category.id == cat.id %}selected{% endif %}>{{ cat.category }}</option>
+                {% endfor %}
+              </select>
+              <button type="button" class="btn btn-link p-0 mt-1" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="fas fa-plus-circle me-1"></i>Add New Category
+              </button>
+            </div>
+
+            <div class="mb-3">
+              <label for="subcategory"><i class="fas fa-tag me-1"></i><b>Sub Category</b></label>
+              <select id="subcategory" name="subcategory" class="form-control">
+                <option value="">-- Select Sub Category --</option>
+                {% for sub in subcategories %}
+                <option value="{{ sub.id }}" {% if bin.subcategory.id == sub.id %}selected{% endif %}>{{ sub.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-primary w-50"><i class="fas fa-paper-plane me-1"></i> Update</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include Add Category Modal & necessary JS from create_bin.html as is -->
+{% endblock %}

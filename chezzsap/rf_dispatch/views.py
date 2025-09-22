@@ -422,9 +422,16 @@ def update_truck_status(request, truck_no):
 # -------------
 
  
+from django.shortcuts import render, get_object_or_404
+from .models import Category, Warehouse, PackingMaterial, Product, Bin, StockUpload
+
 def batch_product_view(request):
     query = ""
- 
+    categories = Category.objects.all()  # Make sure categories is always defined
+    warehouse = Warehouse.objects.all()
+    materials = PackingMaterial.objects.all()
+    
+
     if request.method == 'POST':
         whs_no = request.POST.get('whs_no')
         product_id = request.POST.get('product')
@@ -441,23 +448,23 @@ def batch_product_view(request):
         pallet_status = request.POST.get('pallet_status')
         category = request.POST.get('category')
         sub_category = request.POST.get('sub_category')
- 
+
         try:
             product_instance, _ = Product.objects.get_or_create(
                 product_id=product_id,
                 defaults={
-                    'name': request.POST.get('product', ''),
-                    'description': request.POST.get('description', '')
+                    'name': product_id,
+                    'description': description
                 }
             )
- 
-            warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
-            bin_instance = Bin.objects.filter(bin_id=bin_id).first()
+
+            warehouse_instance = get_object_or_404(Warehouse, whs_no=whs_no)
+            bin_instance = Bin.objects.filter(id=bin_id).first() 
             p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
             batch = request.POST.get('batch_input') or batch or ''
- 
+
             StockUpload.objects.create(
-                whs_no=warehouse,
+                whs_no=warehouse_instance,
                 product=product_instance,
                 description=description,
                 quantity=int(quantity or 0),
@@ -474,38 +481,76 @@ def batch_product_view(request):
                 sub_category=sub_category
             )
 
-
         except Exception as e:
             query = request.GET.get('search', '')
             stock_uploads = StockUpload.objects.all()
             return render(request, 'stock_upload/batch_product.html', {
                 'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
+                'warehouse': warehouse,
+                'materials': materials,
                 'stocks': stock_uploads,
                 'query': query,
-            })
-        except Exception as e:
-            query = request.GET.get('search', '')
-            stock_uploads = StockUpload.objects.all()
-            return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': Warehouse.objects.all(),
-                'materials': PackingMaterial.objects.all(),
+                'categories': categories,
                 'error': str(e),
-                'query': query,
-                'stocks': stock_uploads,
             })
 
+    # For both GET and successful POST
     stock_uploads = StockUpload.objects.all()
     query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
         'products': Product.objects.all(),
-        'warehouse': Warehouse.objects.all(),
-        'materials': PackingMaterial.objects.all(),
+        'warehouse': warehouse,
+        'materials': materials,
         'stocks': stock_uploads,
         'query': query,
+        'categories': categories,
     })
+
+
+from django.http import JsonResponse
+
+def get_bins(request, subcategory_id):
+    bins = Bin.objects.filter(sub_category_id=subcategory_id)
+    bin_list = []
+    for b in bins:
+        remaining = b.capacity - b.existing_quantity
+        bin_list.append({
+            "id": b.id,
+            "bin_id": b.bin_id,
+            "capacity": b.capacity,
+            "remaining": remaining,
+        })
+    return JsonResponse({"bins": bin_list})
+
+
+# from django.http import JsonResponse
+# from .models import SubCategory, Bin
+
+# def get_subcategories(request):
+#     category_id = request.GET.get('category_id')
+#     subcategories = SubCategory.objects.filter(category_id=category_id).values('id', 'name')
+#     data = {'subcategories': list(subcategories)}
+#     return JsonResponse(data)
+
+# def get_bins(request):
+#     category_id = request.GET.get('category_id')
+#     sub_category_id = request.GET.get('sub_category_id')
+
+#     bins = Bin.objects.filter(
+#         category_id=category_id,
+#         sub_category_id=sub_category_id
+#     ).values('id', 'bin_id', 'existing_quantity', 'capacity')
+
+#     # Prepare formatted data
+#     bin_list = [
+#         {
+#             'id': b['id'],
+#             'display': f"{b['bin_id']} (Remaining: {b['capacity'] - b['existing_quantity']}/{b['capacity']})"
+#         }
+#         for b in bins
+#     ]
+
+#     return JsonResponse({'bins': bin_list})
 
 
 
@@ -793,9 +838,11 @@ def add_product(request):
             return render(request, 'product/add_product.html', {
                 'categories': Category.objects.all(),
                 'subcategories': SubCategory.objects.all(),
+                'pallets': Pallet.objects.all(),
             })
 
         try:
+        
             # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
 
@@ -836,6 +883,7 @@ def add_product(request):
     return render(request, 'product/add_product.html', {
         'categories': Category.objects.all(),
         'subcategories': SubCategory.objects.all(),
+        'pallets': Pallet.objects.all(),
     })
 
 
@@ -1380,19 +1428,6 @@ def create_bin(request):
         'categories': Category.objects.all(),
     })
 
-def bin_detail(request, pk):
-    bin_instance = get_object_or_404(Bin, pk=pk)
-    return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
-# -----------------
-# VENDOR
-# -----------------
-
-def task(request):
-    return render(request, 'rf_pick_to_light/task_solving.html')
-
-
-
-
 def add_category(request):
     if request.method == "POST":
         try:
@@ -1435,6 +1470,104 @@ def load_subcategories(request):
     category_id = request.GET.get("category_id")
     subcategories = SubCategory.objects.filter(category_id=category_id).values("id", "name")
     return JsonResponse({"subcategories": list(subcategories)})
+
+
+def bin_detail(request, pk):
+    bin_instance = get_object_or_404(Bin, pk=pk)
+    return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
+
+
+from django.shortcuts import render, get_object_or_404
+
+from django.shortcuts import get_object_or_404, redirect, render
+from .models import Bin, Warehouse, Category, SubCategory
+
+def edit_bin(request, bin_id):
+    bin_obj = get_object_or_404(Bin, pk=bin_id)
+    categories = Category.objects.all()
+
+    if request.method == "POST":
+        whs_no = request.POST.get('whs_no')
+        bin_id_input = request.POST.get('bin_id')
+        bin_type = request.POST.get('bin_type')
+        capacity = request.POST.get('capacity')
+        category_id = request.POST.get('category')
+        subcategory_id = request.POST.get('subcategory')
+
+        # Fetch related model instances
+        whs_instance = get_object_or_404(Warehouse, whs_no=whs_no)
+        category_instance = get_object_or_404(Category, id=category_id)
+        subcategory_instance = get_object_or_404(SubCategory, id=subcategory_id)
+
+        # Update bin object
+        bin_obj.whs_no = whs_instance
+        bin_obj.bin_id = bin_id_input
+        bin_obj.bin_type = bin_type
+        bin_obj.capacity = capacity
+        bin_obj.category = category_instance
+        bin_obj.subcategory = subcategory_instance
+        bin_obj.save()
+
+        return redirect('bin_detail', bin_id=bin_obj.id)
+
+    return render(request, 'bin/bin_edit.html', {
+        'bin': bin_obj,
+        'categories': categories,
+    })
+
+
+# -----------------
+# VENDOR
+# -----------------
+
+def task(request):
+    return render(request, 'rf_pick_to_light/task_solving.html')
+
+
+
+
+# def add_category(request):
+#     if request.method == "POST":
+#         try:
+#             category_name = request.POST.get("category")
+#             description = request.POST.get("description")
+
+#             category = Category.objects.create(
+#                 category=category_name,
+#                 description=description
+#             )
+
+#             # Subcategories
+#             subcategories = []
+#             for key, value in request.POST.items():
+#                 if key.startswith("sub_category_") and value.strip():
+#                     subcat = SubCategory.objects.create(
+#                         category=category,
+#                         name=value.strip()
+#                     )
+#                     subcategories.append(subcat.name)
+
+#             return JsonResponse({
+#                 "success": True,
+#                 "id": category.id,
+#                 "category": category.category,
+#                 "subcategories": subcategories
+#             })
+
+#         except Exception as e:
+#             return JsonResponse({"success": False, "message": str(e)})
+
+#     return JsonResponse({"success": False, "message": "Invalid request"})
+
+# def get_subcategories(request, category_id):
+#     category = get_object_or_404(Category, id=category_id)
+#     subcategories = list(category.subcategories.values("id", "name"))
+#     return JsonResponse({"subcategories": subcategories})
+
+# def load_subcategories(request):
+#     category_id = request.GET.get("category_id")
+#     subcategories = SubCategory.objects.filter(category_id=category_id).values("id", "name")
+#     return JsonResponse({"subcategories": list(subcategories)})
 
 
 
@@ -1649,11 +1782,12 @@ def product_suggestions(request):
     products = Product.objects.filter(
         name__icontains=query
     ).values(
-        'product_id',   
-        'name',
-        'description',
-        'category'
-    )[:10]  
+    'product_id',
+    'name',
+    'description',
+    'category'
+    
+)[:10] 
 
 
     return JsonResponse({'results': list(products)})
@@ -3515,24 +3649,31 @@ from .forms import SortingForm
 from .models import Sorting, SalesOrderCreation, OutboundDelivery
 from django.utils.timezone import now
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.timezone import now
+from .models import SalesOrderCreation, OutboundDelivery, Sorting
+from .forms import SortingForm
+
 
 def create_sorting(request):
     sales_orders = SalesOrderCreation.objects.all()
     delivery_no = f"OD{now().strftime('%Y%m%d%H%M%S')}"
 
     if request.method == "POST":
-        so_id = request.POST.get("so_no") 
-        so_obj = get_object_or_404(SalesOrderCreation, pk=so_id)
+        so_no = request.POST.get("so_no")  # Selected SalesOrder ID from dropdown
+        so_obj = get_object_or_404(SalesOrderCreation, pk=so_no)
         warehouse = so_obj.whs_no
+
+        # Step 1: Create OutboundDelivery linked to SalesOrder
         outbound_delivery = OutboundDelivery.objects.create(
             dlv_no=delivery_no,
-            so_no=so_obj,  
+            so_no=so_obj,  # Assign SalesOrder instance
             whs_no=warehouse,
             whs_address=so_obj.whs_address,
             ord_date=so_obj.order_date,
             del_date=so_obj.delivery_date,
             sold_to=so_obj.customer_id,
         )
+
         form = SortingForm(request.POST)
         if form.is_valid():
             sorting = form.save(commit=False)
@@ -3546,6 +3687,19 @@ def create_sorting(request):
                 sorting.updated_by = request.user.username 
             sorting.save()
             return redirect("sorting_detail", id=sorting.id)
+        else:
+            # Handle invalid form
+            return render(
+                request,
+                "sorting/create_sorting_task.html",
+                {
+                    "form": form,
+                    "sales_orders": sales_orders,
+                    "delivery_no": delivery_no,
+                    "error": "Please correct the errors below.",
+                }
+            )
+
     else:
         form = SortingForm()
 
@@ -3556,8 +3710,10 @@ def create_sorting(request):
             "form": form,
             "sales_orders": sales_orders,
             "delivery_no": delivery_no,
-        },
+        }
     )
+
+
 
 def sorting_detail(request, id):
     sorting = get_object_or_404(Sorting, pk=id)
@@ -3588,4 +3744,14 @@ def sorting_edit(request, id):
 def sorting_list(request):
     sortings = Sorting.objects.all().order_by('location', '-sorted_at')
     return render(request, "sorting/sorting_list.html", {"sortings": sortings})
+
+
+def delete_sorting(request, id):
+    sorting = get_object_or_404(Sorting, pk=id)
+    try:
+        sorting.delete()
+        messages.success(request, 'Sorting task deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting sorting task: {str(e)}')
+    return redirect('sorting_list')
 
