@@ -157,6 +157,7 @@ def yard_checkin_view(request):
                 'yard_scan': request.POST.get('yard_scan'),
                 'truck_status': request.POST.get('truck_status'),
             }
+            
             return redirect('inspection', truck_no=truck_no)
 
     form = YardHdrForm()
@@ -199,7 +200,7 @@ def inspection_view(request, truck_no):
             truck_time = page1_data['truck_time'],
             seal_no = page1_data['seal_no'],
             yard_scan = page1_data['yard_scan'],
-            truck_status = "Inspected"
+            truck_status = page1_data['truck_status'],
         )
        
         for q, ans in responses.items():
@@ -216,6 +217,14 @@ def inspection_view(request, truck_no):
                 driver_name = yard_instance.driver_name,
                 driver_phn_no = yard_instance.driver_phn_no
             )
+
+        # ------------------- Add TruckLog entry -------------------
+        TruckLog.objects.create(
+            truck_no = yard_instance,  # FK to YardHdr
+            status = yard_instance.truck_status,
+            comment = "Truck inspection completed",
+            status_changed_by = request.user  # optional
+        )
  
         if 'page1_data' in request.session:
             del request.session['page1_data']
@@ -313,10 +322,16 @@ def status_log_view(request, truck_no):
 
 from django.shortcuts import render
 from .models import Truck  # or your truck model
-
 def truck_driver_list(request):
     trucks = Truck.objects.all()  # get all trucks
-    return render(request, 'truck_screen/truck_driver_list.html', {'trucks': trucks})
+
+    # Attach latest status from TruckLog
+    for truck in trucks:
+        latest_log = TruckLog.objects.filter(truck_no=truck.truck_no).order_by('-truck_date', '-truck_time').first()
+        truck.latest_status = latest_log.status if latest_log else "Not planned"
+
+    return render(request, 'truck_screen/truck_driver_list.html', {'trucks': trucks, 'trucklog': TruckLog.objects.all()})
+
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Truck
