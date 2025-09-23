@@ -962,19 +962,16 @@ def add_product(request):
                 images=images,
             )
 
-            messages.success(request, "Product added successfully!")
-            return redirect('product_detail', product_id=product.product_id)
+            messages.success(request, f"Product {product_id} added successfully!")
+            return redirect('product_list')
 
-        except Category.DoesNotExist:
-            messages.error(request, "Selected category does not exist.")
         except Exception as e:
             messages.error(request, f"Unexpected error: {e}")
 
-    # GET request or on error
     return render(request, 'product/add_product.html', {
-        'categories': Category.objects.all(),
-        'subcategories': SubCategory.objects.all(),
-        'pallets': Pallet.objects.all(),
+        'pallets': pallets,
+        'categories': categories,
+        'subcategories': subcategories,
     })
 
 
