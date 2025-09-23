@@ -3,7 +3,7 @@
 {% block content %}
 <div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
     <div class="w-50">
-        <h2 class="mb-4 text-center">Create Sorting Task</h2>
+        <h2 class="mb-4 text-center"><b>Create Sorting Task</b></h2>
         <form method="post" class="card p-4 shadow-sm">
             {% csrf_token %}
 
@@ -44,7 +44,11 @@
                 <label class="form-label"><b>Quantity</b></label>
                 {{ form.quantity }}
             </div>
+            <div class="mb-3">
+                <label class="form-label"><b>Location</b></label>
+                {{ form.location }}
 
+            </div>
             <div class="mb-3">
                 <label class="form-label"><b>Warehouse</b></label>
                 {{ form.warehouse }}
