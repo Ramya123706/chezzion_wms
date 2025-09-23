@@ -30,12 +30,13 @@
                         </div>
 
                         <!-- Product ID -->
-                        <div class="mb-3">
-                            <label for="product_id" class="form-label">
-                                <i class="fa-solid fa-barcode me-1"></i> <b>Product ID</b>
-                            </label>
-                            <input type="text" id="product_id" name="product_id" class="form-control" required>
-                        </div>
+                      <!-- Product ID (Auto Generated) -->
+<div class="mb-3 visually-hidden">
+    <label for="product_id" class="form-label">
+        <i class="fa-solid fa-barcode me-1"></i> <b>Product ID (Auto)</b>
+    </label>
+    <input type="text" id="product_id" class="form-control" value="Will be auto-generated" readonly>
+</div>
 
                         <!-- Quantity -->
                         <div class="mb-3">
@@ -50,12 +51,18 @@
                             <label for="pallet_no" class="form-label">
                                 <i class="fa-solid fa-pallet me-1"></i> <b>Pallet No</b>
                             </label>
-                            <select id="pallet_no" name="pallet_no" class="form-select" required>
-                                <option value="">-- Select Pallet --</option>
-                                {% for pal in pallets %}
-                                    <option value="{{ pal.pallet_no }}">{{ pal.pallet_no }}</option>
-                                {% endfor %}
-                            </select>
+                            <select id="pallet" name="pallet" class="form-select" required>
+    <option value="">-- Select Pallet --</option>
+    {% for pallet in pallets %}
+        {% if not pallet.parent_pallet %}
+            <option value="{{ pallet.id }}">
+                {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
+            </option>
+        {% endif %}
+    {% endfor %}
+</select>
+
+
 
                         </div>
 
