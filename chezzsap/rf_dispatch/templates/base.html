@@ -4,8 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {% load static %} {% load custom_tags %}
-    <title>RF Dispatch - Dashboard</title>
-
+    <title>{% block title %}{{ page_title }}{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
@@ -99,11 +98,10 @@
     </nav>
 
     <!-- Sidebar -->
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <!-- General -->
       <div class="nav-header">General</div>
-      <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}"> <i class="fa-solid fa-house me-2"></i> Dashboard </a>
+      <a href="{% url 'home' %}" class="{% if request.path == '/home/' %}active{% endif %}"> <i class="fa-solid fa-house me-2"></i> Dashboard </a>
 
       <!-- Warehouse -->
       <div class="nav-header">Warehouse</div>
@@ -111,23 +109,23 @@
         <i class="fa-solid fa-warehouse me-2"></i> Warehouse <i class="fa-solid fa-angle-down float-end"></i>
       </a>
       <div
-        class="collapse ps-3 {% if '/warehouse/' in request.path or '/inventory/' in request.path or '/create_bin/' in request.path or '/stock_list/' in request.path or '/creating_pallet/' in request.path %}show{% endif %}"
+        class="collapse ps-3 {% if '/warehouse/' in request.path or '/inventory/' in request.path or '/create_bin/' in request.path or '/stocks/' in request.path or '/create_pallet/' in request.path %}show{% endif %}"
         id="warehouseMenu">
-        <a href="{% url 'warehouse_view' %}" class="{% if request.path == '/warehouse/' %}active{% endif %}"
-          ><i class="fa-solid fa-building me-1"></i> Warehouses</a
-        >
-        <a href="{% url 'inventory' %}" class="{% if request.path == '/inventory/' %}active{% endif %}"
-          ><i class="fa-solid fa-boxes-stacked me-1"></i> Inventory</a
-        >
-        <a href="{% url 'create_bin' %}" class="{% if request.path == '/create_bin/' %}active{% endif %}"
-          ><i class="fa-solid fa-cube me-1"></i> Bins</a
-        >
-        <a href="{% url 'stock_list' %}" class="{% if request.path == '/stock_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-layer-group me-1"></i> Stock</a
-        >
-        <a href="{% url 'creating_pallet' %}" class="{% if request.path == '/creating_pallet/' %}active{% endif %}"
-          ><i class="fa-solid fa-pallet me-1"></i> Pallets</a
-        >
+        <a href="{% url 'warehouse_view' %}" class="{% if request.path == '/warehouse/' %}active{% endif %}">
+          <i class="fa-solid fa-building me-1"></i> Warehouses
+        </a>
+        <a href="{% url 'inventory' %}" class="{% if request.path == '/inventory/' %}active{% endif %}">
+          <i class="fa-solid fa-boxes-stacked me-1"></i> Inventory
+        </a>
+        <a href="{% url 'create_bin' %}" class="{% if request.path == '/create_bin/' %}active{% endif %}">
+          <i class="fa-solid fa-cube me-1"></i> Bins
+        </a>
+        <a href="{% url 'stock_list' %}" class="{% if request.path == '/stocks/' %}active{% endif %}">
+          <i class="fa-solid fa-layer-group me-1"></i> Stock
+        </a>
+        <a href="{% url 'creating_pallet' %}" class="{% if request.path == '/create_pallet/' %}active{% endif %}">
+          <i class="fa-solid fa-pallet me-1"></i> Pallets
+        </a>
       </div>
 
       <!-- Orders -->
@@ -136,17 +134,17 @@
         <i class="fa-solid fa-file-invoice me-2"></i> Orders <i class="fa-solid fa-angle-down float-end"></i>
       </a>
       <div
-        class="collapse ps-3 {% if '/purchase_list/' in request.path or '/sales_order_list/' in request.path or '/outbound_list/' in request.path or '/inbound_delivery/' in request.path or '/packing_list/' in request.path or '/pgi_list/' in request.path or '/gr_list/' in request.path or '/sorting_list/' in request.path or '/shipment_dashboard/' in request.path %}show{% endif %}"
+        class="collapse ps-3 {% if '/purchases/' in request.path or '/sales/' in request.path or '/outbound-list/' in request.path or '/inbound_delivery/' in request.path or '/packing/' in request.path or '/pgi/' in request.path or '/gr_list/' in request.path or '/sorting/' in request.path or '/create-shipment/' in request.path %}show{% endif %}"
         id="ordersMenu">
-        <a href="{% url 'purchase_list' %}" class="{% if request.path == '/purchase_list/' %}active{% endif %}">Purchases</a>
-        <a href="{% url 'sales_order_list' %}" class="{% if request.path == '/sales_order_list/' %}active{% endif %}">Sales</a>
-        <a href="{% url 'outbound_list' %}" class="{% if request.path == '/outbound_list/' %}active{% endif %}">Outbound</a>
+        <a href="{% url 'purchase_list' %}" class="{% if request.path == '/purchases/' %}active{% endif %}">Purchases</a>
+        <a href="{% url 'sales_order_list' %}" class="{% if request.path == '/sales/' %}active{% endif %}">Sales</a>
+        <a href="{% url 'outbound_list' %}" class="{% if request.path == '/outbound-list/' %}active{% endif %}">Outbound</a>
         <a href="{% url 'inbound_delivery' %}" class="{% if request.path == '/inbound_delivery/' %}active{% endif %}">Inbound</a>
-        <a href="{% url 'packing_list' %}" class="{% if request.path == '/packing_list/' %}active{% endif %}">Packing</a>
-        <a href="{% url 'pgi_list' %}" class="{% if request.path == '/pgi_list/' %}active{% endif %}">PGI</a>
+        <a href="{% url 'packing_list' %}" class="{% if request.path == '/packing/' %}active{% endif %}">Packing</a>
+        <a href="{% url 'pgi_list' %}" class="{% if request.path == '/pgi/' %}active{% endif %}">PGI</a>
         <a href="{% url 'gr_list' %}" class="{% if request.path == '/gr_list/' %}active{% endif %}">GR</a>
-        <a href="{% url 'sorting_list' %}" class="{% if request.path == '/sorting_list/' %}active{% endif %}">Sorting</a>
-        <a href="{% url 'shipment_dashboard' %}" class="{% if request.path == '/shipment_dashboard/' %}active{% endif %}">Shipments</a>
+        <a href="{% url 'sorting_list' %}" class="{% if request.path == '/sorting/' %}active{% endif %}">Sorting</a>
+        <a href="{% url 'shipment_dashboard' %}" class="{% if request.path == '/create-shipment/' %}active{% endif %}">Shipments</a>
       </div>
 
       <!-- Masters -->
@@ -155,23 +153,23 @@
         <i class="fa-solid fa-cubes me-2"></i> Masters <i class="fa-solid fa-angle-down float-end"></i>
       </a>
       <div
-        class="collapse ps-3 {% if '/product_list/' in request.path or '/customers_list/' in request.path or '/vendor_list/' in request.path or '/category_list/' in request.path or '/material_list/' in request.path %}show{% endif %}"
+        class="collapse ps-3 {% if '/product-list/' in request.path or '/customers/' in request.path or '/vendors/' in request.path or '/list_category/' in request.path or '/materials/' in request.path %}show{% endif %}"
         id="mastersMenu">
-        <a href="{% url 'product_list' %}" class="{% if request.path == '/product_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-box me-1"></i> Products</a
-        >
-        <a href="{% url 'customers_list' %}" class="{% if request.path == '/customers_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-user-group me-1"></i> Customers</a
-        >
-        <a href="{% url 'vendor_list' %}" class="{% if request.path == '/vendor_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-truck-fast me-1"></i> Vendors</a
-        >
-        <a href="{% url 'category_list' %}" class="{% if request.path == '/category_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-tags me-1"></i> Categories</a
-        >
-        <a href="{% url 'material_list' %}" class="{% if request.path == '/material_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-layer-group me-1"></i> Materials</a
-        >
+        <a href="{% url 'product_list' %}" class="{% if request.path == '/product-list/' %}active{% endif %}">
+          <i class="fa-solid fa-box me-1"></i> Products
+        </a>
+        <a href="{% url 'customers_list' %}" class="{% if request.path == '/customers/' %}active{% endif %}">
+          <i class="fa-solid fa-user-group me-1"></i> Customers
+        </a>
+        <a href="{% url 'vendor_list' %}" class="{% if request.path == '/vendors/' %}active{% endif %}">
+          <i class="fa-solid fa-truck-fast me-1"></i> Vendors
+        </a>
+        <a href="{% url 'category_list' %}" class="{% if request.path == '/list_category/' %}active{% endif %}">
+          <i class="fa-solid fa-tags me-1"></i> Categories
+        </a>
+        <a href="{% url 'material_list' %}" class="{% if request.path == '/materials/' %}active{% endif %}">
+          <i class="fa-solid fa-layer-group me-1"></i> Materials
+        </a>
       </div>
 
       <!-- Inspection & Trucks -->
@@ -180,11 +178,27 @@
         <i class="fa-solid fa-truck me-2"></i> Inspection <i class="fa-solid fa-angle-down float-end"></i>
       </a>
       <div
-        class="collapse ps-3 {% if '/yard_checkin/' in request.path or '/inspection/' in request.path or '/truck_list/' in request.path or '/truck_status/' in request.path %}show{% endif %}"
+        class="collapse ps-3 {% if '/yard_checkin/' in request.path or '/inspection/' in request.path or '/trucks/' in request.path or '/truck-status/' in request.path %}show{% endif %}"
         id="inspectionMenu">
         <a href="{% url 'yard_checkin' %}" class="{% if request.path == '/yard_checkin/' %}active{% endif %}">Yard Check-in</a>
-        <a href="{% url 'truck_list' %}" class="{% if request.path == '/truck_list/' %}active{% endif %}">Truck List</a>
+        <a href="{% url 'truck_list' %}" class="{% if request.path == '/trucks/' %}active{% endif %}">Truck List</a>
         <a href="{% url 'add_questions' %}" class="{% if request.path == '/add-questions/' %}active{% endif %}">Inspection Questions</a>
+      </div>
+
+      <!-- Tasks & Operations -->
+      <div class="nav-header">Tasks</div>
+      <a href="#tasksMenu" data-bs-toggle="collapse">
+        <i class="fa-solid fa-list-check me-2"></i> Tasks <i class="fa-solid fa-angle-down float-end"></i>
+      </a>
+      <div
+        class="collapse ps-3 {% if '/task/' in request.path or '/picking/' in request.path or '/putaway/' in request.path or '/stock_upload/' in request.path or '/bulk-upload-' in request.path %}show{% endif %}"
+        id="tasksMenu">
+        <a href="{% url 'task' %}" class="{% if request.path == '/task/' %}active{% endif %}">All Tasks</a>
+        <a href="{% url 'pending_task' %}" class="{% if request.path == '/pending_task/' %}active{% endif %}">Picking Tasks</a>
+        <a href="{% url 'putaway_task' %}" class="{% if request.path == '/putaway_task/' %}active{% endif %}">Putaway Tasks</a>
+        <a href="{% url 'stock_upload_login' %}" class="{% if request.path == '/stock_upload/login' %}active{% endif %}">Stock Upload</a>
+        <a href="{% url 'bulk_upload_bins' %}" class="{% if request.path == '/bulk-upload-bins/' %}active{% endif %}">Bulk Upload Bins</a>
+        <a href="{% url 'bulk_upload_products' %}" class="{% if request.path == '/bulk-upload-products/' %}active{% endif %}">Bulk Upload Products</a>
       </div>
 
       <!-- Admin -->
@@ -193,18 +207,24 @@
         <i class="fa-solid fa-user-gear me-2"></i> Admin <i class="fa-solid fa-angle-down float-end"></i>
       </a>
       <div
-        class="collapse ps-3 {% if '/user_list/' in request.path or '/profile_detail/' in request.path or '/superadmin_dashboard/' in request.path %}show{% endif %}"
+        class="collapse ps-3 {% if '/users/' in request.path or '/profile_detail/' in request.path or '/accounts/superadmin/dashboard/' in request.path %}show{% endif %}"
         id="adminMenu">
-        <a href="{% url 'user_list' %}" class="{% if request.path == '/user_list/' %}active{% endif %}"
-          ><i class="fa-solid fa-users me-1"></i> Users</a
-        >
-        <a href="{% url 'profile_detail' %}" class="{% if request.path == '/profile_detail/' %}active{% endif %}"
-          ><i class="fa-solid fa-id-badge me-1"></i> My Profile</a
-        >
-        <a href="{% url 'superadmin_dashboard' %}" class="{% if request.path == '/superadmin_dashboard/' %}active{% endif %}"
-          ><i class="fa-solid fa-shield-halved me-1"></i> Superadmin</a
-        >
-        <a href="{% url 'logout' %}"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</a>
+        <a href="{% url 'user_list' %}" class="{% if request.path == '/users/' %}active{% endif %}"> <i class="fa-solid fa-users me-1"></i> Users </a>
+        <a href="{% url 'profile_detail' %}" class="{% if request.path == '/profile_detail/' %}active{% endif %}">
+          <i class="fa-solid fa-id-badge me-1"></i> My Profile
+        </a>
+        <a href="{% url 'superadmin_dashboard' %}" class="{% if request.path == '/accounts/superadmin/dashboard/' %}active{% endif %}">
+          <i class="fa-solid fa-shield-halved me-1"></i> Superadmin
+        </a>
+        <a href="{% url 'logout' %}"> <i class="fa-solid fa-right-from-bracket me-1"></i> Logout </a>
+      </div>
+
+      <!-- Authentication -->
+      <div class="nav-header">Authentication</div>
+      <a href="#authMenu" data-bs-toggle="collapse"> <i class="fa-solid fa-lock me-2"></i> Auth <i class="fa-solid fa-angle-down float-end"></i> </a>
+      <div class="collapse ps-3 {% if '/password_' in request.path or '/reset/' in request.path %}show{% endif %}" id="authMenu">
+        <a href="{% url 'password_change' %}">Change Password</a>
+        <a href="{% url 'password_reset' %}">Reset Password</a>
       </div>
     </div>
 

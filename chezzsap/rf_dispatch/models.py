@@ -20,7 +20,7 @@ class YardHdr(models.Model):
     id = models.AutoField(primary_key=True)
     yard_id = models.CharField(max_length=100, null=True, blank=True)
     truck_no = models.CharField(max_length=100)
-    whs_no = models.CharField(max_length=50)
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, default=None, null=True, blank=True)
     truck_type = models.CharField(max_length=50, blank=True, null=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -143,9 +143,12 @@ class Bin(models.Model):
     location = models.CharField(max_length=100, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
-    created_by = models.CharField(max_length=100, null=True, blank=True)
-    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_bins")
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="updated_bins")
     existing_quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True) 
+
 
     def __str__(self):
         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
@@ -262,8 +265,6 @@ class Vendor(models.Model):
     email = models.EmailField()
     phone_no = models.CharField(max_length=15)
     address = models.TextField()
-    
-
     profile_image = models.ImageField(upload_to='vendor_images/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
@@ -412,22 +413,25 @@ class PurchaseOrder(models.Model):
     company_name = models.CharField(max_length=255)
     company_address = models.TextField()
     company_phone = models.CharField(max_length=15, null=True, blank=True)
-
     company_email = models.EmailField()
     company_website = models.URLField(blank=True, null=True)
-
     po_date = models.DateField(null=True, blank=True)
     po_number = models.CharField(max_length=50, unique=True)
-    customer_number = models.CharField(max_length=50, null=True, blank=True)
-
+    invoice_number = models.CharField(max_length=50, null=True, blank=True)
     vendor_company_name = models.CharField(max_length=255, null=True, blank=True)
     vendor_contact_name = models.CharField(max_length=255, null=True, blank=True)
     vendor_phone = models.CharField(max_length=15, null=True, blank=True)
     vendor_address = models.TextField(null=True, blank=True)
     vendor_website = models.URLField(blank=True, null=True)
     vendor_email = models.EmailField(null=True, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
+    warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="purchase_orders"
+    )
 
     def __str__(self):
         return f"PO-{self.po_number}"
@@ -612,20 +616,38 @@ class InboundDeliveryproduct(models.Model):
 
    
 
+from decimal import Decimal
+from django.db import models
+
 class PurchaseItem(models.Model):
-    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="purchase_items")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    purchase_order = models.ForeignKey(
+        "PurchaseOrder",
+        on_delete=models.CASCADE,
+        related_name="purchase_items"
+    )
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+
+    quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    total_price = models.DecimalField(max_digits=12, decimal_places=2)
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
+
+    warehouse = models.ForeignKey(
+        "Warehouse",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="purchase_items"
+    )
 
     def save(self, *args, **kwargs):
-        # calculate total price
-        self.total_price = Decimal(self.quantity) * self.unit_price
+        # calculate total price before saving
+        if self.quantity and self.unit_price:
+            self.total_price = Decimal(self.quantity) * self.unit_price
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product.name} ({self.quantity}) in {self.purchase_order.po_number}"
+        return f"{self.product.name} ({self.quantity}) in PO-{self.purchase_order.po_number}"
+
 
 
 
@@ -914,17 +936,23 @@ class Sorting(models.Model):
         ]
     def __str__(self):
         return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
-
-from django.db import models
+    
 from django.contrib.auth.models import User
+from django.db import models
 
 class BinLog(models.Model):
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
-    action = models.CharField(max_length=100)  
-    whs_no = models.CharField(max_length=50)
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True)
     remarks = models.TextField(blank=True, null=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    source_location = models.CharField(max_length=100, blank=True, null=True)
+    destination_location = models.CharField(max_length=100, blank=True, null=True)
+    quantity_changed = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, default="pending")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name='binlogs_created')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name='binlogs_updated')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True) 
 
     def __str__(self):
-        return f"{self.bin.bin_code} - {self.action} at {self.created_at}"
+        return f"{self.bin.bin_id} - {self.status} at {self.created_at}"
+

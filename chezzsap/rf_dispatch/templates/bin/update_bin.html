@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+
+    <!-- Title -->
+    <div class="row mb-4 text-center">
+        <div class="col">
+            <h2 class="mb-0 text-center"><b>Update Bin</b></h2>
+        </div>
+    </div>
+
+    <!-- Bin Details -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h5 class="mb-0">Bin Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-2"><strong>Warehouse:</strong> 
+                    {% if bin.whs_no %}{{ bin.whs_no.whs_no }} - {{ bin.whs_no.whs_name }}{% else %}-{% endif %}
+                </div>
+                <div class="col-md-6 mb-2"><strong>Bin Type:</strong> {{ bin.bin_type }}</div>
+                <div class="col-md-6 mb-2"><strong>Capacity:</strong> {{ bin.capacity }}</div>
+                <div class="col-md-6 mb-2"><strong>Existing Quantity:</strong> {{ bin.existing_quantity }}</div>
+                <div class="col-md-6 mb-2"><strong>Remaining Capacity:</strong> 
+                    <span class="{% if bin.remaining_capacity <= 0 %}text-danger{% else %}text-success{% endif %}">
+                        {{ bin.remaining_capacity }}
+                    </span>
+                </div>
+                <div class="col-md-6 mb-2"><strong>Created By:</strong> {{ bin.created_by.username|default:"N/A" }}</div>
+                <div class="col-md-6 mb-2"><strong>Updated By:</strong> {{ bin.updated_by.username|default:"N/A" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Form -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white text-center">
+            <h5 class="mb-0">Update Bin</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label for="existing_quantity" class="form-label">Existing Quantity</label>
+                    <input type="number" name="existing_quantity" id="existing_quantity" class="form-control" 
+                           value="{{ bin.existing_quantity }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="source_location" class="form-label">Source Location</label>
+                    <input type="text" name="source_location" id="source_location" class="form-control" 
+                           placeholder="Enter source location">
+                </div>
+
+                <div class="mb-3">
+                    <label for="destination_location" class="form-label">Destination Location</label>
+                    <input type="text" name="destination_location" id="destination_location" class="form-control" 
+                           placeholder="Enter destination location">
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">Update Bin</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

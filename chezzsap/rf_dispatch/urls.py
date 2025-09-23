@@ -86,11 +86,12 @@ urlpatterns = [
     # Inventory & Bin
     path('inventory/', views.inventory_view, name='inventory'),
     path('create_bin/', views.create_bin, name='create_bin'),
-    path('bin_detail/<str:pk>/', views.bin_detail, name='bin_detail'),
-    path('bin/edit/<int:bin_id>/', views.edit_bin, name='edit_bin'),
+    path('bin_detail/<str:bin_id>/', views.bin_detail, name='bin_detail'),
+    path('bin/edit/<str:bin_id>/', views.edit_bin, name='edit_bin'),
     # path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
-    path("get-bin-location/<int:bin_id>/", views.get_bin_location, name="get_bin_location"),
-    path('logs/', views.bin_log_view, name='bin_log'),
+    path("get-bin-location/<str:bin_id>/", views.get_bin_location, name="get_bin_location"),
+    path('logs/', views.bin_log_view, name='bin_log_view'),
+    path("bin/<str:bin_id>/update/", views.update_bin, name="update_bin"),
 
     # Customers
     path('add_customers/', views.add_customers, name='add_customers'),
