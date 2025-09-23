@@ -813,49 +813,53 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Category, SubCategory, Product
 
+def generate_product_id():
+    """
+    Generate a short unique product id using the current date and uuid.
+    Uses already-imported datetime and uuid at top of this module.
+    """
+    return f"P{datetime.now().strftime('%Y%m%d')}{uuid.uuid4().hex[:6].upper()}"
+
+
 def add_product(request):
+    pallets = pallet.objects.all()
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.all()
+
     if request.method == 'POST':
         # Get form data
         name = request.POST.get('name')
-        product_id = request.POST.get('id')
         quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
+        pallet_id = request.POST.get('pallet_no')
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
         category_id = request.POST.get('category')
-        sub_category_id = request.POST.get('subcategory')
+        sub_category_id = request.POST.get('sub_category_id')
         re_order_level = request.POST.get('re_order_level')
         unit_price = request.POST.get('unit_price')
         images = request.FILES.get('images')
 
-        # Basic validation
-        if not name or not product_id or not category_id:
-            messages.error(request, "Please fill in required fields: Name, Product ID, Category.")
+        if not name or not category_id:
+            messages.error(request, "Please fill required fields: Name, Category.")
             return render(request, 'product/add_product.html', {
-                'categories': Category.objects.all(),
-                'subcategories': SubCategory.objects.all(),
-                'pallets': Pallet.objects.all(),
+                'pallets': pallets,
+                'categories': categories,
+                'subcategories': subcategories,
             })
 
         try:
-        
-            # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
+            sub_category = SubCategory.objects.get(id=sub_category_id) if sub_category_id else None
+            pallet = Pallet.objects.get(id=pallet_id) if pallet_id else None
 
-            sub_category = None
-            if sub_category_id:
-                try:
-                    sub_category = SubCategory.objects.get(id=sub_category_id)
-                except SubCategory.DoesNotExist:
-                    sub_category = None
+            product_id = generate_product_id()
 
-            # Create Product
-            product = Product.objects.create(
+            Product.objects.create(
                 product_id=product_id,
                 name=name,
                 quantity=quantity,
-                pallet_no=pallet_no,
+                pallet_no=pallet,
                 sku=sku,
                 description=description,
                 unit_of_measure=unit_of_measure,
@@ -868,20 +872,21 @@ def add_product(request):
                 updated_at=timezone.now(),
             )
 
-            messages.success(request, "Product added successfully!")
-            return redirect('product_detail', product_id=product.product_id)
+            messages.success(request, f"Product {product_id} added successfully!")
+            return redirect('product_list')
 
-        except Category.DoesNotExist:
-            messages.error(request, "Selected category does not exist.")
         except Exception as e:
             messages.error(request, f"Unexpected error: {e}")
 
-    # GET request or on error
     return render(request, 'product/add_product.html', {
-        'categories': Category.objects.all(),
-        'subcategories': SubCategory.objects.all(),
-        'pallets': Pallet.objects.all(),
+        'pallets': pallets,
+        'categories': categories,
+        'subcategories': subcategories,
     })
+
+
+
+
 
 
 def bulk_upload_products(request):

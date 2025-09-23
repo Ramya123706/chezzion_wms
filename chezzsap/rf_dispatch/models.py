@@ -162,11 +162,11 @@ class Product(models.Model):
         primary_key=True,
         max_length=50,
         unique=True,
-        editable=False   # prevents showing in admin form
+        editable=False   
     )
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   
-    pallet_no = models.CharField(max_length=50, blank=True, null=True)
+    pallet_no = models.ForeignKey('Pallet', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     sku = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
@@ -250,7 +250,7 @@ class Pallet(models.Model):
                 next_id = int(last_pallet.pallet_no[4:]) + 1
             else:
                 next_id = 1
-            self.pallet_no = f"PLT-{next_id:03d}"   # 👉 PLT-001, PLT-002, PLT-003
+            self.pallet_no = f"PLT-{next_id:03d}"  
         super().save(*args, **kwargs)
     def __str__(self):
           return f"PLT {self.id}"

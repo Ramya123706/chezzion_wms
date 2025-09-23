@@ -74,3 +74,13 @@ def generate_bin_id(whs_no=None):
         else:
             new_num = 1
         return f"BIN{new_num:04d}"
+
+from django.utils.crypto import get_random_string
+from .models import Product
+
+def generate_product_id():
+    prefix = "PRD"   # you can change to whatever prefix you want
+    while True:
+        random_id = prefix + get_random_string(6).upper()  # e.g. PRD4GHTY
+        if not Product.objects.filter(product_id=random_id).exists():
+            return random_id
