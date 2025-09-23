@@ -17,6 +17,7 @@
                             <th>Truck No</th>
                             <th>Driver Name</th>
                             <th>Driver Phone No</th>
+                            <th>Truck Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -26,6 +27,7 @@
                             <td class="text-center">{{ truck.truck_no }}</td>
                             <td>{{ truck.driver_name }}</td>
                             <td>{{ truck.driver_phn_no }}</td>
+                            <td class="text-center">{{ truck.latest_status|default:"Not planned" }}</td>
                             <td class="text-center">
                                 <!-- View Button -->
                                 <button type="button" class="btn btn-info btn-sm me-1 view-btn"
@@ -33,7 +35,8 @@
                                         data-bs-target="#viewDriverModal"
                                         data-truck_no="{{ truck.truck_no }}"
                                         data-driver_name="{{ truck.driver_name }}"
-                                        data-driver_phn_no="{{ truck.driver_phn_no }}">
+                                        data-driver_phn_no="{{ truck.driver_phn_no }}"
+                                        data-truck_status="{{ truck.latest_status|default:'Not planned' }}">
                                     <i class="fa-solid fa-eye me-1"></i>View
                                 </button>
 
@@ -58,7 +61,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center text-warning fw-bold">
+                            <td colspan="5" class="text-center text-warning fw-bold">
                                 No truck drivers found.
                             </td>
                         </tr>
@@ -70,7 +73,7 @@
     </div>
 </div>
 
-<!-- Single Dynamic Edit Modal -->
+<!-- Edit Driver Modal -->
 <div class="modal fade" id="editDriverModal" tabindex="-1" aria-labelledby="editDriverModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -106,7 +109,7 @@
   </div>
 </div>
 
-<!-- Single Dynamic View Modal -->
+<!-- View Driver Modal -->
 <div class="modal fade" id="viewDriverModal" tabindex="-1" aria-labelledby="viewDriverModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -118,6 +121,7 @@
         <p><strong>Truck No:</strong> <span id="view_truck_no"></span></p>
         <p><strong>Driver Name:</strong> <span id="view_driver_name"></span></p>
         <p><strong>Driver Phone No:</strong> <span id="view_driver_phn_no"></span></p>
+        <p><strong>Truck Status:</strong> <span id="view_truck_status"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -164,9 +168,8 @@ function confirmDelete() {
     return confirm("Are you sure you want to delete this truck driver?");
 }
 
-// Dynamic edit modal population
+// Dynamic Edit Modal
 document.addEventListener('DOMContentLoaded', function() {
-    // Edit modal
     document.querySelectorAll('.edit-btn').forEach(function(button) {
         button.addEventListener('click', function() {
             var truckId = this.getAttribute('data-id');
@@ -183,12 +186,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // View modal
+    // Dynamic View Modal
     document.querySelectorAll('.view-btn').forEach(function(button) {
         button.addEventListener('click', function() {
             document.getElementById('view_truck_no').innerText = this.getAttribute('data-truck_no');
             document.getElementById('view_driver_name').innerText = this.getAttribute('data-driver_name');
             document.getElementById('view_driver_phn_no').innerText = this.getAttribute('data-driver_phn_no');
+            document.getElementById('view_truck_status').innerText = this.getAttribute('data-truck_status');
         });
     });
 });
