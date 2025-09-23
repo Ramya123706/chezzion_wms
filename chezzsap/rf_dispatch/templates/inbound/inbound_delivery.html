@@ -21,7 +21,7 @@
                     <div class="col-md-6">
                         <label for="inbound_delivery_number" class="form-label"><i class="fas fa-hashtag me-1"></i>Inbound Delivery Number</label>
                         <input type="text" class="form-control" name="inbound_delivery_number"
-                               id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number }}"
+                               id="inbound_delivery_number" value="{{ delivery.inbound_delivery_number|default:'' }}"
                                placeholder="Auto generated" readonly>
                     </div>
 
@@ -29,7 +29,7 @@
                     <div class="col-md-6">
                         <label for="delivery_date" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Delivery Date</label>
                         <input type="date" class="form-control" name="delivery_date" id="delivery_date"
-                               value="{{ delivery.delivery_date }}">
+                               value="{{ delivery.delivery_date|date:'Y-m-d' }}">
                     </div>
 
                     <!-- Supplier -->
@@ -51,7 +51,7 @@
                         <select name="po_number" id="purchase_order" class="form-select" required>
                             <option value="">Select PO No</option>
                             {% for po in purchase_orders %}
-                                <option value="{{ po.id }}" {% if delivery.po_number == po.id %}selected{% endif %}>
+                                <option value="{{ po.id }}" {% if delivery.po_number == po.po_number %}selected{% endif %}>
                                     {{ po.po_number }}
                                 </option>
                             {% endfor %}
@@ -61,7 +61,7 @@
                     <!-- ESN -->
                     <div class="col-md-6">
                         <label for="esn" class="form-label"><i class="fas fa-barcode me-1"></i>ESN</label>
-                        <input type="text" class="form-control" name="esn" id="esn" value="{{ delivery.esn }}">
+                        <input type="text" class="form-control" name="esn" id="esn" value="{{ delivery.esn|default:'' }}">
                     </div>
 
                     <!-- Warehouse -->
@@ -81,7 +81,7 @@
                     <div class="col-md-6">
                         <label for="document_date" class="form-label"><i class="fas fa-calendar-check me-1"></i>Document Date</label>
                         <input type="date" class="form-control" name="document_date" id="document_date"
-                               value="{{ delivery.document_date }}">
+                               value="{{ delivery.document_date|date:'Y-m-d' }}">
                     </div>
 
                     <!-- Delivery Status -->
@@ -108,16 +108,7 @@
                                         <th>Batch Number</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input type="text" class="form-control" name="product[]" readonly></td>
-                                        <td><input type="text" class="form-control" name="product_description[]" readonly></td>
-                                        <td><input type="text" class="form-control" name="quantity_delivered[]" readonly></td>
-                                        <td><input type="text" class="form-control" name="quantity_received[]"></td>
-                                        <td><input type="text" class="form-control" name="unit_of_measure[]" readonly></td>
-                                        <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
-                                    </tr>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>
@@ -125,7 +116,7 @@
                     <!-- Remarks -->
                     <div class="col-12">
                         <label for="remarks" class="form-label"><i class="fas fa-comment-alt me-1"></i>Remarks</label>
-                        <textarea class="form-control" name="remarks" id="remarks" placeholder="Add any notes here...">{{ delivery.remarks }}</textarea>
+                        <textarea class="form-control" name="remarks" id="remarks" placeholder="Add any notes here...">{{ delivery.remarks|default:'' }}</textarea>
                     </div>
 
                     <div class="text-center mt-3">
@@ -166,9 +157,9 @@
                             <tbody>
                                 {% for entry in deliveries %}
                                     <tr>
-                                        <td>{{ entry.delivery_date }}</td>
+                                        <td>{{ entry.delivery_date|date:"Y-m-d" }}</td>
                                         <td>{{ entry.inbound_delivery_number }}</td>
-                                        <td>{{ entry.po_number.po_number }}</td>
+                                        <td>{{ entry.po_number }}</td>
                                         <td>
                                             <a href="{% url 'delivery_detail' entry.inbound_delivery_number %}"
                                                class="btn btn-info btn-sm px-3 py-1">
@@ -192,51 +183,112 @@
 </div>
 
 <!-- JS: Populate products on PO change -->
+<!-- ensure these ids exist on the elements:
+     id="vendor" (select), id="delivery_date" (input date),
+     id="document_date" (input date), id="purchase_order" (select),
+     id="deliveryTable" (table)
+-->
+
+<!-- JS: Populate products + vendor + dates on PO change -->
 <script>
-document.getElementById("purchase_order").addEventListener("change", function() {
-    const poId = this.value;
-    const tableBody = document.querySelector('#deliveryTable tbody');
-    tableBody.innerHTML = "";  // clear previous rows
+(function(){
+    const poSelect = document.getElementById("purchase_order");
+    if (!poSelect) return;
 
-    if (!poId) return;  // exit if no PO selected
+    poSelect.addEventListener("change", function() {
+        const poId = this.value;
+        const tableBody = document.querySelector('#deliveryTable tbody');
+        if (!tableBody) return;
+        tableBody.innerHTML = "";  // clear previous rows
 
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        if (!poId) return;
 
-    fetch(`/get-po-products/${poId}/`, {
-        headers: { "X-CSRFToken": csrftoken }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        return response.json();
-    })
-    .then(data => {
-        if (!data.products || data.products.length === 0) {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td colspan="6" class="text-center">No products found for this PO</td>`;
-            tableBody.appendChild(row);
-            return;
-        }
+        fetch(`/get-po-products/${poId}/`)
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            // --- Vendor + Dates ---
+            if (data.vendor) {
+                const vendorSelect = document.getElementById('vendor');
+                if (vendorSelect) {
+                    // if we have a vendor_id returned and an existing option matches, select it.
+                    if (data.vendor.vendor_id) {
+                        const vendorIdStr = String(data.vendor.vendor_id);
+                        const foundOption = Array.from(vendorSelect.options).some(o => String(o.value) === vendorIdStr);
+                        if (foundOption) {
+                            vendorSelect.value = vendorIdStr;
+                        } else {
+                            // create new option (temporary) so it shows selected
+                            const opt = document.createElement('option');
+                            opt.value = vendorIdStr;
+                            opt.text = data.vendor.display || vendorIdStr;
+                            vendorSelect.appendChild(opt);
+                            vendorSelect.value = vendorIdStr;
+                        }
+                    } else {
+                        // no matching vendor record; create a non-selectable temp option showing vendor name
+                        const tempOpt = document.createElement('option');
+                        tempOpt.value = '';
+                        tempOpt.text = data.vendor.display || '';
+                        vendorSelect.appendChild(tempOpt);
+                        vendorSelect.value = '';
+                    }
+                }
+            }
 
-        data.products.forEach(p => {
-            const newRow = document.createElement("tr");
-            newRow.innerHTML = `
-                <td><input type="text" class="form-control" name="product[]" value="${p.code}" readonly></td>
-                <td><input type="text" class="form-control" name="product_description[]" value="${p.description}" readonly></td>
-                <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
-                <td><input type="text" class="form-control" name="quantity_received[]"></td>
-                <td><input type="text" class="form-control" name="unit_of_measure[]" value="${p.uom}" readonly></td>
-                <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
-            `;
-            tableBody.appendChild(newRow);
+            if (data.po_date) {
+                const dd = document.getElementById('delivery_date');
+                const doc = document.getElementById('document_date');
+                if (dd) dd.value = data.po_date;
+                if (doc) doc.value = data.po_date;
+            }
+
+            // --- Products ---
+            if (!data.products || data.products.length === 0) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="6" class="text-center">No products found for this PO</td>`;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            data.products.forEach(p => {
+                const newRow = document.createElement("tr");
+                newRow.innerHTML = `
+                    <td><input type="text" class="form-control" name="product[]" value="${escapeHtml(p.code)}" readonly></td>
+                    <td><input type="text" class="form-control" name="product_description[]" value="${escapeHtml(p.description)}" readonly></td>
+                    <td><input type="text" class="form-control" name="quantity_delivered[]" value="${p.quantity}" readonly></td>
+                    <td><input type="text" class="form-control" name="quantity_received[]"></td>
+                    <td><input type="text" class="form-control" name="unit_of_measure[]" value="${escapeHtml(p.uom)}" readonly></td>
+                    <td><input type="text" class="form-control" name="batch_number[]" placeholder="Auto-generated" readonly></td>
+                `;
+                tableBody.appendChild(newRow);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching PO products:', error);
+            const tableBody = document.querySelector('#deliveryTable tbody');
+            if (tableBody) {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td colspan="6" class="text-center text-danger">Error fetching products</td>`;
+                tableBody.appendChild(row);
+            }
         });
-    })
-    .catch(error => {
-        console.error('Error fetching PO products:', error);
-        const row = document.createElement("tr");
-        row.innerHTML = `<td colspan="6" class="text-center text-danger">Error fetching products</td>`;
-        tableBody.appendChild(row);
     });
-});
+
+    // small helper to avoid XSS via template interpolation
+    function escapeHtml(text) {
+        if (!text && text !== 0) return '';
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+})();
 </script>
+
 
 {% endblock %}

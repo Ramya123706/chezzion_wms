@@ -158,8 +158,7 @@ class BinForm(forms.ModelForm):
     class Meta:
         model = Bin
         fields = '__all__'
-        exclude = ['created_by', 'updated_by', 'existing_quantity']  # Exclude fields that are not needed in the form
-
+        exclude = ["created_by", "updated_by"]
 from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -338,3 +337,20 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = '__all__'
+        
+        
+        # bin/forms.py
+from django import forms
+from .models import BinLog
+
+class BinLogForm(forms.ModelForm):
+    class Meta:
+        model = BinLog
+        fields = '__all__'
+        widgets = {
+            'bin': forms.Select(attrs={'class': 'form-control'}),
+            'action': forms.TextInput(attrs={'class': 'form-control'}),
+            'warehouse': forms.TextInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'created_by': forms.Select(attrs={'class': 'form-control'}),
+        }
