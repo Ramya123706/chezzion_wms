@@ -326,22 +326,22 @@ class StockUpload(models.Model):
                 f"Cannot assign {self.quantity} items to {self.bin.bin_id}. "
                 f"Only {self.bin.remaining_capacity()} remaining."
             )
-
     def save(self, *args, **kwargs):
-        self.clean()  # Validate before saving
+        self.clean()
+        is_new = self._state.adding  # Check if instance is new
         super().save(*args, **kwargs)
 
-        # Update total quantity in Inventory
-        total_quantity = StockUpload.objects.filter(product=self.product).aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
-        inventory, _ = Inventory.objects.get_or_create(product=self.product)
-        inventory.total_quantity = total_quantity
-        inventory.save()
+        # Only recalc inventory if this is not a bulk upload
+        if is_new:
+            total_quantity = StockUpload.objects.filter(product=self.product).aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+            inventory, _ = Inventory.objects.get_or_create(product=self.product)
+            inventory.total_quantity = total_quantity
+            inventory.save()
+            self.product.quantity = total_quantity
+            self.product.save()
 
-        # Update quantity in Product
-        self.product.quantity = total_quantity
-        self.product.save()
 
         # Update Bin existing quantity
         if self.bin:
