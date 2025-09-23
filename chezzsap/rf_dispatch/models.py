@@ -162,7 +162,7 @@ class Product(models.Model):
         primary_key=True,
         max_length=50,
         unique=True,
-        editable=False   
+        editable=False  
     )
     name = models.CharField(max_length=255)
     quantity = models.IntegerField(default=0)   
@@ -242,7 +242,7 @@ class Pallet(models.Model):
     scanned_at = models.DateTimeField(auto_now=True, blank=True)
     created_by = models.CharField(max_length=100, default=None, null=True, blank=True)
     updated_by = models.CharField(max_length=100, default=None, null=True, blank=True)
-
+ 
     def save(self, *args, **kwargs):
         if not self.pallet_no:
             last_pallet = Pallet.objects.order_by('-id').first()
@@ -250,10 +250,13 @@ class Pallet(models.Model):
                 next_id = int(last_pallet.pallet_no[4:]) + 1
             else:
                 next_id = 1
-            self.pallet_no = f"PLT-{next_id:03d}"  
+            self.pallet_no = f"PLT-{next_id:03d}"   
         super().save(*args, **kwargs)
     def __str__(self):
           return f"PLT {self.id}"
+    def __str__(self):
+          return self.pallet_no
+
 
 class Vendor(models.Model):
     name = models.CharField(max_length=100)
