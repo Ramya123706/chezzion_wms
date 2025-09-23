@@ -311,6 +311,72 @@ def status_log_view(request, truck_no):
     logs = TruckLog.objects.filter(truck_no__truck_no=truck_no).order_by('-truck_date', '-truck_time')
     return render(request, 'truck_screen/status_log.html', {'logs': logs, 'truck_no': truck_no})
 
+from django.shortcuts import render
+from .models import Truck  # or your truck model
+
+def truck_driver_list(request):
+    trucks = Truck.objects.all()  # get all trucks
+    return render(request, 'truck_screen/truck_driver_list.html', {'trucks': trucks})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Truck
+from django.contrib import messages
+
+def truck_delete(request, id):
+    truck = get_object_or_404(Truck, id=id)
+    truck.delete()
+    messages.success(request, f"Truck {truck.truck_no} deleted successfully!")
+    return redirect('truck_driver_list')
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Truck
+
+def truck_add(request):
+    if request.method == 'POST':
+        truck_no = request.POST.get('truck_no')
+        driver_name = request.POST.get('driver_name')
+        driver_phn_no = request.POST.get('driver_phn_no')
+
+        if Truck.objects.filter(truck_no=truck_no).exists():
+            messages.warning(request, f"Truck {truck_no} already exists!")
+        else:
+            Truck.objects.create(
+                truck_no=truck_no,
+                driver_name=driver_name,
+                driver_phn_no=driver_phn_no
+            )
+            messages.success(request, f"Truck {truck_no} added successfully!")
+
+    return redirect('truck_driver_list')
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import Truck
+
+def truck_edit(request, id):
+    truck = get_object_or_404(Truck, id=id)
+    if request.method == 'POST':
+        truck_no = request.POST.get('truck_no')
+        driver_name = request.POST.get('driver_name')
+        driver_phn_no = request.POST.get('driver_phn_no')
+
+        # Optional: check for duplicate truck_no
+        if Truck.objects.filter(truck_no=truck_no).exclude(id=id).exists():
+            messages.warning(request, f"Truck {truck_no} already exists!")
+        else:
+            truck.truck_no = truck_no
+            truck.driver_name = driver_name
+            truck.driver_phn_no = driver_phn_no
+            truck.save()
+            messages.success(request, f"Truck {truck_no} updated successfully!")
+
+    return redirect('truck_driver_list')
+
+
+
+
+
 
 @login_required
 def truck_log_view(request):
@@ -430,6 +496,7 @@ def batch_product_view(request):
     categories = Category.objects.all()  # Make sure categories is always defined
     warehouse = Warehouse.objects.all()
     materials = PackingMaterial.objects.all()
+    pallets = Pallet.objects.all()
     
 
     if request.method == 'POST':
@@ -462,6 +529,7 @@ def batch_product_view(request):
             bin_instance = Bin.objects.filter(id=bin_id).first() 
             p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
             batch = request.POST.get('batch_input') or batch or ''
+            pallet = Pallet.objects.filter(pallet_no=pallet).first() if pallet else None
 
             StockUpload.objects.create(
                 whs_no=warehouse_instance,
@@ -492,6 +560,7 @@ def batch_product_view(request):
                 'query': query,
                 'categories': categories,
                 'error': str(e),
+                'pallets': pallets,
             })
 
     # For both GET and successful POST
@@ -504,8 +573,30 @@ def batch_product_view(request):
         'stocks': stock_uploads,
         'query': query,
         'categories': categories,
+        'pallets': pallets,
     })
 
+from django.http import JsonResponse
+from .models import Pallet
+
+def suggest_pallets(request):
+    quantity = int(request.GET.get('quantity', 0))
+    parent_pallets = Pallet.objects.filter(parent_pallet__isnull=True)
+    suggestions = []
+
+    for parent in parent_pallets:
+        child_count = parent.child_pallets.count()
+        # Assuming each child pallet can hold 1 quantity
+        available_qty = child_count
+        if available_qty >= quantity:
+            suggestions.append({
+                'id': parent.id,
+                'pallet_no': parent.pallet_no,
+                'child_count': child_count,
+                'available_qty': available_qty
+            })
+
+    return JsonResponse({'pallets': suggestions})
 
 from django.http import JsonResponse
 
@@ -811,39 +902,38 @@ def product_list(request):
 
 
 
+
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils import timezone
-from .models import Category, SubCategory, Product
+from .models import Product, Category, SubCategory, Pallet, Inventory
 
 def add_product(request):
+    pallets = Pallet.objects.all()
+    
     if request.method == 'POST':
-        # Get form data
         name = request.POST.get('name')
-        product_id = request.POST.get('id')
         quantity = request.POST.get('quantity')
-        pallet_no = request.POST.get('pallet_no')
+        pallet = request.POST.get('pallet_no')
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
         category_id = request.POST.get('category')
-        sub_category_id = request.POST.get('subcategory')
+        sub_category_id = request.POST.get('sub_category_id')
         re_order_level = request.POST.get('re_order_level')
         unit_price = request.POST.get('unit_price')
         images = request.FILES.get('images')
 
         # Basic validation
-        if not name or not product_id or not category_id:
-            messages.error(request, "Please fill in required fields: Name, Product ID, Category.")
+        if not name or not category_id:
+            messages.error(request, "Please fill in required fields: Name, Category.")
             return render(request, 'product/add_product.html', {
                 'categories': Category.objects.all(),
-                'subcategories': SubCategory.objects.all(),
-                'pallets': Pallet.objects.all(),
+               
             })
 
         try:
-        
-            # Fetch category and subcategory
             category = Category.objects.get(id=category_id)
 
             sub_category = None
@@ -852,23 +942,27 @@ def add_product(request):
                     sub_category = SubCategory.objects.get(id=sub_category_id)
                 except SubCategory.DoesNotExist:
                     sub_category = None
+            pallet = Pallet.objects.filter(pallet_no=pallet).first() if pallet else None
+            # Fetch pallet object
+            # pallet_obj = None
+            # if pallet_id:
+            #     try:
+            #         pallet_obj = Pallet.objects.get(id=pallet_id)
+            #     except Pallet.DoesNotExist:
+            #         pallet_obj = None
 
-            # Create Product
             product = Product.objects.create(
-                product_id=product_id,
                 name=name,
                 quantity=quantity,
-                pallet_no=pallet_no,
+                pallet_no=pallet,
                 sku=sku,
                 description=description,
                 unit_of_measure=unit_of_measure,
                 category=category,
                 sub_category=sub_category,
-                re_order_level=re_order_level,
-                unit_price=unit_price,
+                re_order_level=re_order_level or 10,
+                unit_price=unit_price or 0.00,
                 images=images,
-                created_at=timezone.now(),
-                updated_at=timezone.now(),
             )
 
             messages.success(request, "Product added successfully!")
@@ -885,6 +979,7 @@ def add_product(request):
         'subcategories': SubCategory.objects.all(),
         'pallets': Pallet.objects.all(),
     })
+
 
 
 def bulk_upload_products(request):

@@ -51,6 +51,12 @@ urlpatterns = [
     path('trucks/', views.truck_list, name='truck_list'),
     path('trucks/<str:truck_no>/', views.truck_detail, name='truck_detail'),
     path("product-autocomplete/", views.product_autocomplete, name="product_autocomplete"),
+    path('truck-drivers/', views.truck_driver_list, name='truck_driver_list'),
+    path('truck/delete/<int:id>/', views.truck_delete, name='truck_delete'),
+    path('truck/add/', views.truck_add, name='truck_add'),
+    path('truck/edit/<str:id>/', views.truck_edit, name='truck_edit'),
+    
+
 
     # Inspection
     path("inspection/", views.inspection_view, name="inspection"),  
@@ -74,6 +80,7 @@ urlpatterns = [
     path('stocks/', views.stock_list, name='stock_list'),
     path('stocks/<int:pk>/edit/', views.stock_edit, name='stock_edit'),
     path("get-bins/<int:subcategory_id>/", views.get_bins, name="get_bins"),
+    path('ajax/suggest-pallets/', views.suggest_pallets, name='suggest_pallets'),
 
 
 
