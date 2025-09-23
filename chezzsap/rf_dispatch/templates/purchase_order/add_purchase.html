@@ -1,190 +1,277 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} {% load static %} {% block content %}
 <div class="container mt-5">
-  <div class="card shadow-lg border-0 rounded">
-    <div class="card-header bg-dark text-white text-center">
-      <h2><i class="fas fa-file-invoice-dollar"></i> Purchase Order Entry</h2>
+  <div class="card shadow-lg border-0 rounded-3">
+    <!-- Header -->
+    <div class="card-header text-white text-center" style="background: linear-gradient(45deg, #0d6efd, #6610f2)">
+      <h2 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>New Purchase Order</h2>
     </div>
-    <div class="card-body">
-      <!-- Success & Error Messages -->
-      {% if success %}
-      <div class="alert alert-success text-center">✅ Purchase uploaded successfully!</div>
-      {% endif %} {% if error %}
-      <div class="alert alert-danger text-center">❌ {{ error }}</div>
+
+    <div class="card-body p-4">
+      <!-- Error Message -->
+      {% if error %}
+      <div class="alert alert-danger rounded-3 shadow-sm">{{ error }}</div>
       {% endif %}
 
-      <form method="post" action="{% url 'add_purchase' %}">
+      <form method="post" id="poForm" onsubmit="return validateForm()">
         {% csrf_token %}
 
-        <!-- Company & Order Details -->
-        <div class="card mb-4 shadow-sm">
-          <div class="card-header bg-warning text-dark text-center">
-            <h5><i class="fas fa-building"></i> Company & Purchase Order Details</h5>
+        <!-- Warehouse Selection -->
+        <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-warehouse me-2"></i>Select Warehouse</h5>
+        <select id="warehouseSelect" name="warehouse[]" class="form-select shadow-sm mb-4" required>
+          <option value="">-- Select Warehouse --</option>
+          {% for wh in warehouses %}
+          <option value="{{ wh.pk }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
+          {% endfor %}
+        </select>
+
+        <!-- Company Details -->
+        <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-building me-2"></i>Company Details</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label class="form-label">PO Date</label>
+            <input type="date" name="po_date" id="po_date" value="{{ today }}" class="form-control shadow-sm" required />
           </div>
-          <div class="card-body row">
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-building"></i> <b>Company Name:</b></label>
-              <input type="text" name="company_name" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-calendar-alt"></i> <b>Date:</b></label>
-              <input type="date" name="po_date" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-map-marker-alt"></i> <b>Company Address:</b></label>
-              <input type="text" name="company_address" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-file-alt"></i> <b>PO No.:</b></label>
-              <input type="text" name="po_number" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-phone"></i> <b>Phone Number:</b></label>
-              <input type="text" name="company_phone" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-user-tie"></i> <b>Supplier:</b></label>
-              <input type="text" name="customer_number" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-globe"></i> <b>Website:</b></label>
-              <input type="text" name="company_website" class="form-control" />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-envelope"></i> <b>Email Address:</b></label>
-              <input type="email" name="company_email" class="form-control" required />
-            </div>
+          <div class="col-md-4">
+            <label class="form-label">Company Name</label>
+            <input type="text" name="company_name" class="form-control shadow-sm" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Company Address</label>
+            <input type="text" name="company_address" class="form-control shadow-sm" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Phone</label>
+            <input type="text" name="company_phone" class="form-control shadow-sm" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Email</label>
+            <input type="email" name="company_email" class="form-control shadow-sm" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Website</label>
+            <input type="text" name="company_website" class="form-control shadow-sm" />
+          </div>
+        </div>
+        <hr class="hr" />
+
+        <!-- Vendor Details -->
+        <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-user-tie me-2"></i>Vendor Details</h5>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <img
+              id="vendorImage"
+              src="{% static 'assets/images/no-vendor.png' %}"
+              class="rounded-circle shadow-sm border"
+              width="80"
+              height="80"
+              alt="Vendor Image" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Select Vendor</label>
+            <select id="vendorSelect" class="form-select shadow-sm" required>
+              <option value="">-- Select Vendor --</option>
+              {% for vendor in vendors %}
+              <option
+                value="{{ vendor.vendor_id }}"
+                data-name="{{ vendor.name }}"
+                data-code="{{ vendor.vendor_code }}"
+                data-email="{{ vendor.email }}"
+                data-phone="{{ vendor.phone_no }}"
+                data-address="{{ vendor.address }}"
+                data-img="{% if vendor.profile_image %}{{ vendor.profile_image.url }}{% endif %}">
+                {{ vendor.vendor_code }} - {{ vendor.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Invoice Number</label>
+            <input type="text" id="invoice_number" name="invoice_number" class="form-control shadow-sm bg-light" readonly />
           </div>
         </div>
 
-        <!-- Vendor Information -->
-        <div class="card mb-4 shadow-sm">
-          <div class="card-header bg-warning text-dark text-center">
-            <h5><i class="fas fa-truck"></i> Vendor Information</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label">Vendor Name</label>
+            <input type="text" id="vendor_company_name" name="vendor_company_name" class="form-control shadow-sm bg-light" readonly />
           </div>
-          <div class="card-body row">
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-id-badge"></i> <b>Contact Name:</b></label>
-              <input type="text" name="vendor_contact_name" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-building"></i> <b>Company Name:</b></label>
-              <input type="text" name="vendor_company_name" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-map-marker-alt"></i> <b>Address:</b></label>
-              <input type="text" name="vendor_address" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-phone-alt"></i> <b>Phone Number:</b></label>
-              <input type="text" name="vendor_phone" class="form-control" required />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-globe"></i> <b>Website:</b></label>
-              <input type="text" name="vendor_website" class="form-control" />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label><i class="fas fa-envelope"></i> <b>Email Address:</b></label>
-              <input type="email" name="vendor_email" class="form-control" required />
-            </div>
+          <div class="col-md-6">
+            <label class="form-label">Vendor Code</label>
+            <input type="text" id="vendor_contact_name" name="vendor_contact_name" class="form-control shadow-sm bg-light" readonly />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Phone</label>
+            <input type="text" id="vendor_phone" name="vendor_phone" class="form-control shadow-sm bg-light" readonly />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Email</label>
+            <input type="text" id="vendor_email" name="vendor_email" class="form-control shadow-sm bg-light" readonly />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Address</label>
+            <input type="text" id="vendor_address" name="vendor_address" class="form-control shadow-sm bg-light" readonly />
           </div>
         </div>
+        <hr class="hr" />
 
-        <!-- Product Information -->
-        <div class="card mb-4 shadow-sm">
-          <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
-            <h5><i class="fas fa-boxes"></i> Product Details</h5>
-            <button type="button" class="btn btn-sm btn-primary" id="addProductRow">➕ Add Product</button>
-          </div>
-          <div class="card-body" id="productRows">
-            <div class="row product-entry mb-3">
-              <div class="col-md-2">
-                <label><i class="fas fa-barcode"></i> <b>Item #</b></label>
-                <input type="text" name="item_number[]" class="form-control" required />
-              </div>
-              <div class="col-md-4">
-                <label><i class="fas fa-tag"></i> <b>Product</b></label>
-                <input type="text" name="product_name[]" class="form-control" required />
-              </div>
-              <div class="col-md-2">
-                <label><i class="fas fa-sort-numeric-up"></i> <b>Qty</b></label>
-                <input type="number" name="quantity[]" class="form-control qty" min="1" required />
-              </div>
-              <div class="col-md-2">
-                <label><i class="fas fa-rupee-sign"></i> <b>Unit Price</b></label>
-                <input type="number" step="0.01" name="unit_price[]" class="form-control price" required />
-              </div>
-              <div class="col-md-2 d-flex align-items-end">
-                <button type="button" class="btn btn-danger btn-sm remove-product">✖</button>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer text-end">
-            <h5 class="mb-0">Grand Total: <span id="grandTotal">0.00</span> ₹</h5>
-          </div>
+        <!-- Product Items -->
+        <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-boxes me-2"></i>Product Items</h5>
+        <div class="table-responsive mb-4">
+          <table class="table table-hover table-striped align-middle shadow-sm rounded-3" id="itemsTable">
+            <thead class="table-primary">
+              <tr>
+                <th>Item Number</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+                <th class="text-center">
+                  <button type="button" class="btn btn-sm btn-success rounded-circle" onclick="addRow()">
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="text" name="item_number[]" class="form-control shadow-sm" required /></td>
+                <td><input type="text" name="product_name[]" class="form-control shadow-sm" /></td>
+                <td><input type="number" name="quantity[]" class="form-control shadow-sm quantity" oninput="calcTotal(this)" /></td>
+                <td><input type="number" step="0.01" name="unit_price[]" class="form-control shadow-sm unit-price" oninput="calcTotal(this)" /></td>
+                <td><input type="text" class="form-control shadow-sm total bg-light" readonly /></td>
+                <td class="text-center">
+                  <button type="button" class="btn btn-sm btn-danger rounded-circle" onclick="removeRow(this)">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                </td>
+                <!-- Hidden warehouse input -->
+                <input type="hidden" name="warehouse[]" class="warehouse-input" />
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="table-info fw-bold">
+                <td colspan="4" class="text-end">Grand Total:</td>
+                <td><input type="text" id="grandTotal" class="form-control bg-light fw-bold" readonly /></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
 
-        <!-- Submit Button -->
-        <div class="text-center mt-4">
-          <button type="submit" class="btn btn-success px-4 py-2"><i class="fas fa-paper-plane"></i> Submit Purchase Order</button>
-          <a href="{% url 'purchase_list' %}" class="btn btn-secondary px-4 py-2"> <i class="fas fa-arrow-left"></i> Back to List </a>
+        <!-- Submit -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-lg btn-primary px-5 shadow-sm me-2"><i class="fas fa-save me-2"></i> Save Purchase Order</button>
+          <a href="{% url 'purchase_list' %}" class="btn btn-lg btn-outline-secondary px-5 shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i> Back to List
+          </a>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Font Awesome -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
-
+<!-- JavaScript -->
 <script>
-  function updateTotals() {
-    let grandTotal = 0;
-    document.querySelectorAll(".product-entry").forEach((row) => {
-      const qty = parseFloat(row.querySelector(".qty")?.value) || 0;
-      const price = parseFloat(row.querySelector(".price")?.value) || 0;
-      grandTotal += qty * price;
-    });
-    document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
+  // Auto-fill vendor details
+  document.getElementById("vendorSelect").addEventListener("change", function () {
+    const option = this.options[this.selectedIndex];
+    document.getElementById("vendor_company_name").value = option.dataset.name || "";
+    document.getElementById("vendor_contact_name").value = option.dataset.code || "";
+    document.getElementById("vendor_phone").value = option.dataset.phone || "";
+    document.getElementById("vendor_email").value = option.dataset.email || "";
+    document.getElementById("vendor_address").value = option.dataset.address || "";
+    document.getElementById("vendorImage").src = option.dataset.img || "{% static 'assets/images/no-vendor.png' %}";
+  });
+
+  const warehouseSelect = document.getElementById("warehouseSelect");
+
+  // Update warehouse for all rows on select change
+  warehouseSelect.addEventListener("change", function () {
+    const warehouseId = this.value;
+    document.querySelectorAll(".warehouse-input").forEach((input) => (input.value = warehouseId));
+  });
+
+  // Add product row
+  function addRow() {
+    const table = document.getElementById("itemsTable").getElementsByTagName("tbody")[0];
+    const newRow = table.rows[0].cloneNode(true);
+    newRow.querySelectorAll("input").forEach((input) => (input.value = ""));
+    // Set warehouse for new row
+    newRow.querySelector(".warehouse-input").value = warehouseSelect.value;
+    table.appendChild(newRow);
   }
 
-  // Add new product row
-  document.getElementById("addProductRow").addEventListener("click", function () {
-    const container = document.getElementById("productRows");
-    const newRow = document.createElement("div");
-    newRow.classList.add("row", "product-entry", "mb-3");
-    newRow.innerHTML = `
-      <div class="col-md-2">
-        <input type="text" name="item_number[]" class="form-control" placeholder="Item #" required>
-      </div>
-      <div class="col-md-4">
-        <input type="text" name="product_name[]" class="form-control" placeholder="Product" required>
-      </div>
-      <div class="col-md-2">
-        <input type="number" name="quantity[]" class="form-control qty" min="1" required>
-      </div>
-      <div class="col-md-2">
-        <input type="number" step="0.01" name="unit_price[]" class="form-control price" required>
-      </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button type="button" class="btn btn-danger btn-sm remove-product">✖</button>
-      </div>
-    `;
-    container.appendChild(newRow);
-  });
-
   // Remove product row
-  document.addEventListener("click", function (e) {
-    if (e.target && e.target.classList.contains("remove-product")) {
-      e.target.closest(".product-entry").remove();
-      updateTotals();
-    }
-  });
+  function removeRow(btn) {
+    const row = btn.closest("tr");
+    const table = document.getElementById("itemsTable").getElementsByTagName("tbody")[0];
+    if (table.rows.length > 1) row.remove();
+    updateGrandTotal();
+  }
 
-  // Auto-update totals
-  document.addEventListener("input", function (e) {
-    if (e.target.classList.contains("qty") || e.target.classList.contains("price")) {
-      updateTotals();
+  // Calculate row total & update grand total
+  function calcTotal(input) {
+    const row = input.closest("tr");
+    const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+    const price = parseFloat(row.querySelector(".unit-price").value) || 0;
+    row.querySelector(".total").value = (qty * price).toFixed(2);
+    updateGrandTotal();
+  }
+
+  // Update grand total
+  function updateGrandTotal() {
+    let total = 0;
+    document.querySelectorAll("#itemsTable .total").forEach((el) => (total += parseFloat(el.value) || 0));
+    document.getElementById("grandTotal").value = total.toFixed(2);
+  }
+
+  // Form validation (unchanged)
+  function validateForm() {
+    let errors = [];
+    const companyName = document.querySelector("[name='company_name']").value.trim();
+    if (!companyName) errors.push("Company Name is required.");
+    const phone = document.querySelector("[name='company_phone']").value.trim();
+    if (phone && !/^\d{10}$/.test(phone)) errors.push("Company phone must be 10 digits.");
+    const email = document.querySelector("[name='company_email']").value.trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push("Invalid email format.");
+    const vendor = document.getElementById("vendorSelect").value;
+    if (!vendor) errors.push("Please select a vendor.");
+    let hasValidProduct = false;
+    document.querySelectorAll("#itemsTable tbody tr").forEach((row, index) => {
+      const name = row.querySelector("[name='product_name[]']").value.trim();
+      const qty = parseFloat(row.querySelector("[name='quantity[]']").value) || 0;
+      const price = parseFloat(row.querySelector("[name='unit_price[]']").value) || 0;
+      if (name || qty > 0 || price > 0) {
+        if (!name) errors.push(`Row ${index + 1}: Product name is required.`);
+        if (qty <= 0) errors.push(`Row ${index + 1}: Quantity must be greater than 0.`);
+        if (price <= 0) errors.push(`Row ${index + 1}: Unit price must be greater than 0.`);
+        hasValidProduct = true;
+      }
+    });
+    if (!hasValidProduct) errors.push("At least one valid product item is required.");
+    const grandTotal = parseFloat(document.getElementById("grandTotal").value) || 0;
+    if (grandTotal <= 0) errors.push("Grand Total must be greater than 0.");
+    if (errors.length > 0) {
+      alert(errors.join("\n"));
+      return false;
     }
+    return true;
+  }
+
+  // Auto-fill PO Date and Invoice Number
+  document.addEventListener("DOMContentLoaded", function () {
+    let today = new Date().toISOString().split("T")[0];
+    document.getElementById("po_date").value = today;
+    let now = new Date();
+    let invNum =
+      "INV" +
+      now.getFullYear().toString() +
+      ("0" + (now.getMonth() + 1)).slice(-2) +
+      ("0" + now.getDate()).slice(-2) +
+      ("0" + now.getHours()).slice(-2) +
+      ("0" + now.getMinutes()).slice(-2) +
+      ("0" + now.getSeconds()).slice(-2);
+    document.getElementById("invoice_number").value = invNum;
   });
 </script>
 {% endblock %}

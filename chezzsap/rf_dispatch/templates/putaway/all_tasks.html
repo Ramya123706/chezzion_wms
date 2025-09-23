@@ -30,7 +30,13 @@
             {% for task in tasks %}
             <tr>
               <td>{{ task.putaway_id }}</td>
-              <td>{{ task.pallet.pallet_id if task.pallet else "-" }}</td>
+              <td>
+                {% if task.pallet %}
+                  {{ task.pallet.pallet_no }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
               <td>{{ task.source_location }}</td>
               <td>{{ task.destination_location }}</td>
               <td>{{ task.putaway_task_type }}</td>
@@ -38,9 +44,7 @@
                 <span class="badge 
                   {% if task.status == 'Completed' %}bg-success
                   {% elif task.status == 'In Progress' %}bg-warning text-dark
-                  {% else %}bg-secondary{% endif %}">
-                  {{ task.status }}
-                </span>
+                  {% else %}bg-secondary{% endif %}">{{ task.status }}</span>
               </td>
               <td>{{ task.created_at|date:"d M Y, H:i" }}</td>
               <td>{{ task.updated_at|date:"d M Y, H:i" }}</td>
