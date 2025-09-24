@@ -51,16 +51,17 @@
                             <label for="pallet_no" class="form-label">
                                 <i class="fa-solid fa-pallet me-1"></i> <b>Pallet No</b>
                             </label>
-                            <select id="pallet" name="pallet" class="form-select" >
-    <option value="">-- Select Pallet --</option>
-    {% for pallet in pallets %}
-        {% if not pallet.parent_pallet %}
-            <option value="{{ pallet.id }}">
-                {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
-            </option>
-        {% endif %}
-    {% endfor %}
-</select>
+                            <select id="pallet" name="pallet" class="form-select">
+                                <option value="">-- Select Pallet --</option>
+                                {% for pallet in pallets %}
+                                    {% if not pallet.parent_pallet %}
+                                        <option value="{{ pallet.id }}">
+                                            {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+
 
 
 
@@ -282,4 +283,32 @@
         }
     });
 </script>
+<script>
+document.getElementById("quantity").addEventListener("change", function() {
+    const qty = parseInt(this.value);
+    const palletSelect = document.getElementById("pallet");
+    palletSelect.innerHTML = '<option value="">-- Select Pallet --</option>';
+
+    if (qty > 0) {
+        fetch(`/ajax/suggest-pallets/?quantity=${qty}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.pallets.length > 0) {
+                data.pallets.forEach(p => {
+                    const option = document.createElement("option");
+                    option.value = p.id;
+                    option.text = `${p.pallet_no} (${p.child_count} child pallets)`;
+                    palletSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement("option");
+                option.text = "Not enough pallets, create new";
+                option.value = "create_new";
+                palletSelect.appendChild(option);
+            }
+        });
+    }
+});
+</script>
+
 {% endblock %}
