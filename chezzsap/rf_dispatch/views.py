@@ -925,7 +925,6 @@ def add_product(request):
         unit_price = float(request.POST.get('unit_price') or 0.00)
         images = request.FILES.get('images')
 
-        # ✅ FIX: fetch pallet from the <select name="pallet"> field
         pallet_id = request.POST.get('pallet')
         pallet = None
         if pallet_id:
@@ -952,7 +951,7 @@ def add_product(request):
             product = Product.objects.create(
                 name=name,
                 quantity=quantity,
-                pallet_no=pallet,  # ✅ now correct
+                pallet_no=pallet,
                 sku=sku,
                 description=description,
                 unit_of_measure=unit_of_measure,

@@ -52,15 +52,14 @@
                                 <i class="fa-solid fa-pallet me-1"></i> <b>Pallet No</b>
                             </label>
                             <select id="pallet" name="pallet" class="form-select" >
-    <option value="">-- Select Pallet --</option>
-    {% for pallet in pallets %}
-        <option value="{{ pallet.id }}">
-            {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
-        </option>
-    {% endfor %}
-</select>
-<p>Debug pallets: {{ pallets|length }}</p>
-                                                                                                                                                                                                             
+                                <option value="">-- Select Pallet --</option>
+                                {% for pallet in pallets %}
+                                    <option value="{{ pallet.id }}">
+                                        {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <p>Debug pallets: {{ pallets|length }}</p>                                                                                                                                                                                                     
                         </div>
 
                         <!-- SKU -->
