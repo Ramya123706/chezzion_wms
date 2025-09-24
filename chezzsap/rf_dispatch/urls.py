@@ -261,6 +261,7 @@ urlpatterns = [
     path('delete_sort/<int:id>/', views.delete_sorting, name='delete_sorting'),
     
 
-    
-    
+    # weighing_machine
+    path('get-machine-weight/', views.get_machine_weight, name='get_machine_weight'),
+ 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

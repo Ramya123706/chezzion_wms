@@ -157,6 +157,7 @@ def yard_checkin_view(request):
                 'yard_scan': request.POST.get('yard_scan'),
                 'truck_status': request.POST.get('truck_status'),
             }
+            
             return redirect('inspection', truck_no=truck_no)
 
     form = YardHdrForm()
@@ -199,7 +200,7 @@ def inspection_view(request, truck_no):
             truck_time = page1_data['truck_time'],
             seal_no = page1_data['seal_no'],
             yard_scan = page1_data['yard_scan'],
-            truck_status = "Inspected"
+            truck_status = page1_data['truck_status'],
         )
        
         for q, ans in responses.items():
@@ -216,6 +217,14 @@ def inspection_view(request, truck_no):
                 driver_name = yard_instance.driver_name,
                 driver_phn_no = yard_instance.driver_phn_no
             )
+
+        # ------------------- Add TruckLog entry -------------------
+        TruckLog.objects.create(
+            truck_no = yard_instance,  # FK to YardHdr
+            status = yard_instance.truck_status,
+            comment = "Truck inspection completed",
+            status_changed_by = request.user  # optional
+        )
  
         if 'page1_data' in request.session:
             del request.session['page1_data']
@@ -313,10 +322,16 @@ def status_log_view(request, truck_no):
 
 from django.shortcuts import render
 from .models import Truck  # or your truck model
-
 def truck_driver_list(request):
     trucks = Truck.objects.all()  # get all trucks
-    return render(request, 'truck_screen/truck_driver_list.html', {'trucks': trucks})
+
+    # Attach latest status from TruckLog
+    for truck in trucks:
+        latest_log = TruckLog.objects.filter(truck_no=truck.truck_no).order_by('-truck_date', '-truck_time').first()
+        truck.latest_status = latest_log.status if latest_log else "Not planned"
+
+    return render(request, 'truck_screen/truck_driver_list.html', {'trucks': trucks, 'trucklog': TruckLog.objects.all()})
+
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Truck
@@ -861,12 +876,14 @@ def product_view(request):
         products = Product.objects.filter(name__icontains=query)
     else:
         products = Product.objects.all()
+    pallets = Pallet.objects.all()
 
     return render(request, 'product/add_product.html', {
         'form': form,
         'products': products,
         'query': query,
         'categories': Category.objects.all(),
+        'pallets': pallets,
     })
 
 def product_detail_view(request, product_id):
@@ -961,12 +978,17 @@ def add_product(request):
                 unit_price=unit_price or 0.00,
                 images=images,
             )
+            prod_identifier = getattr(product, 'product_id', None) or product.name
+            messages.success(request, f"Product {prod_identifier} added successfully!")
 
             messages.success(request, f"Product {product.name} added successfully!")
             return redirect('product_list')
 
         except Exception as e:
             messages.error(request, f"Unexpected error: {e}")
+            
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.all()
 
     categories = Category.objects.all()
     subcategories = SubCategory.objects.all()
@@ -4356,7 +4378,58 @@ def bin_log_view(request):
         if not logs:
             error_message = "No logs found"
 
+        bin_id_query = bin_id  # assign the search query to bin_id_query
+    bin_details = None  # define bin_details or fetch as needed
     return render(request, 'bin/bin_log.html', {
         'logs': logs,
-        'error': error_message
-    })
+        'bin_id_query': bin_id_query,  # used in template search box
+        'bin_details': bin_details,
+        'error_message': error_message,
+    }
+    )
+    # return render(request, 'bin/bin_log.html', context)
+
+
+# -----------
+# weighing_machine
+# -----------
+
+from django.http import JsonResponse
+import serial
+
+from django.http import JsonResponse
+import serial
+import time
+import re
+
+def get_machine_weight(request):
+    """
+    Fetch weight from RS232 weighing machine and return JSON.
+    """
+    weight_data = "0.0"
+    try:
+        # Open serial port (replace COM3 and 9600 with your scale's config)
+        ser = serial.Serial('COM5', 9600, timeout=2)
+        time.sleep(0.2)  # give some time to stabilize
+
+        # Some scales need a request command, for example sending 'P\r\n'
+        # ser.write(b'P\r\n')
+        time.sleep(0.1)
+
+        # Read line from the scale
+        raw_data = ser.readline().decode('utf-8', errors='ignore').strip()
+        ser.close()
+
+        # Extract numeric value using regex (handles things like "+00012.34 kg")
+        match = re.search(r"[-+]?\d*\.\d+|\d+", raw_data)
+        if match:
+            weight_data = match.group()
+        else:
+            weight_data = "0.0"
+
+    except Exception as e:
+        weight_data = f"Error: {str(e)}"
+
+    return JsonResponse({"weight": weight_data})
+
+
