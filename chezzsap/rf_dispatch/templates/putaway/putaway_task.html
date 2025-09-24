@@ -70,11 +70,11 @@
               <input type="hidden" name="putaway_task_type" value="Putaway by Warehouse" />
 
               <div class="mb-3">
-                <label><b>Warehouse</b></label>
-                <select id="warehouse_select" name="whs_no" class="form-select" required>
-                  <option value="">--Select Warehouse--</option>
-                  {% for wh in warehouses %}
-                  <option value="{{ wh.whs_no }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
+                <label><b>Pallet</b></label>
+                <select id="warehouse_pallet_select" name="pallet" class="form-select" required>
+                  <option value="">--Select Pallet--</option>
+                  {% for p in pallets %}
+                  <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -87,6 +87,16 @@
               <div class="mb-3">
                 <label><b>Destination Location</b></label>
                 <input type="text" name="destination_location" class="form-control" required />
+              </div>
+
+              <div class="mb-3">
+                <label><b>Warehouse</b></label>
+                <select id="warehouse_select" name="whs_no" class="form-select" required>
+                  <option value="">--Select Warehouse--</option>
+                  {% for wh in warehouses %}
+                  <option value="{{ wh.whs_no }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
+                  {% endfor %}
+                </select>
               </div>
 
               <div class="mb-3">
@@ -189,7 +199,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
 
-    // HU (Pallet)
+    // HU (Pallet) - Tab 1
     const palletSelect = document.getElementById("pallet_select");
     const huSource = document.getElementById("hu_source_location");
     palletSelect?.addEventListener("change", function() {
@@ -198,21 +208,31 @@ document.addEventListener("DOMContentLoaded", function() {
             fetch(`/get-pallet-location/${id}/`)
             .then(res => res.json())
             .then(data => huSource.value = data.location || "No location set")
-            .catch(err => huSource.value = "");
-        } else { huSource.value = ""; }
+            .catch(err => {
+                console.error('Error fetching pallet location:', err);
+                huSource.value = "";
+            });
+        } else { 
+            huSource.value = ""; 
+        }
     });
 
-    // Warehouse
-    const warehouseSelect = document.getElementById("warehouse_select");
+    // Warehouse Tab - FIXED: Listen to pallet dropdown, not warehouse dropdown
+    const warehousePalletSelect = document.getElementById("warehouse_pallet_select");
     const warehouseSource = document.getElementById("warehouse_source_location");
-    warehouseSelect?.addEventListener("change", function() {
+    warehousePalletSelect?.addEventListener("change", function() {
         const id = this.value;
         if(id){
-            fetch(`/get-warehouse-location/${id}/`)
+            fetch(`/get-pallet-location/${id}/`)
             .then(res => res.json())
             .then(data => warehouseSource.value = data.location || "No location set")
-            .catch(err => warehouseSource.value = "");
-        } else { warehouseSource.value = ""; }
+            .catch(err => {
+                console.error('Error fetching warehouse pallet location:', err);
+                warehouseSource.value = "";
+            });
+        } else { 
+            warehouseSource.value = ""; 
+        }
     });
 
     // Product
@@ -224,8 +244,13 @@ document.addEventListener("DOMContentLoaded", function() {
             fetch(`/get-product-location/${id}/`)
             .then(res => res.json())
             .then(data => productSource.value = data.location || "No location set")
-            .catch(err => productSource.value = "");
-        } else { productSource.value = ""; }
+            .catch(err => {
+                console.error('Error fetching product location:', err);
+                productSource.value = "";
+            });
+        } else { 
+            productSource.value = ""; 
+        }
     });
 
     // Bin
@@ -237,8 +262,13 @@ document.addEventListener("DOMContentLoaded", function() {
             fetch(`/get-bin-location/${id}/`)
             .then(res => res.json())
             .then(data => binSource.value = data.location || "No location set")
-            .catch(err => binSource.value = "");
-        } else { binSource.value = ""; }
+            .catch(err => {
+                console.error('Error fetching bin location:', err);
+                binSource.value = "";
+            });
+        } else { 
+            binSource.value = ""; 
+        }
     });
 
 });

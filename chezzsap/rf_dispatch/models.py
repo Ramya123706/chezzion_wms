@@ -171,6 +171,7 @@ class Product(models.Model):
     quantity = models.IntegerField(default=0)   
     pallet_no = models.ForeignKey('Pallet', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     sku = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
@@ -238,6 +239,7 @@ class Pallet(models.Model):
     pallet_no = models.CharField(max_length=100, unique=True, editable=False, default='') 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -466,7 +468,6 @@ class Putaway(models.Model):
     created_by = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
-    confirmed_at = models.CharField(max_length=100,null=True,blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -943,19 +944,17 @@ class Sorting(models.Model):
 from django.contrib.auth.models import User
 from django.db import models
 
+from django.db import models
+from django.contrib.auth.models import User
+
 class BinLog(models.Model):
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True)
-    remarks = models.TextField(blank=True, null=True)
-    source_location = models.CharField(max_length=100, blank=True, null=True)
-    destination_location = models.CharField(max_length=100, blank=True, null=True)
-    quantity_changed = models.IntegerField(default=0)
-    status = models.CharField(max_length=20, default="pending")
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name='binlogs_created')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,related_name='binlogs_updated')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True) 
+    location = models.CharField(max_length=100, blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='binlogs_created')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='binlogs_updated')
+    created_at = models.DateTimeField(auto_now_add=True) 
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.bin.bin_id} - {self.status} at {self.created_at}"
+        return f"{self.bin.bin_id} - at {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
 
