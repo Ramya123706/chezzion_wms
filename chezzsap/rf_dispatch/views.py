@@ -876,12 +876,14 @@ def product_view(request):
         products = Product.objects.filter(name__icontains=query)
     else:
         products = Product.objects.all()
+    pallets = Pallet.objects.all()
 
     return render(request, 'product/add_product.html', {
         'form': form,
         'products': products,
         'query': query,
         'categories': Category.objects.all(),
+        'pallets': pallets,
     })
 
 def product_detail_view(request, product_id):
@@ -976,13 +978,15 @@ def add_product(request):
                 unit_price=unit_price or 0.00,
                 images=images,
             )
-
-            messages.success(request, f"Product {product_id} added successfully!")
+            prod_identifier = getattr(product, 'product_id', None) or product.name
+            messages.success(request, f"Product {prod_identifier} added successfully!")
             return redirect('product_list')
 
         except Exception as e:
             messages.error(request, f"Unexpected error: {e}")
-
+            
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.all()
     return render(request, 'product/add_product.html', {
         'pallets': pallets,
         'categories': categories,
@@ -4028,3 +4032,48 @@ def bin_log_view(request):
     }
 
     return render(request, 'bin/bin_log.html', context)
+
+
+# -----------
+# weighing_machine
+# -----------
+
+from django.http import JsonResponse
+import serial
+
+from django.http import JsonResponse
+import serial
+import time
+import re
+
+def get_machine_weight(request):
+    """
+    Fetch weight from RS232 weighing machine and return JSON.
+    """
+    weight_data = "0.0"
+    try:
+        # Open serial port (replace COM3 and 9600 with your scale's config)
+        ser = serial.Serial('COM5', 9600, timeout=2)
+        time.sleep(0.2)  # give some time to stabilize
+
+        # Some scales need a request command, for example sending 'P\r\n'
+        # ser.write(b'P\r\n')
+        time.sleep(0.1)
+
+        # Read line from the scale
+        raw_data = ser.readline().decode('utf-8', errors='ignore').strip()
+        ser.close()
+
+        # Extract numeric value using regex (handles things like "+00012.34 kg")
+        match = re.search(r"[-+]?\d*\.\d+|\d+", raw_data)
+        if match:
+            weight_data = match.group()
+        else:
+            weight_data = "0.0"
+
+    except Exception as e:
+        weight_data = f"Error: {str(e)}"
+
+    return JsonResponse({"weight": weight_data})
+
+
