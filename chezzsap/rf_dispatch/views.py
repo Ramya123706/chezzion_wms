@@ -1597,7 +1597,6 @@ def create_bin(request):
                 BinLog.objects.create(
                     bin=bin_obj,
                     location=bin_obj.location,
-                    created_by=bin_obj.created_by,  # keep original creator
                     updated_by=request.user
                 )
 
@@ -1621,17 +1620,11 @@ def create_bin(request):
                 BinLog.objects.create(
                     bin=bin_obj,
                     location=bin_obj.location,
-                    created_by=request.user,
-                    updated_by=request.user
+                    created_by=request.user
                 )
 
-            bins = Bin.objects.all()
-            return render(request, 'bin/create_bin.html', {
-                'warehouse': warehouse_list,
-                'bins': bins,
-                'categories': categories,
-                'success': f"Bin {bin_obj.bin_id} saved successfully."
-            })
+            # Redirect to bin detail page (so logs are visible immediately)
+            return redirect("bin_detail", bin_id=bin_obj.bin_id)
 
         except Exception as e:
             return render(request, 'bin/create_bin.html', {
@@ -1647,8 +1640,12 @@ def create_bin(request):
         'categories': categories,
     })
 
+
 def bin_detail(request, bin_id):
-    return render(request, 'bin/bin_detail.html', {'bin_id': bin_id})
+    bin_obj = get_object_or_404(Bin, bin_id=bin_id)
+    logs = BinLog.objects.filter(bin=bin_obj).order_by('-created_at')
+    return render(request, "bin_detail.html", {"bin": bin_obj, "logs": logs})
+
 
 def get_bin_location(request, bin_id):
     try:
@@ -1727,49 +1724,69 @@ def load_subcategories(request):
     return JsonResponse({"subcategories": list(subcategories)})
 
 
+@login_required
 def bin_detail(request, bin_id):
-    bin_instance = get_object_or_404(Bin, bin_id=bin_id)
-    return render(request, 'bin/bin_detail.html', {'bin': bin_instance})
+    bin_obj = get_object_or_404(Bin, bin_id=bin_id)
+    logs = BinLog.objects.filter(bin=bin_obj).order_by('-created_at')
+    return render(request, "bin/bin_detail.html", {"bin": bin_obj, "logs": logs})
 
 
 from django.shortcuts import render, get_object_or_404
 
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Bin, Warehouse, Category, SubCategory
-
+from .models import BinLog
+@login_required
 def edit_bin(request, bin_id):
-    bin_obj = get_object_or_404(Bin, pk=bin_id)
+    bin_obj = get_object_or_404(Bin, bin_id=bin_id)
     categories = Category.objects.all()
+    warehouses = Warehouse.objects.all()
+
+    subcategories = (
+        SubCategory.objects.filter(category=bin_obj.category)
+        if bin_obj.category else SubCategory.objects.none()
+    )
 
     if request.method == "POST":
-        whs_no = request.POST.get('whs_no')
-        bin_id_input = request.POST.get('bin_id')
-        bin_type = request.POST.get('bin_type')
-        capacity = request.POST.get('capacity')
+        warehouse_no = request.POST.get('warehouse_id')
+        warehouse_instance = get_object_or_404(Warehouse, whs_no=warehouse_no)
+
         category_id = request.POST.get('category')
-        subcategory_id = request.POST.get('subcategory')
-
-        # Fetch related model instances
-        whs_instance = get_object_or_404(Warehouse, whs_no=whs_no)
         category_instance = get_object_or_404(Category, id=category_id)
-        subcategory_instance = get_object_or_404(SubCategory, id=subcategory_id)
 
-        # Update bin object
-        bin_obj.whs_no = whs_instance
-        bin_obj.bin_id = bin_id_input
-        bin_obj.bin_type = bin_type
-        bin_obj.capacity = capacity
+        subcategory_id = request.POST.get('sub_category')
+        subcategory_instance = (
+            get_object_or_404(SubCategory, id=subcategory_id)
+            if subcategory_id else None
+        )
+
+        # Update bin
+        bin_obj.whs_no = warehouse_instance
+        bin_obj.bin_id = request.POST.get('bin_id')
+        bin_obj.bin_type = request.POST.get('bin_type')
+        bin_obj.capacity = request.POST.get('capacity')
+        bin_obj.existing_quantity = request.POST.get('existing_quantity')
         bin_obj.category = category_instance
-        bin_obj.subcategory = subcategory_instance
+        bin_obj.sub_category = subcategory_instance
+        bin_obj.updated_by = request.user
         bin_obj.save()
 
-        return redirect('bin_detail', bin_id=bin_obj.id)
+        # Create log
+        BinLog.objects.create(
+            bin=bin_obj,
+            location=bin_obj.location,
+            created_by=bin_obj.created_by,
+            updated_by=request.user
+        )
+
+        return redirect('bin_detail', bin_id=bin_obj.bin_id)
 
     return render(request, 'bin/bin_edit.html', {
         'bin': bin_obj,
         'categories': categories,
+        'subcategories': subcategories,
+        'warehouses': warehouses,
     })
-
 
 # -----------------
 # VENDOR
@@ -4394,8 +4411,7 @@ def bin_log_view(request):
 # weighing_machine
 # -----------
 
-from django.http import JsonResponse
-import serial
+
 
 from django.http import JsonResponse
 import serial

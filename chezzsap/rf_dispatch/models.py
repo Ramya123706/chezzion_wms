@@ -153,11 +153,11 @@ class Bin(models.Model):
     def __str__(self):
         return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
     
+    @property
     def remaining_capacity(self):
-        return self.capacity - self.existing_quantity
-
-    def __str__(self):
-        return f"{self.bin_id} (Remaining: {self.remaining_capacity()}/{self.capacity})"
+        """Always return non-negative remaining capacity."""
+        remaining = self.capacity - self.existing_quantity
+        return remaining if remaining > 0 else 0
 
 
 class Product(models.Model):

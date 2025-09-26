@@ -9,9 +9,9 @@
     <table class="table table-bordered table-striped text-center mt-3">
         <thead class="thead-dark">
             <tr>
+                <th>Bin id</th>
                 <th>Date</th>
                 <th>Time</th>
-                <th>Created By</th>
                 <th>Location</th>
                 <th>Updated By</th>
                 <th>Updated At</th>
@@ -20,9 +20,9 @@
         <tbody>
             {% for log in logs %}
             <tr>
+                <td>{{ log.bin.bin_id }}</td>
                 <td>{{ log.created_at|date:"M. d, Y" }}</td>
                 <td>{{ log.created_at|time:"g:i a" }}</td>
-                <td>{{ log.created_by.username|default:"-" }}</td>
                 <td>{{ log.location|default:"-" }}</td>
                 <td>{{ log.updated_by.username|default:"-" }}</td>
                 <td>{{ log.updated_at|date:"M. d, Y g:i a" }}</td>
