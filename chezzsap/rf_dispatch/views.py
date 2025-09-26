@@ -2319,11 +2319,45 @@ def putaway_detail(request, putaway_id):
     return render(request, "putaway/putaway_detail.html", {"putaway": putaway})
 @login_required
 def all_tasks(request):
-    all_putaway_tasks = Putaway.objects.filter(
-        putaway_id__isnull=False
-    ).exclude(putaway_id="").order_by("-created_at")
-    
-    return render(request, "putaway/all_tasks.html", {"putaway_tasks": all_putaway_tasks})
+    putaway_tasks = Putaway.objects.all().order_by("-created_at")
+    picking_tasks = Picking.objects.all().order_by("-created_at")
+
+    # Normalize into one list
+    tasks = []
+
+    # Add Putaway
+    for task in putaway_tasks:
+        tasks.append({
+            "id": task.putaway_id,
+            "pallet": task.pallet.pallet_no if task.pallet else "-",
+            "source": task.source_location,
+            "destination": task.destination_location,
+            "task_type": f"Putaway ({task.putaway_task_type})",
+            "status": task.status,
+            "created_at": task.created_at,
+            "updated_at": task.updated_at,
+            "kind": "putaway",  # so we know actions
+        })
+
+    # Add Picking
+    for task in picking_tasks:
+        tasks.append({
+            "id": task.picking_id,
+            "pallet": task.pallet if task.pallet else "-",
+            "source": task.source_location,
+            "destination": task.destination_location,
+            "task_type": f"Picking ({task.picking_type})",
+            "status": task.status,
+            "created_at": task.created_at,
+            "updated_at": task.updated_at,
+            "kind": "picking",
+        })
+
+    # Sort both together by created_at desc
+    tasks = sorted(tasks, key=lambda x: x["created_at"], reverse=True)
+
+    return render(request, "tasks/all_tasks.html", {"tasks": tasks})
+
 
 
 
@@ -2456,7 +2490,7 @@ def confirm_picking(request, picking_id):
 
     # Track who updated it
     picking.updated_by = request.user.username if request.user.is_authenticated else "System"
-    picking.confirmed_at = now() if picking.status == "Completed" else None
+    picking.updated_at = now()
     picking.save()
 
     return redirect("all_tasks")
@@ -3996,6 +4030,15 @@ def all_putaway_tasks(request):
     tasks = Putaway.objects.all().order_by('-created_at')  # newest first
     context = {'tasks': tasks }
     return render(request, 'putaway/all_tasks.html', context)
+
+@login_required
+def all_picking_tasks(request):
+    """
+    View to display all picking tasks in a table.
+    """
+    tasks = Picking.objects.all().order_by('-created_at')  # newest first
+    context = {'tasks': tasks}
+    return render(request, 'picking/all_tasks.html', context)
 
 
 def get_product_details(request, product_id):

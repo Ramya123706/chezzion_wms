@@ -144,6 +144,7 @@ urlpatterns = [
     # Putaway  
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('putaway/tasks/', views.all_putaway_tasks, name='all_tasks'),
+    path('picking/tasks/', views.all_picking_tasks, name='all_picking_tasks'),
     path('putaway/pending/', views.putaway_pending, name='putaway_pending'),
     path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
     path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
