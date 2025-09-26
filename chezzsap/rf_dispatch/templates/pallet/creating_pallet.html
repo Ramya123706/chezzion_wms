@@ -1,5 +1,4 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container mt-5">
   <div class="row g-4">
     <!-- LEFT SIDE: Pallet Creation Form -->
@@ -10,22 +9,13 @@
         </div>
         <div class="card-body">
           <form method="POST" action="{% url 'creating_pallet' %}">
-            {% csrf_token %}
-
-            {# Render all fields except weight normally #}
-            {% for field in form %}
-              {% if field.name != "weight" %}
-                <div class="mb-3">
-                  {{ field.label_tag }}
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
+            {% csrf_token %} {# Render all fields except weight normally #} {% for field in form %} {% if field.name != "weight" %}
+            <div class="mb-3">
+              {{ field.label_tag }} {{ field }} {% if field.errors %}
+              <div class="text-danger">{{ field.errors }}</div>
               {% endif %}
-            {% endfor %}
-
-            {# Render weight field with Fetch Weight button #}
+            </div>
+            {% endif %} {% endfor %} {# Render weight field with Fetch Weight button #}
             <div class="mb-3">
               <label for="id_weight" class="form-label">Weight</label>
               <div class="input-group">
@@ -35,13 +25,11 @@
                 </button>
               </div>
               {% if form.weight.errors %}
-                <div class="text-danger">{{ form.weight.errors }}</div>
+              <div class="text-danger">{{ form.weight.errors }}</div>
               {% endif %}
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 mt-3">
-              <i class="fa-solid fa-plus me-1"></i> Create Pallet
-            </button>
+            <button type="submit" class="btn btn-primary w-100 mt-3"><i class="fa-solid fa-plus me-1"></i> Create Pallet</button>
           </form>
         </div>
       </div>
@@ -58,9 +46,7 @@
           <form method="get" class="mb-3">
             <div class="input-group">
               <input type="text" name="search" class="form-control" placeholder="Enter Pallet Number" />
-              <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-search me-1"></i> Search
-              </button>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-search me-1"></i> Search</button>
             </div>
           </form>
 
@@ -260,16 +246,15 @@
   });
 
   // Fetch weight from RS232 machine
-document.getElementById("fetchWeightBtn").addEventListener("click", () => {
+  document.getElementById("fetchWeightBtn").addEventListener("click", () => {
     fetch("{% url 'get_machine_weight' %}")
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         document.getElementById("id_weight").value = data.weight;
       })
-      .catch(error => {
+      .catch((error) => {
         alert("Error fetching weight: " + error);
       });
-});
-
+  });
 </script>
 {% endblock %}

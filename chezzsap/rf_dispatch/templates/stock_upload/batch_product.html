@@ -61,11 +61,11 @@
             <!-- BIN & Description -->
             <div class="row g-3 mt-2">
               <div class="mb-3">
-              <label for="bin"><i class="fas fa-box me-1"></i><b>Bin</b></label>
-              <select id="bin" name="bin" class="form-control" required>
-                <option value="">-- Select Bin --</option>
-              </select>
-            </div>
+                <label for="bin"><i class="fas fa-box me-1"></i><b>Bin</b></label>
+                <select id="bin" name="bin" class="form-control" required>
+                  <option value="">-- Select Bin --</option>
+                </select>
+              </div>
 
               <div class="col-md-6">
                 <label for="description" class="form-label"><i class="fas fa-file-alt me-1"></i>Description</label>
@@ -82,16 +82,11 @@
               <div class="col-md-6">
                 <label for="pallet" class="form-label"><i class="fas fa-truck-loading me-1"></i>Pallet</label>
                 <select id="pallet" name="pallet" class="form-select" required>
-    <option value="">-- Select Pallet --</option>
-    {% for pallet in pallets %}
-        {% if not pallet.parent_pallet %}
-            <option value="{{ pallet.id }}">
-                {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
-            </option>
-        {% endif %}
-    {% endfor %}
-</select>
-
+                  <option value="">-- Select Pallet --</option>
+                  {% for pallet in pallets %} {% if not pallet.parent_pallet %}
+                  <option value="{{ pallet.id }}">{{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})</option>
+                  {% endif %} {% endfor %}
+                </select>
               </div>
             </div>
 
@@ -279,7 +274,6 @@
   </div>
 </div>
 
-
 <!-- JS -->
 <script>
   // Product Suggestions
@@ -288,7 +282,6 @@
 
   productInput.addEventListener("keyup", function () {
     const query = this.value.trim();
-    const suggestionBox = document.getElementById("product_suggestions");
     if (query.length > 0) {
       fetch(`/ajax/product-suggestions/?q=${encodeURIComponent(query)}`)
         .then((res) => res.json())
@@ -301,12 +294,12 @@
               div.classList.add("p-2", "suggestion-item");
               div.style.cursor = "pointer";
               div.onclick = () => {
-  document.getElementById("product_input").value = item.product_id;
-  document.getElementById("description").value = item.description || "";
-  document.getElementById("category").value = item.category || "";
-  document.getElementById("subcategory").value = item.sub_category || "";
-  suggestionBox.style.display = "none";
-};
+                productInput.value = item.product_id;
+                document.getElementById("description").value = item.description || "";
+                document.getElementById("category").value = item.category || "";
+                document.getElementById("subcategory").value = item.sub_category || "";
+                suggestionBox.style.display = "none";
+              };
               suggestionBox.appendChild(div);
             });
             suggestionBox.style.display = "block";
@@ -315,7 +308,9 @@
           }
         })
         .catch(() => (suggestionBox.style.display = "none"));
-    } else suggestionBox.style.display = "none";
+    } else {
+      suggestionBox.style.display = "none";
+    }
   });
 
   // Batch Input Toggle
@@ -334,31 +329,58 @@
   }
   batchYes.addEventListener("change", toggleBatchInput);
   batchNo.addEventListener("change", toggleBatchInput);
+  document.addEventListener("DOMContentLoaded", toggleBatchInput);
 
   // Load subcategories dynamically
-    document.getElementById("category").addEventListener("change", function () {
-      const categoryId = this.value;
-      const subcategorySelect = document.getElementById("subcategory");
-      subcategorySelect.innerHTML = '<option value="">-- Select Sub Category --</option>';
-      if (categoryId) {
-        fetch(`/get-subcategories/${categoryId}/`)
-          .then((res) => res.json())
-          .then((data) =>
-            data.subcategories.forEach((sub) => {
-              const option = document.createElement("option");
-              option.value = sub.id;
-              option.text = sub.name;
-              subcategorySelect.appendChild(option);
-            })
-          );
-      }
-    });
+  document.getElementById("category").addEventListener("change", function () {
+    const categoryId = this.value;
+    const subcategorySelect = document.getElementById("subcategory");
+    subcategorySelect.innerHTML = '<option value="">-- Select Sub Category --</option>';
+    if (categoryId) {
+      fetch(`/get-subcategories/${categoryId}/`)
+        .then((res) => res.json())
+        .then((data) => {
+          data.subcategories.forEach((sub) => {
+            const option = document.createElement("option");
+            option.value = sub.id;
+            option.text = sub.name;
+            subcategorySelect.appendChild(option);
+          });
+        })
+        .catch(() => {
+          alert("⚠️ Failed to load subcategories.");
+        });
+    }
+  });
+
+  // Load bins dynamically
+  document.getElementById("subcategory").addEventListener("change", function () {
+    const subcategoryId = this.value;
+    const binSelect = document.getElementById("bin");
+    binSelect.innerHTML = '<option value="">-- Select Bin --</option>';
+    if (subcategoryId) {
+      fetch(`/get-bins/${subcategoryId}/`)
+        .then((res) => res.json())
+        .then((data) => {
+          data.bins.forEach((bin) => {
+            const option = document.createElement("option");
+            option.value = bin.id;
+            option.text = `${bin.bin_id} (Remaining: ${bin.remaining}/${bin.capacity})`;
+            binSelect.appendChild(option);
+          });
+        })
+        .catch(() => {
+          alert("⚠️ Failed to load bins.");
+        });
+    }
+  });
 
   // Sidebar List button
   document.getElementById("listBtn").addEventListener("click", function () {
     window.location.href = "{% url 'stock_list' %}";
   });
 
+  // Add Category Modal
   document.addEventListener("DOMContentLoaded", function () {
     const checkbox = document.getElementById("addSubCategoryCheckbox");
     const numDiv = document.getElementById("numSubCategoriesDiv");
@@ -379,10 +401,10 @@
       if (!isNaN(count) && count > 0) {
         for (let i = 1; i <= count; i++) {
           subInputsDiv.innerHTML += `
-          <div class="mb-2">
-            <label for="sub_category_${i}" class="form-label">Sub Category ${i}</label>
-            <input type="text" name="sub_category_${i}" id="sub_category_${i}" class="form-control" required>
-          </div>`;
+            <div class="mb-2">
+              <label for="sub_category_${i}" class="form-label">Sub Category ${i}</label>
+              <input type="text" name="sub_category_${i}" id="sub_category_${i}" class="form-control" required>
+            </div>`;
         }
       }
     });
@@ -405,66 +427,53 @@
             option.text = data.category;
             option.selected = true;
             select.appendChild(option);
-            bootstrap.Modal.getInstance(document.getElementById("addCategoryModal")).hide();
+
+            const modalEl = document.getElementById("addCategoryModal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.hide();
+
             this.reset();
             subInputsDiv.innerHTML = "";
             numDiv.classList.add("d-none");
-          } else alert(data.message || "Error adding category.");
+          } else {
+            alert(data.message || "Error adding category.");
+          }
+        })
+        .catch(() => {
+          alert("⚠️ Failed to add category.");
         });
     });
-  }); // <-- Add this closing parenthesis for the DOMContentLoaded function
-</script>
-<script>
-  // Load bins dynamically when subcategory changes
-document.getElementById("subcategory").addEventListener("change", function () {
-  const subcategoryId = this.value;
-  const binSelect = document.getElementById("bin");
-  binSelect.innerHTML = '<option value="">-- Select Bin --</option>';
+  });
 
-  if (subcategoryId) {
-    fetch(`/get-bins/${subcategoryId}/`)
-      .then((res) => res.json())
-      .then((data) => {
-        data.bins.forEach((bin) => {
-          const option = document.createElement("option");
-          option.value = bin.id;
-          option.text = `${bin.bin_id} (Remaining: ${bin.remaining}/${bin.capacity})`;
-          binSelect.appendChild(option);
-        });
-      });
-  }
-});
-
-
-</script>
-<script>
-// Suggest parent pallets based on quantity
-document.getElementById("quantity").addEventListener("change", function() {
+  // Suggest parent pallets based on quantity
+  document.getElementById("quantity").addEventListener("change", function () {
     const qty = parseInt(this.value);
     const palletSelect = document.getElementById("pallet");
     palletSelect.innerHTML = '<option value="">-- Select Pallet --</option>';
 
     if (qty > 0) {
-        fetch(`/ajax/suggest-pallets/?quantity=${qty}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.pallets.length > 0) {
-                data.pallets.forEach(p => {
-                    const option = document.createElement("option");
-                    option.value = p.id;
-                    option.text = `${p.pallet_no} (${p.child_count} child pallets)`;
-                    palletSelect.appendChild(option);
-                });
-            } else {
-                const option = document.createElement("option");
-                option.text = "Not enough pallets, create new";
-                option.value = "create_new";
-                palletSelect.appendChild(option);
-            }
+      fetch(`/ajax/suggest-pallets/?quantity=${qty}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.pallets.length > 0) {
+            data.pallets.forEach((p) => {
+              const option = document.createElement("option");
+              option.value = p.id;
+              option.text = `${p.pallet_no} (${p.child_count} child pallets)`;
+              palletSelect.appendChild(option);
+            });
+          } else {
+            const option = document.createElement("option");
+            option.text = "Not enough pallets, create new";
+            option.value = "create_new";
+            palletSelect.appendChild(option);
+          }
+        })
+        .catch(() => {
+          alert("⚠️ Failed to suggest pallets.");
         });
     }
-});
-
-
+  });
 </script>
+
 {% endblock %}
