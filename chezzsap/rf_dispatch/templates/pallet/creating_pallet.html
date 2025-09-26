@@ -8,8 +8,27 @@
           <h5 class="mb-0"><i class="fa-solid fa-box me-2"></i>Pallet Creation</h5>
         </div>
         <div class="card-body">
-          <form method="POST">
-            {% csrf_token %} {{ form.as_p }}
+          <form method="POST" action="{% url 'creating_pallet' %}">
+            {% csrf_token %} {# Render all fields except weight normally #} {% for field in form %} {% if field.name != "weight" %}
+            <div class="mb-3">
+              {{ field.label_tag }} {{ field }} {% if field.errors %}
+              <div class="text-danger">{{ field.errors }}</div>
+              {% endif %}
+            </div>
+            {% endif %} {% endfor %} {# Render weight field with Fetch Weight button #}
+            <div class="mb-3">
+              <label for="id_weight" class="form-label">Weight</label>
+              <div class="input-group">
+                {{ form.weight }}
+                <button type="button" class="btn btn-outline-secondary" id="fetchWeightBtn">
+                  <i class="fa-solid fa-scale-balanced"></i> Fetch Weight
+                </button>
+              </div>
+              {% if form.weight.errors %}
+              <div class="text-danger">{{ form.weight.errors }}</div>
+              {% endif %}
+            </div>
+
             <button type="submit" class="btn btn-primary w-100 mt-3"><i class="fa-solid fa-plus me-1"></i> Create Pallet</button>
           </form>
         </div>
@@ -195,12 +214,14 @@
 </div>
 
 <script>
+  // Open child modal
   function openChildModal(parentPallet) {
     document.getElementById("parentPalletInput").value = parentPallet;
     var modal = new bootstrap.Modal(document.getElementById("childModal"));
     modal.show();
   }
 
+  // Delete modal setup
   var deleteModal = document.getElementById("deleteModal");
   deleteModal.addEventListener("show.bs.modal", function (event) {
     var button = event.relatedTarget;
@@ -222,6 +243,18 @@
     } else {
       childList.innerHTML = "<li class='list-group-item'>No child pallets</li>";
     }
+  });
+
+  // Fetch weight from RS232 machine
+  document.getElementById("fetchWeightBtn").addEventListener("click", () => {
+    fetch("{% url 'get_machine_weight' %}")
+      .then((response) => response.json())
+      .then((data) => {
+        document.getElementById("id_weight").value = data.weight;
+      })
+      .catch((error) => {
+        alert("Error fetching weight: " + error);
+      });
   });
 </script>
 {% endblock %}

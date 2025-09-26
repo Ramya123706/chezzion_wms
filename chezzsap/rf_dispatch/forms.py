@@ -110,6 +110,7 @@ class PalletForm(forms.ModelForm):
         min_value=1,
         label="Number of child pallets",
         widget=forms.NumberInput(attrs={'class': 'form-control'})
+        
     )
 
     class Meta:
@@ -123,6 +124,8 @@ class PalletForm(forms.ModelForm):
             # Skip boolean field so it uses 'form-check-input'
             if name != 'has_child_pallets':
                 field.widget.attrs.update({'class': 'form-control'})
+            if name == 'weight':
+                field.widget.attrs.update({'id': 'id_weight'})
 
 class PalletEditForm(forms.ModelForm):
     class Meta:
