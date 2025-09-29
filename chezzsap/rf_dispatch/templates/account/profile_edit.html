@@ -51,6 +51,19 @@
           {% endfor %}
         </div>
       </div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="user_role" class="form-label fw-bold">
+            <i class="fa-solid fa-user-tag me-1"></i> User role
+
+          </label>
+          <input type="text" id="user_role" name="user_role"
+            class="form-control {% if form.user_role.errors %}is-invalid{% endif  %}" value="{{ user.user_role }}">           
+          {% for error in form.user_role.errors %}
+          <div class="invalid-feedback">{{ error }}</div> 
+          {% endfor %}
+        </div>
+      </div>     
 
       <div class="row">
         <div class="col-md-6 mb-3">

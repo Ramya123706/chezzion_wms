@@ -35,7 +35,15 @@
                             <label class="form-label"><b>Last name</b></label>
                             <input type="text" name="last_name" class="form-control" placeholder="Enter last name" required>
                         </div>
-
+                         <div class="mb-3">
+                            <label class="form-label"><b>User Role</b></label>
+                            <select name="role" class="form-control" required>
+                                <option value="">-- Select Role --</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="user">User</option>
+                            </select>
+                            </div>
                         <div class="mb-3">
                             <label class="form-label"><b>Image</b></label>
                             <input type="file" name="image" class="form-control">
@@ -61,15 +69,19 @@
                             <input type="text" name="company_name" class="form-control" placeholder="Enter company name">
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label"><b>Warehouse</b></label>
-                            <select name="warehouse" class="form-control">
-                                <option value="">-- Select Warehouse --</option>
-                                {% for wh in warehouses %}
-                                    <option value="{{ wh.whs_no }}">{{wh.whs_no}}-{{ wh.whs_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                   <div class="mb-3">
+    <label class="form-label"><b>Warehouses</b></label><br>
+    {% for wh in warehouses %}
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="warehouses" value="{{ wh.id }}" id="{{ wh.id }}">
+            <label class="form-check-label" for="{{ wh.id }}">
+                {{ wh.whs_no }} - {{ wh.whs_name }}
+            </label>
+        </div>
+    {% endfor %}
+</div>
+
+
 
                         <div class="mt-3">
                             <button type="submit" class="btn btn-success btn-lg rounded-3">Create User</button>

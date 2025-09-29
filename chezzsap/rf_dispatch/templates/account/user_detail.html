@@ -12,11 +12,11 @@
                 <div class="card-body">
 
                     <div class="row align-items-center">
-                        <!-- Profile Image -->
+                        <!-- Profile Image (Always Superuser Image) -->
                         <div class="col-md-4 text-center">
-                            {% if user.profile.image %}
-                                <img src="{{ user.profile.image.url }}"
-                                     alt="{{ user.username }}"
+                            {% if super_profile and super_profile.image %}
+                                <img src="{{ super_profile.image.url }}"
+                                     alt="Superuser Profile"
                                      class="img-fluid rounded-circle mb-3 shadow"
                                      style="width:160px; height:160px; object-fit:cover;">
                             {% else %}
@@ -27,13 +27,14 @@
                             {% endif %}
                         </div>
 
-                        <!-- User Info Fields -->
+                        <!-- User Info Fields (Clicked User) -->
                         <div class="col-md-8">
                             <table class="table table-borderless">
                                 <tbody>
                                     <tr>
                                         <td class="fw-bold text-muted" style="width:150px;">Username:</td>
-                                        <td>{{ user.username }}</td>
+                                        <td>{{ clicked_user.username }}
+</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">First Name:</td>

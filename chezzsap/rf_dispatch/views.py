@@ -167,15 +167,15 @@ def yard_checkin_view(request):
         'truck': Truck.objects.all(),
     })
 
- 
+
 def inspection_view(request, truck_no):
     page1_data = request.session.get('page1_data')
     if not page1_data:
         messages.error(request, "Page 1 data not found. Please fill Truck Check-in first.")
         return redirect('yard_checkin')
- 
+
     questions = InspectionQuestion.objects.all()
- 
+
     if request.method == 'POST':
         all_yes = True
         responses = {}
@@ -184,11 +184,12 @@ def inspection_view(request, truck_no):
             responses[q] = ans
             if ans != "Yes":
                 all_yes = False
- 
+
         if not all_yes:
             messages.error(request, "Inspection failed! All answers must be 'Yes' to proceed.")
             return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
- 
+
+        # Create YardHdr record
         yard_instance = YardHdr.objects.create(
             whs_no_id = page1_data['whs_no'],
             truck_no = page1_data['truck_no'],
@@ -202,15 +203,16 @@ def inspection_view(request, truck_no):
             yard_scan = page1_data['yard_scan'],
             truck_status = page1_data['truck_status'],
         )
-       
+
+        # Save inspection responses
         for q, ans in responses.items():
             InspectionResponse.objects.create(
                 yard = yard_instance,
                 question = q,
                 answer = ans
             )
-       
- 
+
+        # Save truck details if not already existing
         if not Truck.objects.filter(truck_no=yard_instance.truck_no).exists():
             Truck.objects.create(
                 truck_no = yard_instance.truck_no,
@@ -220,19 +222,22 @@ def inspection_view(request, truck_no):
 
         # ------------------- Add TruckLog entry -------------------
         TruckLog.objects.create(
-            truck_no = yard_instance,  # FK to YardHdr
+            truck_no = yard_instance,           # FK to YardHdr
+            whs_no_id = yard_instance.whs_no_id, # ✅ FIXED: warehouse must be passed
             status = yard_instance.truck_status,
             comment = "Truck inspection completed",
-            status_changed_by = request.user  # optional
+            status_changed_by = request.user    # optional
         )
- 
+
+        # Clear session data
         if 'page1_data' in request.session:
             del request.session['page1_data']
- 
-            messages.success(request, "Truck inspection completed successfully!")
+
+        messages.success(request, "Truck inspection completed successfully!")
         return redirect('yard_checkin')
-   
+
     return render(request, "truck_screen/two.html", {"questions": questions, "truck_no": truck_no})
+
  
 
 
@@ -476,19 +481,28 @@ def truck_detail(request, truck_no):
 
 
 
-
 @login_required
 def update_truck_status(request, truck_no):
     if request.method == "POST":
         new_status = request.POST.get("new_status")
         comment = request.POST.get("comment", "")
 
+        if not new_status:
+            messages.error(request, "New status is required.")
+            return redirect("truck_detail", truck_no=truck_no)
+
         try:
-            truck = YardHdr.objects.filter(truck_no=truck_no).last()
+            truck = YardHdr.objects.get(truck_no=truck_no)
             truck.truck_status = new_status
             truck.save()
 
-            log_truck_status(truck_instance=truck, status=new_status, user=request.user, comment=comment)
+            # ✅ Log the status change
+            log_truck_status(
+                truck_instance=truck,
+                status=new_status,
+                user=request.user,
+                comment=comment,
+            )
 
             messages.success(request, f"Truck status updated to {new_status}.")
         except YardHdr.DoesNotExist:
@@ -498,86 +512,79 @@ def update_truck_status(request, truck_no):
 
 
 
+
 # ------------
 # STOCK UPLOAD
 # -------------
 
  
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+
 def batch_product_view(request):
-    query = ""
-    categories = Category.objects.all()  # Make sure categories is always defined
+    query = request.GET.get('search', '')
+    categories = Category.objects.all() 
     warehouse = Warehouse.objects.all()
     materials = PackingMaterial.objects.all()
     pallets = Pallet.objects.all()
-    
 
     if request.method == 'POST':
-        whs_no = request.POST.get('whs_no')
-        product_id = request.POST.get('product')
-        description = request.POST.get('description')
-        quantity = request.POST.get('quantity')
-        batch = request.POST.get('batch')
-        bin_id = request.POST.get('bin')
-        pallet = request.POST.get('pallet')
-        p_mat = request.POST.get('p_mat')
-        inspection = request.POST.get('inspection')
-        stock_type = request.POST.get('stock_type')
-        item_number = request.POST.get('item_number')
-        doc_no = request.POST.get('doc_no')
-        pallet_status = request.POST.get('pallet_status')
-        category = request.POST.get('category')
-        sub_category = request.POST.get('sub_category')
-
         try:
+            whs_no = request.POST.get('whs_no')
+            product_id = request.POST.get('product')
+            description = request.POST.get('description')
+            quantity = int(request.POST.get('quantity') or 0)
+            batch = request.POST.get('batch')
+            bin_id = request.POST.get('bin')
+            pallet_id = request.POST.get('pallet')
+            p_mat_id = request.POST.get('p_mat')
+            inspection = request.POST.get('inspection')
+            stock_type = request.POST.get('stock_type')
+            item_number = request.POST.get('item_number')
+            doc_no = request.POST.get('doc_no')
+            pallet_status = request.POST.get('pallet_status')
+            category_id = request.POST.get('category')
+            sub_category_id = request.POST.get('sub_category')
+
             product_instance, _ = Product.objects.get_or_create(
                 product_id=product_id,
-                defaults={
-                    'name': product_id,
-                    'description': description
-                }
+                defaults={'name': product_id, 'description': description}
             )
 
             warehouse_instance = get_object_or_404(Warehouse, whs_no=whs_no)
-            bin_instance = Bin.objects.filter(id=bin_id).first() 
-            p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
+            bin_instance = Bin.objects.filter(id=bin_id).first()
+            p_mat_instance = PackingMaterial.objects.filter(id=p_mat_id).first() if p_mat_id else None
             batch = request.POST.get('batch_input') or batch or ''
-            pallet = Pallet.objects.filter(pallet_no=pallet).first() if pallet else None
+            pallet_instance = Pallet.objects.filter(id=pallet_id).first() if pallet_id else None
+            category_instance = Category.objects.filter(id=category_id).first() if category_id else None
+            sub_category_instance = SubCategory.objects.filter(id=sub_category_id).first() if sub_category_id else None
 
             StockUpload.objects.create(
                 whs_no=warehouse_instance,
                 product=product_instance,
                 description=description,
-                quantity=int(quantity or 0),
+                quantity=quantity,
                 batch=batch,
                 bin=bin_instance,
-                pallet=pallet,
+                pallet=pallet_instance,
                 p_mat=p_mat_instance,
                 inspection=inspection,
                 stock_type=stock_type,
                 item_number=item_number,
                 doc_no=doc_no,
                 pallet_status=pallet_status,
-                category=category,
-                sub_category=sub_category
+                category=category_instance,
+                sub_category=sub_category_instance
             )
 
-        except Exception as e:
-            query = request.GET.get('search', '')
-            stock_uploads = StockUpload.objects.all()
-            return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': warehouse,
-                'materials': materials,
-                'stocks': stock_uploads,
-                'query': query,
-                'categories': categories,
-                'error': str(e),
-                'pallets': pallets,
-            })
+            messages.success(request, f"✅ Stock for product {product_instance.product_id} added successfully.")
 
-    # For both GET and successful POST
+            return redirect('batch_product')  # prevents form resubmission
+
+        except Exception as e:
+            messages.error(request, f"❌ Error: {str(e)}")
+
     stock_uploads = StockUpload.objects.all()
-    query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
         'products': Product.objects.all(),
         'warehouse': warehouse,
@@ -587,6 +594,8 @@ def batch_product_view(request):
         'categories': categories,
         'pallets': pallets,
     })
+
+
 
 from django.http import JsonResponse
 from .models import Pallet
@@ -916,54 +925,45 @@ def product_list(request):
 
 
 
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.utils import timezone
-from .models import Product, Category, SubCategory, Pallet, Inventory
-
 def add_product(request):
     pallets = Pallet.objects.all()
-    
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.all()
+
     if request.method == 'POST':
         name = request.POST.get('name')
-        quantity = request.POST.get('quantity')
-        pallet = request.POST.get('pallet_no')
+        quantity = int(request.POST.get('quantity') or 0)
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
         category_id = request.POST.get('category')
         sub_category_id = request.POST.get('sub_category_id')
-        re_order_level = request.POST.get('re_order_level')
-        unit_price = request.POST.get('unit_price')
+        re_order_level = int(request.POST.get('re_order_level') or 10)
+        unit_price = float(request.POST.get('unit_price') or 0.00)
         images = request.FILES.get('images')
 
-        # Basic validation
+        pallet_id = request.POST.get('pallet')
+        pallet = None
+        if pallet_id:
+            try:
+                pallet = Pallet.objects.get(id=pallet_id)
+            except Pallet.DoesNotExist:
+                pallet = None
+
         if not name or not category_id:
             messages.error(request, "Please fill in required fields: Name, Category.")
             return render(request, 'product/add_product.html', {
-                'categories': Category.objects.all(),
-               
+                'categories': categories,
+                'subcategories': subcategories,
+                'pallets': pallets
             })
 
         try:
             category = Category.objects.get(id=category_id)
-
-            sub_category = None
-            if sub_category_id:
-                try:
-                    sub_category = SubCategory.objects.get(id=sub_category_id)
-                except SubCategory.DoesNotExist:
-                    sub_category = None
-            pallet = Pallet.objects.filter(pallet_no=pallet).first() if pallet else None
-            # Fetch pallet object
-            # pallet_obj = None
-            # if pallet_id:
-            #     try:
-            #         pallet_obj = Pallet.objects.get(id=pallet_id)
-            #     except Pallet.DoesNotExist:
-            #         pallet_obj = None
+            sub_category = (
+                SubCategory.objects.filter(id=sub_category_id).first()
+                if sub_category_id else None
+            )
 
             product = Product.objects.create(
                 name=name,
@@ -974,8 +974,8 @@ def add_product(request):
                 unit_of_measure=unit_of_measure,
                 category=category,
                 sub_category=sub_category,
-                re_order_level=re_order_level or 10,
-                unit_price=unit_price or 0.00,
+                re_order_level=re_order_level,
+                unit_price=unit_price,
                 images=images,
             )
             prod_identifier = getattr(product, 'product_id', None) or product.name
@@ -997,6 +997,8 @@ def add_product(request):
         'categories': categories,
         'subcategories': subcategories,
     })
+
+
 
 
 
@@ -1193,32 +1195,28 @@ def inventory_view(request):
 # .........
 # CUSTOMERS
 # .........
-
+from .models import Customers, Warehouse
 def add_customers(request):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        customer_id= request.POST.get('customer_id')
-        customer_code = request.POST.get('customer_code')
-        email = request.POST.get('email')
-        phone_no = request.POST.get('phone_no')
-        address = request.POST.get('address')
-        location = request.POST.get('location')
+    warehouses = Warehouse.objects.all()
+    if request.method == "POST":
+        whs_id = request.POST.get("whs_no")
+        warehouse = Warehouse.objects.get(id=whs_id) if whs_id else None
 
-        try:
-            customer = Customers.objects.create(
-                name=name,
-                customer_id=customer_id,
-                customer_code=customer_code,
-                email=email,
-                phone_no=phone_no,
-                address=address,
-                location=location,
-                )
-            return redirect('customers_detail', customer_id=customer.customer_id)
-        except Exception as e:
-            return render(request, 'customers/add_customers.html', {'error': str(e)})
+        Customers.objects.create(
+            name=request.POST.get("name"),
+            customer_id=request.POST.get("customer_id"),
+            customer_code=request.POST.get("customer_code"),
+            whs_no=warehouse,
+            email=request.POST.get("email"),
+            phone_no=request.POST.get("phone_no"),
+            address=request.POST.get("address"),
+            location=request.POST.get("location"),
+        )
+        messages.success(request, "Customer added successfully!")
+        return redirect("customers_list")
 
-    return render(request, 'customers/add_customers.html')
+    return render(request, "customers/add_customers.html", {"warehouses": warehouses})
+
 
 def customers_detail(request, customer_id):  
     customer = get_object_or_404(Customers, customer_id=customer_id)
@@ -1844,7 +1842,6 @@ def task(request):
 
 
 
-
 def add_vendor(request, vendor_id=None):
     vendor = None
     if vendor_id:
@@ -1863,14 +1860,18 @@ def add_vendor(request, vendor_id=None):
             Q(name__icontains=search_query)
         )
     else:
-        vendors = Vendor.objects.all()  
+        vendors = Vendor.objects.all()
+
+    warehouses = Warehouse.objects.all()  # 👈 Add this line
 
     context = {
         'form': form,
         'vendors': vendors,
         'vendor': vendor,
+        'warehouses': warehouses,  # 👈 Pass to template
     }
     return render(request, 'vendor/add_vendor.html', context)
+
 
 
 
@@ -1989,160 +1990,215 @@ def putaway_submission(request):
         messages.error(request, f'Error processing putaway task: {str(e)}')
 
     return redirect('putaway_pending')
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+
+from .models import Putaway, Pallet, Product, Bin, Warehouse
+
+
+def get_whs_no_from_request(request, obj=None):
+    """
+    Utility: Safely resolve a warehouse for the putaway.
+    Tries object.whs_no → request.user.profile.whs_no → session.
+    """
+    if obj and hasattr(obj, "whs_no") and obj.whs_no:
+        return obj.whs_no
+    if hasattr(request.user, "profile") and getattr(request.user.profile, "whs_no", None):
+        return request.user.profile.whs_no
+    whs_id = request.session.get("whs_no")
+    if whs_id:
+        try:
+            return Warehouse.objects.get(pk=whs_id)
+        except Warehouse.DoesNotExist:
+            return None
+    return None
+
+
+@login_required
 def hu_putaway(request):
     """Handle HU (Pallet) putaway submission"""
+    putaway_task = None
     try:
-        pallet_id = request.POST.get('pallet')
-        source_location = request.POST.get('source_location')
-        destination_location = request.POST.get('destination_location')
-        status = request.POST.get('status')
-        putaway_id = request.POST.get('putaway_id')
+        pallet_id = request.POST.get("pallet")
+        source_location = request.POST.get("source_location")
+        destination_location = request.POST.get("destination_location")
+        status = request.POST.get("status")
+        putaway_id = request.POST.get("putaway_id")
 
         pallet = get_object_or_404(Pallet, id=pallet_id)
+        whs_no = get_whs_no_from_request(request, pallet)
+
+        if not whs_no:
+            messages.error(request, "No warehouse found for this putaway task.")
+            return redirect("putaway_pending")
 
         if putaway_id:
             putaway_task = get_object_or_404(Putaway, id=putaway_id)
             putaway_task.pallet = pallet
+            putaway_task.whs_no = whs_no
             putaway_task.source_location = source_location
             putaway_task.destination_location = destination_location
             putaway_task.status = status
             putaway_task.putaway_task_type = "Putaway by HU"
-            putaway_task.updated_by = request.user.username if request.user.is_authenticated else "System"
+            putaway_task.updated_by = request.user.username
             putaway_task.save()
-            messages.success(request, f'HU Putaway task updated successfully for pallet {pallet.pallet_no}')
+            messages.success(request, f"HU Putaway task updated successfully for pallet {pallet.pallet_no}")
         else:
             putaway_task = Putaway.objects.create(
                 pallet=pallet,
+                whs_no=whs_no,  # ✅ required
                 source_location=source_location,
                 destination_location=destination_location,
                 status=status,
                 putaway_task_type="Putaway by HU",
-                created_by=request.user.username if request.user.is_authenticated else "System"
+                created_by=request.user.username,
             )
-            messages.success(request, f'HU Putaway task created successfully for pallet {pallet.pallet_no}')
+            messages.success(request, f"HU Putaway task created successfully for pallet {pallet.pallet_no}")
 
     except Exception as e:
-        messages.error(request, f'Error creating HU putaway task: {str(e)}')
+        messages.error(request, f"Error creating HU putaway task: {str(e)}")
 
-    return redirect('putaway_detail', putaway_id=putaway_task.id)
+    return redirect("putaway_detail", putaway_id=putaway_task.id if putaway_task else 0)
 
 
+@login_required
 def warehouse_putaway(request):
     """Handle Warehouse putaway submission"""
+    putaway_task = None
     try:
-        pallet_id = request.POST.get('pallet')
-        source_location = request.POST.get('source_location')
-        destination_location = request.POST.get('destination_location')
-        whs_no = request.POST.get('whs_no')
-        status = request.POST.get('status')
-        putaway_id = request.POST.get('putaway_id')
+        pallet_id = request.POST.get("pallet")
+        source_location = request.POST.get("source_location")
+        destination_location = request.POST.get("destination_location")
+        whs_id = request.POST.get("whs_no")
+        status = request.POST.get("status")
+        putaway_id = request.POST.get("putaway_id")
 
         pallet = get_object_or_404(Pallet, id=pallet_id)
-        warehouse = get_object_or_404(Warehouse, whs_no=whs_no)
+        warehouse = get_object_or_404(Warehouse, pk=whs_id)
 
         if putaway_id:
             putaway_task = get_object_or_404(Putaway, id=putaway_id)
             putaway_task.pallet = pallet
-            putaway_task.warehouse = warehouse
+            putaway_task.whs_no = warehouse
             putaway_task.source_location = source_location
             putaway_task.destination_location = destination_location
             putaway_task.status = status
             putaway_task.putaway_task_type = "Putaway by Warehouse"
-            putaway_task.updated_by = request.user.username if request.user.is_authenticated else "System"
+            putaway_task.updated_by = request.user.username
             putaway_task.save()
-            messages.success(request, 'Warehouse Putaway task updated successfully')
+            messages.success(request, "Warehouse Putaway task updated successfully")
         else:
             putaway_task = Putaway.objects.create(
                 pallet=pallet,
-                warehouse=warehouse,
+                whs_no=warehouse,  # ✅ required
                 source_location=source_location,
                 destination_location=destination_location,
                 status=status,
                 putaway_task_type="Putaway by Warehouse",
-                created_by=request.user.username if request.user.is_authenticated else "System"
+                created_by=request.user.username,
             )
-            messages.success(request, f'Warehouse Putaway task created successfully for warehouse {warehouse.whs_name}')
+            messages.success(request, f"Warehouse Putaway task created successfully for {warehouse.whs_name}")
 
     except Exception as e:
-        messages.error(request, f'Error creating Warehouse putaway task: {str(e)}')
+        messages.error(request, f"Error creating Warehouse putaway task: {str(e)}")
 
-    return redirect('putaway_detail', putaway_id=putaway_task.id)
+    return redirect("putaway_detail", putaway_id=putaway_task.id if putaway_task else 0)
 
 
+@login_required
 def product_putaway(request):
     """Handle Product putaway submission"""
+    putaway_task = None
     try:
-        product_id = request.POST.get('product')
-        source_location = request.POST.get('source_location')
-        destination_location = request.POST.get('destination_location')
-        status = request.POST.get('status')
-        putaway_id = request.POST.get('putaway_id')
+        product_id = request.POST.get("product")
+        source_location = request.POST.get("source_location")
+        destination_location = request.POST.get("destination_location")
+        status = request.POST.get("status")
+        putaway_id = request.POST.get("putaway_id")
 
         product = get_object_or_404(Product, product_id=product_id)
+        whs_no = get_whs_no_from_request(request, product)
+
+        if not whs_no:
+            messages.error(request, "No warehouse found for this putaway task.")
+            return redirect("putaway_pending")
 
         if putaway_id:
             putaway_task = get_object_or_404(Putaway, id=putaway_id)
             putaway_task.product = product
+            putaway_task.whs_no = whs_no
             putaway_task.source_location = source_location
             putaway_task.destination_location = destination_location
             putaway_task.status = status
             putaway_task.putaway_task_type = "Putaway by Product"
-            putaway_task.updated_by = request.user.username if request.user.is_authenticated else "System"
+            putaway_task.updated_by = request.user.username
             putaway_task.save()
-            messages.success(request, 'Product Putaway task updated successfully')
+            messages.success(request, "Product Putaway task updated successfully")
         else:
             putaway_task = Putaway.objects.create(
                 product=product,
+                whs_no=whs_no,  # ✅ required
                 source_location=source_location,
                 destination_location=destination_location,
                 status=status,
                 putaway_task_type="Putaway by Product",
-                created_by=request.user.username if request.user.is_authenticated else "System"
+                created_by=request.user.username,
             )
-            messages.success(request, f'Product Putaway task created successfully for {product.name}')
+            messages.success(request, f"Product Putaway task created successfully for {product.name}")
 
     except Exception as e:
-        messages.error(request, f'Error creating Product putaway task: {str(e)}')
+        messages.error(request, f"Error creating Product putaway task: {str(e)}")
 
-    return redirect('putaway_detail', putaway_id=putaway_task.id)
+    return redirect("putaway_detail", putaway_id=putaway_task.id if putaway_task else 0)
 
 
+@login_required
 def bin_putaway(request):
     """Handle Bin putaway submission"""
+    putaway_task = None
     try:
-        bin_id = request.POST.get('bin')
-        source_location = request.POST.get('source_location')
-        destination_location = request.POST.get('destination_location')
-        status = request.POST.get('status')
-        putaway_id = request.POST.get('putaway_id')
+        bin_id = request.POST.get("bin")
+        source_location = request.POST.get("source_location")
+        destination_location = request.POST.get("destination_location")
+        status = request.POST.get("status")
+        putaway_id = request.POST.get("putaway_id")
 
         bin_obj = get_object_or_404(Bin, id=bin_id)
+        whs_no = get_whs_no_from_request(request, bin_obj)
+
+        if not whs_no:
+            messages.error(request, "No warehouse found for this putaway task.")
+            return redirect("putaway_pending")
 
         if putaway_id:
             putaway_task = get_object_or_404(Putaway, id=putaway_id)
             putaway_task.bin = bin_obj
+            putaway_task.whs_no = whs_no
             putaway_task.source_location = source_location
             putaway_task.destination_location = destination_location
             putaway_task.status = status
             putaway_task.putaway_task_type = "Putaway by Bin"
-            putaway_task.updated_by = request.user.username if request.user.is_authenticated else "System"
+            putaway_task.updated_by = request.user.username
             putaway_task.save()
-            messages.success(request, 'Bin Putaway task updated successfully')
+            messages.success(request, "Bin Putaway task updated successfully")
         else:
             putaway_task = Putaway.objects.create(
                 bin=bin_obj,
+                whs_no=whs_no,  # ✅ required
                 source_location=source_location,
                 destination_location=destination_location,
                 status=status,
                 putaway_task_type="Putaway by Bin",
-                created_by=request.user.username if request.user.is_authenticated else "System"
+                created_by=request.user.username,
             )
-            messages.success(request, f'Bin Putaway task created successfully for {bin_obj.bin_type}-{bin_obj.bin_id}')
+            messages.success(request, f"Bin Putaway task created successfully for {bin_obj.bin_type}-{bin_obj.bin_id}")
 
     except Exception as e:
-        messages.error(request, f'Error creating Bin putaway task: {str(e)}')
+        messages.error(request, f"Error creating Bin putaway task: {str(e)}")
 
-    return redirect('putaway_detail', putaway_id=putaway_task.id)
+    return redirect("putaway_detail", putaway_id=putaway_task.id if putaway_task else 0)
 
 def get_pallet_location(request, pallet_id):
     """Get pallet location via AJAX"""
@@ -3390,22 +3446,27 @@ def picking_detail(request, picking_id):
     task = get_object_or_404(Picking, picking_id=picking_id)
     return render(request, "picking/picking_detail.html", {"task": task})
 
-
-
-
 def material_create(request):
-    if request.method == "POST":
-        material= request.POST.get("p_mat")
-        description = request.POST.get("description")
-
-        if material:  
-            PackingMaterial.objects.create(material=material, description=description)
-            messages.success(request, "Packing material created successfully!")
-            return redirect("material_list")
-        else:
-            messages.error(request, "Material name is required.")
-
-    return render(request, "material/mat_creation.html")
+    if request.method == 'POST':
+        # Handle form submission
+        whs_no_id = request.POST.get('warehouse_id')
+        
+        if not whs_no_id:
+            messages.error(request, "Please select a warehouse")
+            return render(request, 'materials/create.html')
+        
+        material = PackingMaterial(
+            material=request.POST.get('material'),
+            description=request.POST.get('description'),
+            whs_no_id=whs_no_id
+        )
+        material.save()
+        
+        return redirect('material_list')
+    
+    else:
+        # Handle GET request (when page is first loaded)
+        return render(request, 'material/mat_creation.html')
 
 
 
@@ -3776,51 +3837,57 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f"Welcome back, {user.username}")
-            return redirect("home")
+            return redirect("user_landing")
         else:
             messages.error(request, "Invalid username or password")
-            return redirect("login")
+            return redirect("user_landing")
 
     return render(request, "account/login.html")
 
 @login_required
-def profile_detail_view(request):
-    user = request.user
-    profile, created = Profile.objects.get_or_create(user=user)
+def profile_detail_view(request, user_id=None):
+    # Always show superuser profile (ignore user_id)
+    superuser = User.objects.filter(is_superuser=True).first()
+    if not superuser:
+        messages.error(request, "No superuser profile found.")
+        return redirect("user_list")
+
+    profile, created = Profile.objects.get_or_create(user=superuser)
+
     return render(request, "account/profile_detail.html", {
-        "user": user,
         "profile": profile,
+        "user": superuser,
     })
-    
 @login_required
 def edit_profile(request):
-    user = request.user
-    profile, created = Profile.objects.get_or_create(user=user)
+    profile = request.user.profile
 
     if request.method == "POST":
-        user.first_name = request.POST.get("first_name", user.first_name)
-        user.last_name = request.POST.get("last_name", user.last_name)
-        user.email = request.POST.get("email", user.email)
-        profile.phone = request.POST.get("phone", profile.phone)
-        profile.company_name = request.POST.get("company_name", profile.company_name)
-        warehouse_id = request.POST.get("warehouse")
-        if warehouse_id:
-            profile.warehouse = Warehouse.objects.get(id=warehouse_id)
-        else:
-            profile.warehouse = None
+        profile.company_name = request.POST.get("company_name")
+        profile.phone = request.POST.get("phone")
+
+        warehouse_no = request.POST.get("warehouse")
+        if warehouse_no:
+            try:
+                warehouse = Warehouse.objects.get(whs_no=warehouse_no)
+                profile.warehouse = warehouse
+            except Warehouse.DoesNotExist:
+                messages.error(request, "Selected warehouse does not exist.")
+
         if "image" in request.FILES:
             profile.image = request.FILES["image"]
 
-        user.save()
         profile.save()
-
         messages.success(request, "Profile updated successfully.")
         return redirect("profile_detail")
+
     warehouses = Warehouse.objects.all()
     return render(request, "account/profile_edit.html", {
         "profile": profile,
         "warehouses": warehouses,
     })
+
+
 
 @login_required
 def change_password(request):
@@ -3912,55 +3979,107 @@ from .models import Profile, Warehouse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from .models import Profile, Warehouse
-
 def add_user(request):
-    if request.method == 'POST':
-        username = request.POST.get('username') 
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        phone = request.POST.get('phone')
-        company_name = request.POST.get('company_name')
-        warehouse_id = request.POST.get('warehouse')
-        image = request.FILES.get('image')
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        user_role = request.POST.get("user_role")
+        phone = request.POST.get("phone")
+        company_name = request.POST.get("company_name")
+        warehouse_ids = request.POST.getlist("warehouses")  # ✅ multiple warehouse IDs
+        image = request.FILES.get("image")
 
-        # Create User safely
+        # Create User
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
         )
-        warehouse = Warehouse.objects.get(whs_no=warehouse_id) if warehouse_id else None
 
-        # Create Profile
-        Profile.objects.create(
+        # Create profile first (no warehouses yet)
+        profile = Profile.objects.create(
             user=user,
             phone=phone,
             company_name=company_name,
-            warehouse=warehouse,
-            image=image
+            image=image,
         )
 
-        return redirect('user_list')
+        # ✅ Assign warehouses AFTER profile is created
+        if warehouse_ids:
+            warehouses = Warehouse.objects.filter(id__in=warehouse_ids)
+            profile.warehouse.set(warehouses)  # <- Correct way
+
+        messages.success(request, f"User {username} created successfully!")
+        return redirect("user_list")
+
+    # Load warehouses for form
     if request.user.is_superuser:
         warehouses = Warehouse.objects.all()
     else:
+        profile = getattr(request.user, "profile", None)
+        warehouses = (
+            profile.warehouse.all()
+            if profile
+            else Warehouse.objects.none()
+        )
 
+    return render(request, "account/add_user.html", {"warehouses": warehouses})
+
+
+# User Detail
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Profile
+
+def user_detail(request, user_id):
+    # Get the clicked user
+    user = get_object_or_404(User, id=user_id)
+
+    # Get superuser profile (assuming only one superuser with a profile)
+    superuser = User.objects.filter(is_superuser=True).first()
+    super_profile = None
+    if superuser:
+        try:
+            super_profile = superuser.profile
+        except Profile.DoesNotExist:
+            super_profile = None
+
+    return render(request, "account/user_detail.html", {
+        "clicked_user": user,
+        "super_profile": super_profile,  # 👈 make sure this is passed
+    })
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Warehouse
+
+@login_required
+def user_landing(request):
+    if request.method == "POST":
+        warehouse_id = request.POST.get("warehouse")
+        if warehouse_id:
+            request.session["selected_warehouse"] = warehouse_id
+            return redirect("home")  
+
+    if request.user.is_superuser:
+        warehouses = Warehouse.objects.all()
+    else:
         profile = getattr(request.user, "profile", None)
         if profile and profile.warehouse:
             warehouses = Warehouse.objects.filter(whs_no=profile.warehouse.whs_no)
         else:
-            warehouses = Warehouse.objects.none() 
+            warehouses = Warehouse.objects.none()
 
-    return render(request, 'account/add_user.html', {'warehouses': warehouses})
+    return render(request, "account/landing.html", {
+        "warehouses": warehouses
+    })
 
-# User Detail
-def user_detail(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    return render(request, 'account/user_detail.html', {'user': user})
 
 
 # Edit User
@@ -3996,11 +4115,11 @@ def delete_user(request, user_id):
     user.delete()
     return redirect('user_list')
 
-
-# User List
 def user_list(request):
-    users = User.objects.all().select_related('profile')
-    return render(request, 'account/user_list.html', {'users': users})
+    users = User.objects.all()
+    superuser = User.objects.filter(is_superuser=True).first()
+    return render(request, "account/user_list.html", {"users": users, "superuser": superuser})
+
 
 
 def get_po_products(request, po_id):
@@ -4468,7 +4587,7 @@ def get_machine_weight(request):
     weight_data = "0.0"
     try:
         # Open serial port (replace COM3 and 9600 with your scale's config)
-        ser = serial.Serial('COM5', 9600, timeout=2)
+        ser = serial.Serial('COM15', 9600, timeout=2)
         time.sleep(0.2)  # give some time to stabilize
 
         # Some scales need a request command, for example sending 'P\r\n'

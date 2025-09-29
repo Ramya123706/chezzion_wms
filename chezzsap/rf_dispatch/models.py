@@ -11,6 +11,17 @@ from django.core.exceptions import ValidationError
 import uuid
 from decimal import Decimal
 
+class Warehouse(models.Model):
+    whs_no = models.CharField(primary_key=True, max_length=50)
+    whs_name = models.CharField(max_length=100)
+    address = models.CharField(max_length=255)
+    phn_no = models.CharField(max_length=10)  
+    email = models.EmailField(max_length=100)
+    manager = models.CharField(max_length=50)
+    image = models.ImageField(upload_to='warehouse_images/', blank=True, null=True)
+    
+    def __str__(self):
+        return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
 
 YES_NO_CHOICES = [
     ('Yes', 'Yes'),
@@ -20,7 +31,7 @@ class YardHdr(models.Model):
     id = models.AutoField(primary_key=True)
     yard_id = models.CharField(max_length=100, null=True, blank=True)
     truck_no = models.CharField(max_length=100)
-    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, default=None, null=True, blank=True)
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, default=None, null=True, blank=True, related_name='yards')
     truck_type = models.CharField(max_length=50, blank=True, null=True)
     driver_name = models.CharField(max_length=50)
     driver_phn_no = models.CharField(max_length=10)
@@ -39,13 +50,12 @@ class YardHdr(models.Model):
     is_the_ac_working = models.CharField(max_length=3, choices=YES_NO_CHOICES)
     does_the_truck_have_a_good_odor = models.CharField(max_length=3, choices=YES_NO_CHOICES)
     is_the_truck_dock_level_ok = models.CharField(max_length=3, choices=YES_NO_CHOICES)  
-     
 
     def __str__(self):
         return str(self.truck_no)
 
-
 class InspectionQuestion(models.Model):
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name='inspection_questions')
     text = models.CharField(max_length=255)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,6 +64,7 @@ class InspectionQuestion(models.Model):
         return self.text
 
 class InspectionResponse(models.Model):
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name='inspection_responses')
     yard = models.ForeignKey(YardHdr, on_delete=models.CASCADE, related_name="inspections")
     question = models.ForeignKey(InspectionQuestion, on_delete=models.CASCADE)
     answer = models.CharField(max_length=10, choices=YES_NO_CHOICES)
@@ -64,6 +75,7 @@ class InspectionResponse(models.Model):
 
 
 class TruckLog(models.Model):
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name='truck_logs')
     truck_no = models.ForeignKey(YardHdr, on_delete=models.CASCADE)
     truck_date = models.DateField(auto_now_add=True)
     truck_time = models.TimeField(auto_now_add=True)
@@ -76,8 +88,6 @@ class TruckLog(models.Model):
         return f"{self.truck_no.truck_no} - {self.status} @ {self.truck_date} {self.truck_time}"
 
 
-
-
 def log_truck_status(truck_instance, status, user=None, comment=''):
     TruckLog.objects.create(
         truck_no=truck_instance,
@@ -86,10 +96,8 @@ def log_truck_status(truck_instance, status, user=None, comment=''):
         comment=comment
     )
 
-
-
-
 class Truck(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='trucks', default=None, null=True, blank=True, related_query_name='trucks')
     yard = models.ForeignKey(YardHdr, on_delete=models.CASCADE, default=None, null=True, blank=True)
     truck_no = models.CharField(max_length=100, unique=True)
     driver_name = models.CharField(max_length=50)
@@ -97,23 +105,10 @@ class Truck(models.Model):
 
     def __str__(self):
         return f"Truck(truck_no={self.truck_no}, driver_name={self.driver_name})"
-
     
-class Warehouse(models.Model):
-    whs_no = models.CharField(primary_key=True, max_length=50)
-    whs_name = models.CharField(max_length=100)
-    address = models.CharField(max_length=255)
-    phn_no = models.CharField(max_length=10)  
-    email = models.EmailField(max_length=100)
-    manager = models.CharField(max_length=50)
-    image = models.ImageField(upload_to='warehouse_images/', blank=True, null=True)
-    
-    def __str__(self):
-        return f"Warehouse(whs_no={self.whs_no}, whs_name={self.whs_name})"
-
 
 class Category(models.Model):
-    
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="categories")
     category = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
@@ -125,6 +120,7 @@ class Category(models.Model):
         return self.category 
     
 class SubCategory(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="subcategories")
     category = models.ForeignKey(Category, related_name="subcategories", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
@@ -161,6 +157,7 @@ class Bin(models.Model):
 
 
 class Product(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="products")
     product_id = models.CharField(
         primary_key=True,
         max_length=50,
@@ -229,6 +226,7 @@ def create_or_update_inventory(sender, instance, **kwargs):
 
 
 class PackingMaterial(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="packing_materials")
     material = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
 
@@ -236,6 +234,7 @@ class PackingMaterial(models.Model):
         return self.material
 
 class Pallet(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="pallets")
     pallet_no = models.CharField(max_length=100, unique=True, editable=False, default='') 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
@@ -264,6 +263,7 @@ class Pallet(models.Model):
 
 
 class Vendor(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="vendors")
     name = models.CharField(max_length=100)
     vendor_id = models.CharField(max_length=10, primary_key=True, editable=False) 
     vendor_code = models.CharField(max_length=100)
@@ -287,6 +287,7 @@ class Vendor(models.Model):
 
 
 class Customers(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="customers", related_query_name="customers")
     name = models.CharField(max_length=255)
     customer_id = models.CharField(max_length=10, blank=True, null=True) 
     customer_code = models.CharField(max_length=50)
@@ -302,6 +303,7 @@ class Customers(models.Model):
   
 
 class StockUpload(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="stock_uploads")
     id = models.AutoField(primary_key=True)
     whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -388,6 +390,7 @@ class StockUpload(models.Model):
 
 
 class Inventory(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="inventories")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
     min_quantity = models.IntegerField(default=5)
@@ -444,6 +447,7 @@ class PurchaseOrder(models.Model):
 
 
 class Putaway(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="putaways")
     putaway_id = models.CharField(max_length=50, unique=True, editable=False)
     pallet = models.ForeignKey(Pallet, on_delete=models.SET_NULL, null=True, blank=True)
     source_location = models.CharField(max_length=100)
@@ -504,6 +508,7 @@ from django.db import models
 from django.utils import timezone
 
 class Picking(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="pickings")
     picking_id = models.CharField(max_length=10, null=True, blank=True, unique=True) 
     pallet = models.ForeignKey('Pallet', on_delete=models.CASCADE)  
     product = models.ForeignKey('Product', on_delete=models.CASCADE) 
@@ -547,6 +552,7 @@ class Picking(models.Model):
     
 
 class Customer(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="customer")
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=20)
     address = models.TextField()
@@ -601,6 +607,7 @@ class InboundDelivery(models.Model):
         return f"{self.product.product_id} - {self.product.name}" if self.product else None
 
 class InboundDeliveryproduct(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="inbound_delivery_products")
     delivery = models.ForeignKey(InboundDelivery, on_delete=models.CASCADE, related_name='products')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='inbound_deliveries')
     product_description = models.CharField(max_length=255)
@@ -624,6 +631,7 @@ from decimal import Decimal
 from django.db import models
 
 class PurchaseItem(models.Model):
+
     purchase_order = models.ForeignKey(
         "PurchaseOrder",
         on_delete=models.CASCADE,
@@ -696,6 +704,7 @@ class SalesOrderCreation(models.Model):
 
 
 class SalesOrderItem(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="sales_order_items")
     so_no = models.ForeignKey(SalesOrderCreation, related_name="items", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, default=None) 
     product_name = models.CharField(max_length=200)
@@ -742,6 +751,7 @@ class OutboundDelivery(models.Model):
 
 
 class OutboundDeliveryItem(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="outbound_delivery_items")
     delivery = models.ForeignKey(
         OutboundDelivery,
         on_delete=models.CASCADE,
@@ -773,6 +783,7 @@ class OutboundDeliveryItem(models.Model):
 
 
 class Packing(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="packings")
     pallet = models.ForeignKey(Pallet, on_delete=models.CASCADE, related_name="packings")
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     del_no = models.CharField(max_length=50)   
@@ -786,6 +797,7 @@ class Packing(models.Model):
 
 
 class PackedItem(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="packed_items")
     packing = models.ForeignKey(Packing, on_delete=models.CASCADE, related_name="items")
     pallet = models.ForeignKey(Pallet, on_delete=models.CASCADE, related_name="items")
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
@@ -807,6 +819,7 @@ class PackedItem(models.Model):
 
 
 class PostGoodsIssue(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="post_goods_issues")
     pgi_no = models.CharField(max_length=50, unique=True)  
     delivery = models.OneToOneField(  
         "rf_dispatch.OutboundDelivery",
@@ -836,6 +849,7 @@ class PostGoodsIssue(models.Model):
 
 
 class GoodsReceipt(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="goods_receipts")
     gr_no = models.CharField(max_length=50, unique=True, editable=False)
     inbound_delivery = models.OneToOneField(
         InboundDelivery,
@@ -862,6 +876,7 @@ class GoodsReceipt(models.Model):
 
 
 class GoodsReceiptItem(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="goods_receipt_items")
     goods_receipt = models.ForeignKey(
         GoodsReceipt,
         on_delete=models.CASCADE,
@@ -889,7 +904,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, null=True)
     company_name = models.CharField(max_length=100, blank=True, null=True)
-    warehouse = models.ForeignKey('Warehouse',on_delete=models.SET_NULL,blank=True,null=True,related_name="profiles" )    
+    warehouse = models.ManyToManyField('Warehouse',blank=True,null=True,related_name="profiles" )    
     image = models.ImageField(upload_to='profiles/', default='profiles/default.png')
 
     def __str__(self):
@@ -901,6 +916,7 @@ class Profile(models.Model):
 from django.db import models
 
 class Shipment(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="shipments")
     shipment_no = models.CharField(max_length=100, unique=True)
     truck = models.ForeignKey(Truck, null=True, blank=True, on_delete=models.SET_NULL)
     yard_hdr = models.ForeignKey(YardHdr, null=True, blank=True, on_delete=models.SET_NULL)
@@ -948,12 +964,12 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class BinLog(models.Model):
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="bin_logs")
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
-    location = models.CharField(max_length=100, blank=True, null=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='binlogs_created')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='binlogs_updated')
-    created_at = models.DateTimeField(auto_now_add=True) 
-    updated_at = models.DateTimeField(auto_now=True)
+    action = models.CharField(max_length=100)  
+    remarks = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.bin.bin_id} - at {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}"

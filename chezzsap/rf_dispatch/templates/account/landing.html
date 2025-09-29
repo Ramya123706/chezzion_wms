@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+
+      <!-- Welcome Card -->
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center rounded-top">
+          <h4>
+            <i class="fas fa-handshake me-2"></i>
+            Hi, Welcome <span class="fw-bold">{{ request.user.first_name|default:request.user.username }}</span>
+          </h4>
+        </div>
+
+        <div class="card-body">
+          <!-- Warehouse Dropdown -->
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">
+                <i class="fas fa-warehouse me-1 text-primary"></i> <b>Warehouse</b>
+              </label>
+              <select name="warehouse" class="form-control" required>
+                <option value="">-- Select Warehouse --</option>
+                {% for wh in warehouses %}
+                  <option value="{{ wh.whs_no }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="text-center">
+              <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm hover-scale">
+                <i class="fas fa-check-circle me-1"></i> Proceed
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .hover-scale:hover {
+    transform: scale(1.05);
+    transition: 0.2s ease-in-out;
+  }
+</style>
+{% endblock %}
