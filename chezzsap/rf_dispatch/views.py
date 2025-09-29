@@ -3979,6 +3979,11 @@ from .models import Profile, Warehouse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from .models import Profile, Warehouse
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
+from .models import Profile, Warehouse
+
 def add_user(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -3986,10 +3991,10 @@ def add_user(request):
         password = request.POST.get("password")
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
-        user_role = request.POST.get("user_role")
+        user_role = request.POST.get("user_role")  # ✅ in case you use roles later
         phone = request.POST.get("phone")
         company_name = request.POST.get("company_name")
-        warehouse_ids = request.POST.getlist("warehouses")  # ✅ multiple warehouse IDs
+        warehouse_ids = request.POST.getlist("warehouses")  # ✅ list of whs_no values
         image = request.FILES.get("image")
 
         # Create User
@@ -4001,7 +4006,7 @@ def add_user(request):
             last_name=last_name,
         )
 
-        # Create profile first (no warehouses yet)
+        # Create Profile (initially without warehouses)
         profile = Profile.objects.create(
             user=user,
             phone=phone,
@@ -4009,38 +4014,34 @@ def add_user(request):
             image=image,
         )
 
-        # ✅ Assign warehouses AFTER profile is created
+        # Assign warehouses
         if warehouse_ids:
-            warehouses = Warehouse.objects.filter(id__in=warehouse_ids)
-            profile.warehouse.set(warehouses)  # <- Correct way
+            warehouses = Warehouse.objects.filter(whs_no__in=warehouse_ids)  # ✅ FIXED
+            profile.warehouse.set(warehouses)
 
         messages.success(request, f"User {username} created successfully!")
         return redirect("user_list")
 
-    # Load warehouses for form
+    # GET request → load warehouses for form
     if request.user.is_superuser:
         warehouses = Warehouse.objects.all()
     else:
         profile = getattr(request.user, "profile", None)
-        warehouses = (
-            profile.warehouse.all()
-            if profile
-            else Warehouse.objects.none()
-        )
+        warehouses = profile.warehouse.all() if profile else Warehouse.objects.none()
 
     return render(request, "account/add_user.html", {"warehouses": warehouses})
+
 
 
 # User Detail
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from .models import Profile
-
 def user_detail(request, user_id):
     # Get the clicked user
     user = get_object_or_404(User, id=user_id)
 
-    # Get superuser profile (assuming only one superuser with a profile)
+    # Get superuser profile (optional)
     superuser = User.objects.filter(is_superuser=True).first()
     super_profile = None
     if superuser:
@@ -4051,9 +4052,8 @@ def user_detail(request, user_id):
 
     return render(request, "account/user_detail.html", {
         "clicked_user": user,
-        "super_profile": super_profile,  # 👈 make sure this is passed
+        "super_profile": super_profile,
     })
-
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -4079,34 +4079,54 @@ def user_landing(request):
     return render(request, "account/landing.html", {
         "warehouses": warehouses
     })
+    
+    
+    
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.models import User
+from .models import Profile, Warehouse  # adjust import if needed
 
 
-
-# Edit User
 def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    profile, created = Profile.objects.get_or_create(user=user)
+    profile = user.profile  
 
-    if request.method == 'POST':
-        user.first_name = request.POST.get('first_name')
-        user.last_name = request.POST.get('last_name')
-        user.email = request.POST.get('email')
+    if request.method == "POST":
+        # --- User fields ---
+        user.username = request.POST.get("username", user.username)
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.email = request.POST.get("email", user.email)
         user.save()
 
-        profile.phone = request.POST.get('phone')
-        profile.company_name = request.POST.get('company_name')
+        # --- Profile fields ---
+        profile.phone = request.POST.get("phone", profile.phone)
+        profile.company_name = request.POST.get("company_name", profile.company_name)
 
-        warehouse_id = request.POST.get('warehouse')
-        profile.warehouse = Warehouse.objects.get(pk=warehouse_id) if warehouse_id else None
+        # --- ✅ Warehouse handling (ManyToMany safe) ---
+        warehouse_ids = request.POST.getlist("warehouse")  # multiple selected IDs
+        if warehouse_ids:
+            profile.warehouse.set(Warehouse.objects.filter(id__in=warehouse_ids))
+        else:
+            profile.warehouse.clear()
 
-        if request.FILES.get('image'):
-            profile.image = request.FILES['image']
+        # --- Profile image ---
+        if "image" in request.FILES:
+            profile.image = request.FILES["image"]
 
         profile.save()
-        return redirect('user_detail', user_id=user.id)
 
+        messages.success(request, "User updated successfully!")
+        return redirect("user_detail", user_id=user.id)
+
+    # --- Pass warehouses to template ---
     warehouses = Warehouse.objects.all()
-    return render(request, 'account/edit_user.html', {'user': user, 'warehouses': warehouses})
+    return render(
+        request,
+        "account/edit_user.html",
+        {"user": user, "warehouses": warehouses},
+    )
 
 
 # Delete User
@@ -4118,7 +4138,8 @@ def delete_user(request, user_id):
 def user_list(request):
     users = User.objects.all()
     superuser = User.objects.filter(is_superuser=True).first()
-    return render(request, "account/user_list.html", {"users": users, "superuser": superuser})
+    warehouse = Warehouse.objects.all()
+    return render(request, "account/user_list.html", {"users": users, "superuser": superuser , "warehouse": warehouse})
 
 
 
