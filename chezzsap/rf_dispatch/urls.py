@@ -265,5 +265,6 @@ urlpatterns = [
 
     # weighing_machine
     path('get-machine-weight/', views.get_machine_weight, name='get_machine_weight'),
- 
+    path("weighing/", views.weighing_page, name="weighing_page"),
+    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

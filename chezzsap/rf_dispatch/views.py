@@ -4580,6 +4580,9 @@ import serial
 import time
 import re
 
+def weighing_page(request):
+    return render(request, "weighing_machine/weighing_page.html")
+
 def get_machine_weight(request):
     """
     Fetch weight from RS232 weighing machine and return JSON.
