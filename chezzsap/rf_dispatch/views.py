@@ -503,81 +503,73 @@ def update_truck_status(request, truck_no):
 # -------------
 
  
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+
 def batch_product_view(request):
-    query = ""
-    categories = Category.objects.all()  # Make sure categories is always defined
+    query = request.GET.get('search', '')
+    categories = Category.objects.all() 
     warehouse = Warehouse.objects.all()
     materials = PackingMaterial.objects.all()
     pallets = Pallet.objects.all()
-    
 
     if request.method == 'POST':
-        whs_no = request.POST.get('whs_no')
-        product_id = request.POST.get('product')
-        description = request.POST.get('description')
-        quantity = request.POST.get('quantity')
-        batch = request.POST.get('batch')
-        bin_id = request.POST.get('bin')
-        pallet = request.POST.get('pallet')
-        p_mat = request.POST.get('p_mat')
-        inspection = request.POST.get('inspection')
-        stock_type = request.POST.get('stock_type')
-        item_number = request.POST.get('item_number')
-        doc_no = request.POST.get('doc_no')
-        pallet_status = request.POST.get('pallet_status')
-        category = request.POST.get('category')
-        sub_category = request.POST.get('sub_category')
-
         try:
+            whs_no = request.POST.get('whs_no')
+            product_id = request.POST.get('product')
+            description = request.POST.get('description')
+            quantity = int(request.POST.get('quantity') or 0)
+            batch = request.POST.get('batch')
+            bin_id = request.POST.get('bin')
+            pallet_id = request.POST.get('pallet')
+            p_mat_id = request.POST.get('p_mat')
+            inspection = request.POST.get('inspection')
+            stock_type = request.POST.get('stock_type')
+            item_number = request.POST.get('item_number')
+            doc_no = request.POST.get('doc_no')
+            pallet_status = request.POST.get('pallet_status')
+            category_id = request.POST.get('category')
+            sub_category_id = request.POST.get('sub_category')
+
             product_instance, _ = Product.objects.get_or_create(
                 product_id=product_id,
-                defaults={
-                    'name': product_id,
-                    'description': description
-                }
+                defaults={'name': product_id, 'description': description}
             )
 
             warehouse_instance = get_object_or_404(Warehouse, whs_no=whs_no)
-            bin_instance = Bin.objects.filter(id=bin_id).first() 
-            p_mat_instance = PackingMaterial.objects.filter(id=p_mat).first() if p_mat else None
+            bin_instance = Bin.objects.filter(id=bin_id).first()
+            p_mat_instance = PackingMaterial.objects.filter(id=p_mat_id).first() if p_mat_id else None
             batch = request.POST.get('batch_input') or batch or ''
-            pallet = Pallet.objects.filter(pallet_no=pallet).first() if pallet else None
+            pallet_instance = Pallet.objects.filter(id=pallet_id).first() if pallet_id else None
+            category_instance = Category.objects.filter(id=category_id).first() if category_id else None
+            sub_category_instance = SubCategory.objects.filter(id=sub_category_id).first() if sub_category_id else None
 
             StockUpload.objects.create(
                 whs_no=warehouse_instance,
                 product=product_instance,
                 description=description,
-                quantity=int(quantity or 0),
+                quantity=quantity,
                 batch=batch,
                 bin=bin_instance,
-                pallet=pallet,
+                pallet=pallet_instance,
                 p_mat=p_mat_instance,
                 inspection=inspection,
                 stock_type=stock_type,
                 item_number=item_number,
                 doc_no=doc_no,
                 pallet_status=pallet_status,
-                category=category,
-                sub_category=sub_category
+                category=category_instance,
+                sub_category=sub_category_instance
             )
 
-        except Exception as e:
-            query = request.GET.get('search', '')
-            stock_uploads = StockUpload.objects.all()
-            return render(request, 'stock_upload/batch_product.html', {
-                'products': Product.objects.all(),
-                'warehouse': warehouse,
-                'materials': materials,
-                'stocks': stock_uploads,
-                'query': query,
-                'categories': categories,
-                'error': str(e),
-                'pallets': pallets,
-            })
+            messages.success(request, f"✅ Stock for product {product_instance.product_id} added successfully.")
 
-    # For both GET and successful POST
+            return redirect('batch_product')  # prevents form resubmission
+
+        except Exception as e:
+            messages.error(request, f"❌ Error: {str(e)}")
+
     stock_uploads = StockUpload.objects.all()
-    query = request.GET.get('search', '')
     return render(request, 'stock_upload/batch_product.html', {
         'products': Product.objects.all(),
         'warehouse': warehouse,
@@ -587,6 +579,8 @@ def batch_product_view(request):
         'categories': categories,
         'pallets': pallets,
     })
+
+
 
 from django.http import JsonResponse
 from .models import Pallet
@@ -916,54 +910,45 @@ def product_list(request):
 
 
 
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.utils import timezone
-from .models import Product, Category, SubCategory, Pallet, Inventory
-
 def add_product(request):
     pallets = Pallet.objects.all()
-    
+    categories = Category.objects.all()
+    subcategories = SubCategory.objects.all()
+
     if request.method == 'POST':
         name = request.POST.get('name')
-        quantity = request.POST.get('quantity')
-        pallet = request.POST.get('pallet_no')
+        quantity = int(request.POST.get('quantity') or 0)
         sku = request.POST.get('sku')
         description = request.POST.get('description')
         unit_of_measure = request.POST.get('unit_of_measure')
         category_id = request.POST.get('category')
         sub_category_id = request.POST.get('sub_category_id')
-        re_order_level = request.POST.get('re_order_level')
-        unit_price = request.POST.get('unit_price')
+        re_order_level = int(request.POST.get('re_order_level') or 10)
+        unit_price = float(request.POST.get('unit_price') or 0.00)
         images = request.FILES.get('images')
 
-        # Basic validation
+        pallet_id = request.POST.get('pallet')
+        pallet = None
+        if pallet_id:
+            try:
+                pallet = Pallet.objects.get(id=pallet_id)
+            except Pallet.DoesNotExist:
+                pallet = None
+
         if not name or not category_id:
             messages.error(request, "Please fill in required fields: Name, Category.")
             return render(request, 'product/add_product.html', {
-                'categories': Category.objects.all(),
-               
+                'categories': categories,
+                'subcategories': subcategories,
+                'pallets': pallets
             })
 
         try:
             category = Category.objects.get(id=category_id)
-
-            sub_category = None
-            if sub_category_id:
-                try:
-                    sub_category = SubCategory.objects.get(id=sub_category_id)
-                except SubCategory.DoesNotExist:
-                    sub_category = None
-            pallet = Pallet.objects.filter(pallet_no=pallet).first() if pallet else None
-            # Fetch pallet object
-            # pallet_obj = None
-            # if pallet_id:
-            #     try:
-            #         pallet_obj = Pallet.objects.get(id=pallet_id)
-            #     except Pallet.DoesNotExist:
-            #         pallet_obj = None
+            sub_category = (
+                SubCategory.objects.filter(id=sub_category_id).first()
+                if sub_category_id else None
+            )
 
             product = Product.objects.create(
                 name=name,
@@ -974,8 +959,8 @@ def add_product(request):
                 unit_of_measure=unit_of_measure,
                 category=category,
                 sub_category=sub_category,
-                re_order_level=re_order_level or 10,
-                unit_price=unit_price or 0.00,
+                re_order_level=re_order_level,
+                unit_price=unit_price,
                 images=images,
             )
             prod_identifier = getattr(product, 'product_id', None) or product.name
@@ -992,6 +977,8 @@ def add_product(request):
         'categories': categories,
         'subcategories': subcategories,
     })
+
+
 
 
 
@@ -4056,7 +4043,7 @@ def get_machine_weight(request):
     weight_data = "0.0"
     try:
         # Open serial port (replace COM3 and 9600 with your scale's config)
-        ser = serial.Serial('COM5', 9600, timeout=2)
+        ser = serial.Serial('COM15', 9600, timeout=2)
         time.sleep(0.2)  # give some time to stabilize
 
         # Some scales need a request command, for example sending 'P\r\n'
