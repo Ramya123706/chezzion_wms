@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-gradient text-white text-center py-3" style="background: linear-gradient(90deg, #007bff, #0056b3);">
+          <h2 class="mb-4 fw-bold text-primary">Weighing Machine </h2>
+        </div>
+
+        <div class="card-body text-center p-5">
+          <p class="text-muted mb-2 fs-5">Current Reading</p>
+          <h1 id="weightValue" class="display-3 fw-bold text-success">--.-- kg</h1>
+
+          <button id="fetchWeightBtn" class="btn btn-primary btn-lg mt-4 px-5 rounded-pill shadow-sm">
+            <i class="fa-solid fa-arrows-rotate me-2"></i> Fetch Latest Weight
+          </button>
+
+          <div id="errorMessage" class="text-danger mt-3 fw-semibold" style="display:none;"></div>
+        </div>
+
+        <div class="card-footer text-center text-muted py-2 small">
+          <i class="fa-solid fa-circle-info me-1"></i> Ensure the machine is connected before fetching weight.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("fetchWeightBtn").addEventListener("click", () => {
+  const weightEl = document.getElementById("weightValue");
+  const errorEl = document.getElementById("errorMessage");
+
+  weightEl.textContent = "Loading...";
+  weightEl.classList.remove("text-success");
+  errorEl.style.display = "none";
+
+  fetch("{% url 'get_machine_weight' %}")
+    .then(res => res.json())
+    .then(data => {
+      if (data.weight) {
+        weightEl.textContent = data.weight + " kg";
+        weightEl.classList.add("text-success");
+      } else {
+        weightEl.textContent = "--.-- kg";
+        errorEl.textContent = "⚠️ " + (data.error || "Unable to fetch weight. Please try again.");
+        errorEl.style.display = "block";
+      }
+    })
+    .catch(err => {
+      weightEl.textContent = "--.-- kg";
+      errorEl.textContent = "⚠️ Connection error: " + err.message;
+      errorEl.style.display = "block";
+    });
+});
+</script>
+{% endblock %}
