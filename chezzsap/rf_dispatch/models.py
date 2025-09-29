@@ -912,7 +912,7 @@ class Profile(models.Model):
 from django.db import models
 
 class Shipment(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="shipments")
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="shipments", default=None, null=True, blank=True)
     shipment_no = models.CharField(max_length=100, unique=True)
     truck = models.ForeignKey(Truck, null=True, blank=True, on_delete=models.SET_NULL)
     yard_hdr = models.ForeignKey(YardHdr, null=True, blank=True, on_delete=models.SET_NULL)
