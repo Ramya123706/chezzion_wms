@@ -352,8 +352,10 @@ class BinLogForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'bin': forms.Select(attrs={'class': 'form-control'}),
-            'action': forms.TextInput(attrs={'class': 'form-control'}),
             'warehouse': forms.TextInput(attrs={'class': 'form-control'}),
+            'source_location': forms.TextInput(attrs={'class': 'form-control'}),
+            'destination_location': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'created_by': forms.Select(attrs={'class': 'form-control'}),
+            'created_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }

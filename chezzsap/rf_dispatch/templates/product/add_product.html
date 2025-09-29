@@ -51,16 +51,16 @@
                             <label for="pallet_no" class="form-label">
                                 <i class="fa-solid fa-pallet me-1"></i> <b>Pallet No</b>
                             </label>
-                            <select id="pallet" name="pallet" class="form-select">
-                                <option value="">-- Select Pallet --</option>
-                                {% for pallet in pallets %}
-                                    {% if not pallet.parent_pallet %}
-                                        <option value="{{ pallet.id }}">
-                                            {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
-                                        </option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
+                            <select id="pallet" name="pallet" class="form-select" required>
+    <option value="">-- Select Pallet --</option>
+    {% for pallet in pallets %}
+        {% if not pallet.parent_pallet %}
+            <option value="{{ pallet.id }}">
+                {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
+            </option>
+        {% endif %}
+    {% endfor %}
+</select>
 
 
 
@@ -73,6 +73,13 @@
                                 <i class="fa-solid fa-hashtag me-1"></i> <b>SKU</b>
                             </label>
                             <input type="text" id="sku" name="sku" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label">
+                                <i class="fa-solid fa-hashtag me-1"></i> <b>Locatiom</b>
+                            </label>
+                            <input type="text" id="location" name="location" class="form-control" required>
+    
                         </div>
 
                         <!-- Description -->

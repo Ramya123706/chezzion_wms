@@ -4,87 +4,107 @@
 <div class="container mt-5">
   <div class="card shadow-lg">
     <div class="card-header bg-primary text-white text-center">
-      <h4><i class="fas fa-clipboard-list me-2"></i>Putaway Task Details</h4>
+      <h4><i class="fas fa-clipboard-list me-2"></i> Putaway Task Details</h4>
     </div>
     <div class="card-body">
       <table class="table table-bordered table-striped table-hover">
         <tr>
           <th>Putaway ID</th>
-          <td>{{ task.putaway_id }}</td>
+          <td>{{ putaway.putaway_id|default:"-" }}</td>
         </tr>
+
+        {% with task_type=putaway.putaway_task_type|lower %}
+        {% if task_type == "putaway by hu" %}
         <tr>
           <th>Pallet</th>
-          <td>
-            {% if task.pallet %}
-              {{ task.pallet.pallet_no }}
-            {% else %}
-              -
-            {% endif %}
-          </td>
+          <td>{{ putaway.pallet.pallet_no|default:"-" }}</td>
+        </tr>
+        {% elif task_type == "putaway by warehouse" %}
+        <tr>
+          <th>Pallet</th>
+          <td>{{ putaway.pallet.pallet_no|default:"-" }}</td>
         </tr>
         <tr>
+          <th>Warehouse</th>
+          <td>{{ putaway.warehouse_id }}</td>
+        </tr>
+        {% elif task_type == "putaway by product" %}
+        <tr>
+          <th>Product</th>
+          <td>{{ putaway.product.name|default:"-" }}</td>
+        </tr>
+        {% elif task_type == "putaway by bin" %}
+        <tr>
+          <th>Bin</th>
+          <td>{{ putaway.bin_id }}</td>
+        </tr>
+        {% endif %}
+        {% endwith %}
+
+        <tr>
           <th>Source Location</th>
-          <td>{{ task.source_location }}</td>
+          <td>{{ putaway.source_location|default:"-" }}</td>
         </tr>
         <tr>
           <th>Destination Location</th>
-          <td>{{ task.destination_location }}</td>
+          <td>{{ putaway.destination_location|default:"-" }}</td>
         </tr>
         <tr>
           <th>Putaway Task Type</th>
-          <td>{{ task.putaway_task_type }}</td>
+          <td>{{ putaway.putaway_task_type|default:"-" }}</td>
         </tr>
         <tr>
           <th>Status</th>
           <td>
             <span class="badge 
-              {% if task.status == 'Completed' %}bg-success
-              {% elif task.status == 'In Progress' %}bg-warning text-dark
+              {% if putaway.status == 'Completed' %}bg-success
+              {% elif putaway.status == 'In Progress' %}bg-warning text-dark
               {% else %}bg-secondary
               {% endif %}">
-              {{ task.status }}
+              {{ putaway.status|default:"-" }}
             </span>
           </td>
         </tr>
         <tr>
           <th>Created At</th>
-          <td>{{ task.created_at|date:"d M Y, H:i" }}</td>
+          <td>{{ putaway.created_at|date:"d M Y, H:i"|default:"-" }}</td>
         </tr>
         <tr>
           <th>Created By</th>
-          <td>{{ task.created_by }}</td>
+          <td>{{ putaway.created_by|default:"-" }}</td>
         </tr>
         <tr>
           <th>Updated At</th>
-          <td>{{ task.updated_at|date:"d M Y, H:i" }}</td>
+          <td>{{ putaway.updated_at|date:"d M Y, H:i"|default:"-" }}</td>
         </tr>
         <tr>
           <th>Updated By</th>
-          <td>{{ task.updated_by }}</td>
+          <td>{{ putaway.updated_by|default:"-" }}</td>
         </tr>
       </table>
     </div>
+
     <div class="card-footer text-center">
       <div class="d-flex justify-content-center gap-2 flex-wrap">
         <!-- Back button -->
         <a href="{% url 'all_tasks' %}" class="btn btn-secondary">
-          <i class="fas fa-arrow-left me-1"></i>Back to All Tasks
+          <i class="fas fa-arrow-left me-1"></i> Back to All Tasks
         </a>
 
         <!-- Mark Completed button -->
-        {% if task.status != "Completed" %}
-        <a href="{% url 'confirm_putaway' task.putaway_id %}" class="btn btn-success"
+        {% if putaway.status != "Completed" %}
+        <a href="{% url 'confirm_putaway' putaway.putaway_id %}" class="btn btn-success"
            onclick="return confirm('Are you sure to mark this task as Completed?');">
-           <i class="fas fa-check-circle me-1"></i>Mark Completed
+           <i class="fas fa-check-circle me-1"></i> Mark Completed
         </a>
         {% endif %}
 
         <!-- Delete button -->
-        <form action="{% url 'delete_putaway' task.putaway_id %}" method="post" style="display:inline;">
+        <form action="{% url 'delete_putaway' putaway.putaway_id %}" method="post" style="display:inline;">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger"
                   onclick="return confirm('Are you sure you want to delete this putaway task?');">
-              <i class="fas fa-trash-alt me-1"></i>Delete
+              <i class="fas fa-trash-alt me-1"></i> Delete
           </button>
         </form>
       </div>

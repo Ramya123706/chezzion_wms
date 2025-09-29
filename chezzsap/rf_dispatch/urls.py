@@ -97,7 +97,8 @@ urlpatterns = [
     path('bin/edit/<str:bin_id>/', views.edit_bin, name='edit_bin'),
     # path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
     path("get-bin-location/<str:bin_id>/", views.get_bin_location, name="get_bin_location"),
-    path('logs/', views.bin_log_view, name='bin_log'),
+    path('logs/', views.bin_log_view, name='bin_log_view'),
+   
 
     # Customers
     path('add_customers/', views.add_customers, name='add_customers'),
@@ -140,14 +141,19 @@ urlpatterns = [
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('picking/<str:picking_id>/', views.picking_detail, name='picking_detail'),
 
-    # Putaway
+    # Putaway  
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('putaway/tasks/', views.all_putaway_tasks, name='all_tasks'),
+    path('picking/tasks/', views.all_picking_tasks, name='all_picking_tasks'),
     path('putaway/pending/', views.putaway_pending, name='putaway_pending'),
     path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
     path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
     path('putaway/delete/<str:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path("putaway/<str:putaway_id>/", views.putaway_detail, name="putaway_detail"),
+    path('get-pallet-location/<int:pallet_id>/', views.get_pallet_location, name='get_pallet_location'),
+    path('get-warehouse-location/<str:warehouse_id>/', views.get_warehouse_location, name='get_warehouse_location'),
+    path('get-product-location/<str:product_id>/', views.get_product_location, name='get_product_location'),
+    path('get-bin-location/<int:bin_id>/', views.get_bin_location, name='get_bin_location'),
 
     # Inbound Delivery
     path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
@@ -171,7 +177,7 @@ urlpatterns = [
     path('sales-order/edit/<str:so_no>/', views.sales_order_edit, name='sales_order_edit'),
     path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
     path("sales/<str:so_no>/pdf/", views.sales_order_pdf, name="sales_order_pdf"),
-    path("get-warehouse-address/<str:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
+    # path("get-warehouse-address/<str:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
 
     # Outbound Delivery
     path('outbound/', views.outbound, name='outbound'),
@@ -221,6 +227,7 @@ urlpatterns = [
     path('users/<int:user_id>/', views.user_detail, name='user_detail'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+    path("landing/", views.user_landing, name="user_landing"),
 
     # Password Management
     path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),

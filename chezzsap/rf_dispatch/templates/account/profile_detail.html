@@ -7,10 +7,12 @@
     <!-- Profile Header -->
     <div class="text-center mb-4">
       {% if profile.image %}
-      <img src="{{ profile.image.url }}" alt="Profile Picture" class="rounded-circle border shadow-sm"
-        style="width: 140px; height: 140px; object-fit: cover;">
+        <img src="{{ profile.image.url }}" 
+             alt="Profile Picture" 
+             class="rounded-circle border shadow-sm"
+             style="width: 140px; height: 140px; object-fit: cover;">
       {% else %}
-      <i class="fa-solid fa-circle-user fa-7x text-secondary"></i>
+        <i class="fa-solid fa-circle-user fa-7x text-secondary"></i>
       {% endif %}
     </div>
 
@@ -20,35 +22,62 @@
     </h4>
 
     <form>
+      <!-- First & Last Name -->
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-user me-1"></i> First Name</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-user me-1"></i> First Name
+          </label>
           <input type="text" class="form-control" value="{{ user.first_name }}" readonly>
         </div>
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-user me-1"></i> Last Name</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-user me-1"></i> Last Name
+          </label>
           <input type="text" class="form-control" value="{{ user.last_name }}" readonly>
         </div>
       </div>
 
+    <div class="row">
+   <div class="mb-3">
+                            <label class="form-label"><b>User Role</b></label>
+                            <select name="role" class="form-control" readonly>
+                                <option value="">-- Select Role --</option>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="user">User</option>
+                            </select>
+                            </div>
+</div>
+
+      <!-- Email & Phone -->
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-envelope me-1"></i> Email</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-envelope me-1"></i> Email
+          </label>
           <input type="email" class="form-control" value="{{ user.email }}" readonly>
         </div>
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-phone me-1"></i> Phone No.</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-phone me-1"></i> Phone No.
+          </label>
           <input type="text" class="form-control" value="{{ profile.phone }}" readonly>
         </div>
       </div>
 
+      <!-- Company & Warehouse -->
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-building me-1"></i> Company</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-building me-1"></i> Company
+          </label>
           <input type="text" class="form-control" value="{{ profile.company_name }}" readonly>
         </div>
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-warehouse me-1"></i> Warehouse</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-warehouse me-1"></i> Warehouse
+          </label>
           <input type="text" class="form-control" value="{{ profile.warehouse }}" readonly>
         </div>
       </div>
