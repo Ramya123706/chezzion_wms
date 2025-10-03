@@ -69,19 +69,24 @@
             </div>
 
             <!-- Warehouse Dropdown -->
-            <div class="mb-3">
 <div class="mb-3">
-  <label class="form-label"><b>Warehouse</b></label>
-  <select name="warehouse" class="form-select" multiple>
+  <label class="form-label"><b>Warehouses</b></label>
+  <div class="border rounded p-2" style="max-height: 200px; overflow-y:auto;">
     {% for wh in warehouses %}
-      <option value="{{ wh.id }}" {% if wh in user.profile.warehouse.all %}selected{% endif %}>
-        {{ wh.whs_no }} - {{ wh.whs_name }}
-      </option>
+      <div class="form-check">
+        <input class="form-check-input" 
+               type="checkbox" 
+               name="warehouse" 
+               value="{{ wh.id }}"
+               id="wh{{ wh.id }}"
+               {% if wh in user.profile.warehouse.all %}checked{% endif %}>
+        <label class="form-check-label" for="wh{{ wh.id }}">
+          {{ wh.whs_no }} - {{ wh.whs_name }}
+        </label>
+      </div>
     {% endfor %}
-  </select>
+  </div>
 </div>
-
-            </div>
 
             <!-- Profile Image Upload -->
             <div class="mb-3">

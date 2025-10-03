@@ -157,7 +157,7 @@ class Bin(models.Model):
 
 
 class Product(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="products")
+    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="products", null=True, blank=True)
     product_id = models.CharField(
         primary_key=True,
         max_length=50,
@@ -390,7 +390,7 @@ class StockUpload(models.Model):
 
 
 class Inventory(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="inventories")
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE,null=True,blank=True, related_name="inventories")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
     min_quantity = models.IntegerField(default=5)
@@ -904,7 +904,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, null=True)
     company_name = models.CharField(max_length=100, blank=True, null=True)
-    warehouse = models.ManyToManyField('Warehouse',blank=True,null=True,related_name="profiles" )    
+    warehouse = models.ManyToManyField('Warehouse',blank=True,related_name="profiles" )    
     image = models.ImageField(upload_to='profiles/', default='profiles/default.png')
 
     def __str__(self):

@@ -71,6 +71,7 @@ urlpatterns = [
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
+    
 
     # Stock Upload
     path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
