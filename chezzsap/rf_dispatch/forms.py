@@ -124,6 +124,8 @@ class PalletForm(forms.ModelForm):
             # Skip boolean field so it uses 'form-check-input'
             if name != 'has_child_pallets':
                 field.widget.attrs.update({'class': 'form-control'})
+            if name == 'whs_no':   # ✅ warehouse field
+                field.widget.attrs.update({'class': 'form-select'})
             if name == 'weight':
                 field.widget.attrs.update({'id': 'id_weight'})
 

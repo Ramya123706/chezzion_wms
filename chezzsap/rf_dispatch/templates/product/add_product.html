@@ -56,7 +56,7 @@
     {% for pallet in pallets %}
         {% if not pallet.parent_pallet %}
             <option value="{{ pallet.id }}">
-                {{ pallet.pallet_no }} ({{ pallet.child_pallets.count }})
+                {{ pallet.pallet_no }} 
             </option>
         {% endif %}
     {% endfor %}
@@ -81,6 +81,22 @@
                             <input type="text" id="location" name="location" class="form-control" required>
     
                         </div>
+<div class="mb-3">
+    <label for="warehouse" class="form-label">
+        <i class="fa-solid fa-warehouse me-1"></i> <b>Warehouse</b>
+    </label>
+    <select name="warehouse" id="warehouse" class="form-select" required>
+        <option value="">-- Select Warehouse --</option>
+        {% for wh in warehouses %}
+            <option value="{{ wh.whs_no }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
+        {% empty %}
+            <option value="">No warehouses available</option>
+        {% endfor %}
+    </select>
+</div>
+
+
+
 
                         <!-- Description -->
                         <div class="mb-3">
@@ -104,7 +120,7 @@
                             <label for="category" class="form-label">
                                 <i class="fa-solid fa-list me-1"></i> <b>Category</b>
                             </label>
-                            <select id="category" name="category" class="form-select" required>
+                            <select id="category" name="category" class="form-select">
                                 <option value="">-- Select Category --</option>
                                 {% for cat in categories %}
                                 <option value="{{ cat.id }}">{{ cat.category }}</option>

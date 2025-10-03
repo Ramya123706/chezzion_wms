@@ -599,25 +599,24 @@ def batch_product_view(request):
 
 from django.http import JsonResponse
 from .models import Pallet
-
 def suggest_pallets(request):
     quantity = int(request.GET.get('quantity', 0))
-    parent_pallets = Pallet.objects.filter(parent_pallet__isnull=True)
+    pallets = Pallet.objects.all()
     suggestions = []
 
-    for parent in parent_pallets:
-        child_count = parent.child_pallets.count()
-        # Assuming each child pallet can hold 1 quantity
-        available_qty = child_count
+    for pallet in pallets:
+        available_qty = pallet.child_pallets.count() or pallet.quantity
         if available_qty >= quantity:
             suggestions.append({
-                'id': parent.id,
-                'pallet_no': parent.pallet_no,
-                'child_count': child_count,
+                'id': pallet.id,
+                'pallet_no': pallet.pallet_no,
+                'child_count': pallet.child_pallets.count(),
                 'available_qty': available_qty
             })
 
     return JsonResponse({'pallets': suggestions})
+
+
 
 from django.http import JsonResponse
 
@@ -870,39 +869,44 @@ def edit_warehouse(request, whs_no):
 
 
 def product_view(request):
+    warehouses = Warehouse.objects.all()   # ✅ always defined
+    pallets = Pallet.objects.all()
+    categories = Category.objects.all()
+
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save()
             return redirect('product_detail', product_id=product.product_id)
         else:
-            print("❌ Form errors:", form.errors) 
+            print("❌ Form errors:", form.errors)
     else:
         form = ProductForm()
 
+    # Search
     query = request.GET.get('search')
     if query:
         products = Product.objects.filter(name__icontains=query)
     else:
         products = Product.objects.all()
-    pallets = Pallet.objects.all()
 
     return render(request, 'product/add_product.html', {
         'form': form,
         'products': products,
         'query': query,
-        'categories': Category.objects.all(),
+        'warehouses': warehouses,
+        'categories': categories,
         'pallets': pallets,
     })
-
 def product_detail_view(request, product_id):
-    product = get_object_or_404(
-        Product.objects.prefetch_related(
-            "purchaseitem_set__purchase_order"  
-        ),
-        product_id__iexact=product_id
-    )
-    return render(request, "product/product_detail.html", {"product": product})
+    product = get_object_or_404(Product, product_id=product_id)
+    warehouse = product.whs_no  # if this exists
+    return render(request, 'product/product_detail.html', {
+        'product': product,
+        'warehouse': warehouse,
+    })
+
+
 
 
 
@@ -922,48 +926,52 @@ def product_list(request):
     # Normal full render
     return render(request, 'product/product_list.html', {'products': page_obj})
 
-
-
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Product, Pallet, Category, SubCategory, Warehouse
+from .forms import ProductForm
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Product, Pallet, Category, SubCategory, Warehouse
 
 def add_product(request):
+    from rf_dispatch.models import Warehouse, Product, Pallet, Category, SubCategory
+    
     pallets = Pallet.objects.all()
     categories = Category.objects.all()
     subcategories = SubCategory.objects.all()
+    warehouses = Warehouse.objects.all()
 
     if request.method == 'POST':
         name = request.POST.get('name')
         quantity = int(request.POST.get('quantity') or 0)
         sku = request.POST.get('sku')
         description = request.POST.get('description')
+        location = request.POST.get('location')
         unit_of_measure = request.POST.get('unit_of_measure')
         category_id = request.POST.get('category')
         sub_category_id = request.POST.get('sub_category_id')
-        re_order_level = int(request.POST.get('re_order_level') or 10)
-        unit_price = float(request.POST.get('unit_price') or 0.00)
+        re_order_level = int(request.POST.get('re_order_level') or 0)
+        unit_price = float(request.POST.get('unit_price') or 0)
         images = request.FILES.get('images')
+        warehouse_whs_no = request.POST.get('warehouse')
 
         pallet_id = request.POST.get('pallet')
-        pallet = None
-        if pallet_id:
-            try:
-                pallet = Pallet.objects.get(id=pallet_id)
-            except Pallet.DoesNotExist:
-                pallet = None
+        pallet = Pallet.objects.filter(id=pallet_id).first() if pallet_id else None
 
-        if not name or not category_id:
-            messages.error(request, "Please fill in required fields: Name, Category.")
+        if not name or not category_id or not warehouse_whs_no:
+            messages.error(request, "Please fill in required fields: Name, Category, Warehouse.")
             return render(request, 'product/add_product.html', {
                 'categories': categories,
                 'subcategories': subcategories,
-                'pallets': pallets
+                'pallets': pallets,
+                'warehouses': warehouses,
             })
 
         try:
             category = Category.objects.get(id=category_id)
-            sub_category = (
-                SubCategory.objects.filter(id=sub_category_id).first()
-                if sub_category_id else None
-            )
+            sub_category = SubCategory.objects.filter(id=sub_category_id).first() if sub_category_id else None
+            warehouse = Warehouse.objects.get(whs_no=warehouse_whs_no)
 
             product = Product.objects.create(
                 name=name,
@@ -971,37 +979,33 @@ def add_product(request):
                 pallet_no=pallet,
                 sku=sku,
                 description=description,
+                location=location,
                 unit_of_measure=unit_of_measure,
                 category=category,
                 sub_category=sub_category,
                 re_order_level=re_order_level,
                 unit_price=unit_price,
                 images=images,
+                whs_no=warehouse
             )
-            prod_identifier = getattr(product, 'product_id', None) or product.name
-            messages.success(request, f"Product {prod_identifier} added successfully!")
 
             messages.success(request, f"Product {product.name} added successfully!")
             return redirect('product_list')
 
+        except Warehouse.DoesNotExist:
+            messages.error(request, "Selected warehouse does not exist.")
+        except Category.DoesNotExist:
+            messages.error(request, "Selected category does not exist.")
         except Exception as e:
             messages.error(request, f"Unexpected error: {e}")
-            
-    categories = Category.objects.all()
-    subcategories = SubCategory.objects.all()
 
-    categories = Category.objects.all()
-    subcategories = SubCategory.objects.all()
     return render(request, 'product/add_product.html', {
         'pallets': pallets,
         'categories': categories,
         'subcategories': subcategories,
+        'warehouses': warehouses,
     })
-
-
-
-
-
+ 
 def bulk_upload_products(request):
     if request.method == "POST" and request.FILES.get("csv_file"):
         csv_file = request.FILES["csv_file"]
@@ -1078,43 +1082,48 @@ def update_product_from_post(product, post_data, files_data):
     if files_data.get('images'):
         product.images = files_data['images']
 
+from .models import Product, Pallet, Warehouse, Category
+
 def product_edit(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
     categories = Category.objects.all()
+    pallets = Pallet.objects.all()        # Add this
+    warehouses = Warehouse.objects.all()  # Add this
 
     if request.method == 'POST':
         product.name = request.POST.get('name')
         product.quantity = request.POST.get('quantity')
         product.unit_price = request.POST.get('unit_price')
-        product.pallet_no = request.POST.get('pallet_no')
         product.sku = request.POST.get('sku')
         product.description = request.POST.get('description')
         product.unit_of_measure = request.POST.get('unit_of_measure')
         product.re_order_level = request.POST.get('re_order_level')
+        product.sub_category = request.POST.get('sub_category')
+
+        # Assign ForeignKeys correctly
+        pallet_id = request.POST.get('pallet_no')
+        warehouse_id = request.POST.get('whs_no')
+        product.pallet_no = Pallet.objects.get(id=pallet_id) if pallet_id else None
+        product.whs_no = Warehouse.objects.get(id=warehouse_id) if warehouse_id else None
 
         category_id = request.POST.get('category')
         if category_id:
-            try:
-                product.category_id = int(category_id)
-            except ValueError:
-                pass  
+            product.category_id = int(category_id)
 
-        if request.FILES.get('images'):
+        if 'images' in request.FILES:
             product.images = request.FILES['images']
 
-
-        update_product_from_post(product, request.POST, request.FILES)
         product.save()
         messages.success(request, "✅ Product updated successfully.")
         return redirect('product_detail', product_id=product.product_id)
 
     return render(request, 'product/product_edit.html', {
         'product': product,
-        'categories': categories
+        'categories': categories,
+        'pallets': pallets,          # Pass to template
+        'warehouses': warehouses     # Pass to template
     })
 
-
-    
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'product/product_list.html', {'products': products})
@@ -1258,7 +1267,6 @@ def whs_no_dropdown_view(request):
 # -----
 # PALLET
 # ------
-
 def creating_pallet(request):
     if request.method == 'POST':
         form = PalletForm(request.POST)
@@ -1304,7 +1312,7 @@ def creating_pallet(request):
         'pallets': pallets,
         'query': query
     })
-
+    
 def pallet_detail(request, pallet_no):
     pallet = get_object_or_404(Pallet, pallet_no=pallet_no)
     child_pallets = Pallet.objects.filter(parent_pallet=pallet)
@@ -3840,40 +3848,46 @@ def login_view(request):
             return redirect("user_landing")
         else:
             messages.error(request, "Invalid username or password")
-            return redirect("user_landing")
+            return redirect("login")
 
     return render(request, "account/login.html")
 
+
 @login_required
 def profile_detail_view(request, user_id=None):
-    # Always show superuser profile (ignore user_id)
-    superuser = User.objects.filter(is_superuser=True).first()
-    if not superuser:
-        messages.error(request, "No superuser profile found.")
-        return redirect("user_list")
-
-    profile, created = Profile.objects.get_or_create(user=superuser)
-
+    # Show current user's profile
+    profile, created = Profile.objects.get_or_create(user=request.user)
     return render(request, "account/profile_detail.html", {
         "profile": profile,
-        "user": superuser,
+        "user": request.user,
     })
+
+
 @login_required
 def edit_profile(request):
-    profile = request.user.profile
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    user = request.user
 
     if request.method == "POST":
-        profile.company_name = request.POST.get("company_name")
-        profile.phone = request.POST.get("phone")
+        # Update User fields
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.email = request.POST.get("email", user.email)
+        user.save()
 
-        warehouse_no = request.POST.get("warehouse")
-        if warehouse_no:
-            try:
-                warehouse = Warehouse.objects.get(whs_no=warehouse_no)
-                profile.warehouse = warehouse
-            except Warehouse.DoesNotExist:
-                messages.error(request, "Selected warehouse does not exist.")
+        # Update Profile fields
+        profile.phone = request.POST.get("phone", profile.phone)
+        profile.company_name = request.POST.get("company_name", profile.company_name)
 
+        # ✅ FIXED: Handle ManyToMany warehouse field properly
+            # In edit_profile view:
+        warehouse_ids = request.POST.getlist("warehouse")
+        if warehouse_ids:
+            profile.warehouse.set(Warehouse.objects.filter(whs_no__in=warehouse_ids))
+        else:
+            profile.warehouse.clear()
+
+        # Update profile image
         if "image" in request.FILES:
             profile.image = request.FILES["image"]
 
@@ -3884,9 +3898,9 @@ def edit_profile(request):
     warehouses = Warehouse.objects.all()
     return render(request, "account/profile_edit.html", {
         "profile": profile,
+        "user": user,
         "warehouses": warehouses,
     })
-
 
 
 @login_required
@@ -3912,6 +3926,7 @@ def change_password(request):
         return redirect("profile_detail")
 
     return render(request, "account/change_password.html")
+
 
 def logout_view(request):
     logout(request)
@@ -3983,7 +3998,12 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from .models import Profile, Warehouse
-
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Profile, Warehouse
 def add_user(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -3991,10 +4011,9 @@ def add_user(request):
         password = request.POST.get("password")
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
-        user_role = request.POST.get("user_role")  # ✅ in case you use roles later
         phone = request.POST.get("phone")
         company_name = request.POST.get("company_name")
-        warehouse_ids = request.POST.getlist("warehouses")  # ✅ list of whs_no values
+        warehouse_ids = request.POST.getlist("warehouses")
         image = request.FILES.get("image")
 
         # Create User
@@ -4006,54 +4025,77 @@ def add_user(request):
             last_name=last_name,
         )
 
-        # Create Profile (initially without warehouses)
+        # Create Profile
         profile = Profile.objects.create(
             user=user,
             phone=phone,
             company_name=company_name,
-            image=image,
         )
+        
+        if image:
+            profile.image = image
+            profile.save()
 
-        # Assign warehouses
+        # Assign warehouses - whs_no values are strings like '23', '28', '89'
         if warehouse_ids:
-            warehouses = Warehouse.objects.filter(whs_no__in=warehouse_ids)  # ✅ FIXED
+            warehouses = Warehouse.objects.filter(whs_no__in=warehouse_ids)
             profile.warehouse.set(warehouses)
 
         messages.success(request, f"User {username} created successfully!")
         return redirect("user_list")
 
-    # GET request → load warehouses for form
-    if request.user.is_superuser:
-        warehouses = Warehouse.objects.all()
-    else:
-        profile = getattr(request.user, "profile", None)
-        warehouses = profile.warehouse.all() if profile else Warehouse.objects.none()
-
+    # GET request
+    warehouses = Warehouse.objects.all()
     return render(request, "account/add_user.html", {"warehouses": warehouses})
 
-
-
-# User Detail
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.models import User
-from .models import Profile
 def user_detail(request, user_id):
-    # Get the clicked user
     user = get_object_or_404(User, id=user_id)
+    return render(request, "account/user_detail.html", {"clicked_user": user})
 
-    # Get superuser profile (optional)
-    superuser = User.objects.filter(is_superuser=True).first()
-    super_profile = None
-    if superuser:
-        try:
-            super_profile = superuser.profile
-        except Profile.DoesNotExist:
-            super_profile = None
+def edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
 
-    return render(request, "account/user_detail.html", {
-        "clicked_user": user,
-        "super_profile": super_profile,
+    if request.method == "POST":
+        user.username = request.POST.get("username", user.username)
+        user.first_name = request.POST.get("first_name", user.first_name)
+        user.last_name = request.POST.get("last_name", user.last_name)
+        user.email = request.POST.get("email", user.email)
+        user.save()
+
+        profile.phone = request.POST.get("phone", profile.phone)
+        profile.company_name = request.POST.get("company_name", profile.company_name)
+
+        # ✅ FIX: Use whs_no instead of id
+        warehouse_ids = request.POST.getlist("warehouse")
+        if warehouse_ids:
+            profile.warehouse.set(Warehouse.objects.filter(whs_no__in=warehouse_ids))
+        else:
+            profile.warehouse.clear()
+
+        if "image" in request.FILES:
+            profile.image = request.FILES["image"]
+
+        profile.save()
+        messages.success(request, "User updated successfully!")
+        return redirect("user_detail", user_id=user.id)
+
+    warehouses = Warehouse.objects.all()
+    return render(request, "account/edit_user.html", {
+        "user": user,
+        "warehouses": warehouses
     })
+
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    messages.success(request, "User deleted successfully!")
+    return redirect('user_list')
+
+
+def user_list(request):
+    users = User.objects.all().prefetch_related("profile__warehouse")
+    return render(request, "account/user_list.html", {"users": users})
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -4079,69 +4121,6 @@ def user_landing(request):
     return render(request, "account/landing.html", {
         "warehouses": warehouses
     })
-    
-    
-    
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from django.contrib.auth.models import User
-from .models import Profile, Warehouse  # adjust import if needed
-
-
-def edit_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    profile = user.profile  
-
-    if request.method == "POST":
-        # --- User fields ---
-        user.username = request.POST.get("username", user.username)
-        user.first_name = request.POST.get("first_name", user.first_name)
-        user.last_name = request.POST.get("last_name", user.last_name)
-        user.email = request.POST.get("email", user.email)
-        user.save()
-
-        # --- Profile fields ---
-        profile.phone = request.POST.get("phone", profile.phone)
-        profile.company_name = request.POST.get("company_name", profile.company_name)
-
-        # --- ✅ Warehouse handling (ManyToMany safe) ---
-        warehouse_ids = request.POST.getlist("warehouse")  # multiple selected IDs
-        if warehouse_ids:
-            profile.warehouse.set(Warehouse.objects.filter(id__in=warehouse_ids))
-        else:
-            profile.warehouse.clear()
-
-        # --- Profile image ---
-        if "image" in request.FILES:
-            profile.image = request.FILES["image"]
-
-        profile.save()
-
-        messages.success(request, "User updated successfully!")
-        return redirect("user_detail", user_id=user.id)
-
-    # --- Pass warehouses to template ---
-    warehouses = Warehouse.objects.all()
-    return render(
-        request,
-        "account/edit_user.html",
-        {"user": user, "warehouses": warehouses},
-    )
-
-
-# Delete User
-def delete_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user.delete()
-    return redirect('user_list')
-
-def user_list(request):
-    users = User.objects.all()
-    superuser = User.objects.filter(is_superuser=True).first()
-    warehouse = Warehouse.objects.all()
-    return render(request, "account/user_list.html", {"users": users, "superuser": superuser , "warehouse": warehouse})
-
-
 
 def get_po_products(request, po_id):
     try:
