@@ -4036,25 +4036,55 @@ import re
 def weighing_page(request):
     return render(request, "weighing_machine/weighing_page.html")
 
+import serial
+import time
+import re
+from django.http import JsonResponse
+import serial.tools.list_ports
+
+def detect_scale_port(baud_rate=9600, timeout=1):
+    """
+    Scan all COM ports and return the one that seems to have the weighing scale connected.
+    """
+    ports = serial.tools.list_ports.comports()
+    for port in ports:
+        try:
+            ser = serial.Serial(port.device, baud_rate, timeout=timeout)
+            time.sleep(0.2)
+            # Optional: send a request command if your scale requires it
+            # ser.write(b'P\r\n')
+            time.sleep(0.1)
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
+            ser.close()
+            # Check if the response looks like a weight (numeric value)
+            if re.search(r'\d+(\.\d+)?', line):
+                return port.device
+        except:
+            continue
+    return None
+
 def get_machine_weight(request):
     """
     Fetch weight from RS232 weighing machine and return JSON.
+    Auto-detects the correct COM port.
     """
     weight_data = "0.0"
     try:
-        # Open serial port (replace COM3 and 9600 with your scale's config)
-        ser = serial.Serial('COM15', 9600, timeout=2)
-        time.sleep(0.2)  # give some time to stabilize
+        # Detect the correct scale port
+        port = detect_scale_port()
+        if not port:
+            return JsonResponse({"weight": "Error: Scale not detected."})
 
-        # Some scales need a request command, for example sending 'P\r\n'
+        # Open the detected serial port
+        ser = serial.Serial(port, 9600, timeout=2)
+        time.sleep(0.2)
+        # Optional command to request weight
         # ser.write(b'P\r\n')
         time.sleep(0.1)
-
-        # Read line from the scale
         raw_data = ser.readline().decode('utf-8', errors='ignore').strip()
         ser.close()
 
-        # Extract numeric value using regex (handles things like "+00012.34 kg")
+        # Extract numeric value
         match = re.search(r"[-+]?\d*\.\d+|\d+", raw_data)
         if match:
             weight_data = match.group()
@@ -4065,5 +4095,6 @@ def get_machine_weight(request):
         weight_data = f"Error: {str(e)}"
 
     return JsonResponse({"weight": weight_data})
+
 
 

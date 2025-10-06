@@ -994,3 +994,5 @@ class BinLog(models.Model):
 
     def __str__(self):
         return f"{self.bin.bin_code} - {self.action} at {self.created_at}"
+
+
