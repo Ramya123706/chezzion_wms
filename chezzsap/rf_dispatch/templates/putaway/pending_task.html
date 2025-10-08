@@ -1,90 +1,132 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container mt-5">
-  <div class="card shadow">
-    <div class="card-header bg-primary text-white text-center">
-      <h4><i class="fas fa-tasks me-2"></i> Pending Putaway Tasks</h4>
+  <div class="card shadow-lg">
+    <div class="card-header bg-warning text-dark">
+      <div class="row align-items-center">
+        <div class="col">
+          <h4><i class="fas fa-clock me-2"></i> Pending Putaway Tasks</h4>
+        </div>
+        <div class="col-auto">
+          <span class="badge bg-dark fs-6">{{ pending_tasks|length }} tasks pending</span>
+          <a href="{% url 'putaway_task' %}" class="btn btn-primary btn-sm ms-2">
+            <i class="fas fa-plus me-1"></i> New Task
+          </a>
+        </div>
+      </div>
     </div>
+    
     <div class="card-body">
       {% if pending_tasks %}
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped text-center align-middle">
-          <thead class="table-light">
-            <tr>
-              <th><i class="fas fa-hashtag"></i> Putaway ID</th>
-              <th><i class="fas fa-boxes"></i> Pallet</th>
-              <th><i class="fas fa-map-marker-alt"></i> Source Location</th>
-              <th><i class="fas fa-map-marker-alt"></i> Destination Location</th>
-              <th><i class="fas fa-tasks"></i> Task Type</th>
-              <th><i class="fas fa-info-circle"></i> Status</th>
-              <th><i class="fas fa-cogs"></i> Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for task in pending_tasks %}
-            <tr>
-              <!-- Putaway ID links to detail page -->
-              <td>
-                <a href="{% url 'putaway_detail' task.putaway_id %}" class="text-decoration-none fw-bold">
-                  {{ task.putaway_id }}
-                </a>
-              </td>
-              <!-- Pallet with safe check -->
-              <td>
-                {% if task.pallet %}
-                  {{ task.pallet.pallet_no }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
-              <td>{{ task.source_location }}</td>
-              <td>{{ task.destination_location }}</td>
-              <td>{{ task.putaway_task_type }}</td>
-              <td>
-                <span class="badge 
-                  {% if task.status == 'Completed' %} bg-success text-white
-                  {% elif task.status == 'In Progress' %} bg-warning text-dark
-                  {% else %} bg-secondary text-white {% endif %}">
-                  {{ task.status }}
-                </span>
-              </td>
-              <td>
-                <div class="btn-group" role="group">
-                  <!-- Edit -->
-                  <a href="{% url 'edit_putaway' task.putaway_id %}" class="btn btn-sm btn-primary" title="Edit Task">
-                    <i class="fas fa-edit"></i>
-                  </a>
-                  <!-- Confirm -->
-                  <a href="{% url 'confirm_putaway' task.putaway_id %}"
-                     class="btn btn-sm {% if task.status == 'In Progress' %}btn-success{% else %}btn-warning{% endif %}"
-                     title="{% if task.status == 'In Progress' %}Mark Completed{% else %}Mark In Progress{% endif %}"
-                     onclick="return confirm('Are you sure you want to update this task?');">
-                     {% if task.status == 'In Progress' %}
-                       <i class="fas fa-check-circle"></i>
-                     {% else %}
-                       <i class="fas fa-undo-alt"></i>
-                     {% endif %}
-                  </a>
-                  <!-- Delete -->
-                  <a href="{% url 'delete_putaway' task.putaway_id %}"
-                     class="btn btn-sm btn-danger"
-                     title="Delete Task"
-                     onclick="return confirm('Are you sure you want to delete this task?');">
-                     <i class="fas fa-trash"></i>
-                  </a>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped table-hover">
+            <thead class="table-warning">
+              <tr>
+                <th>Putaway ID</th>
+                <th>Pallet</th>
+                <th>Source Location</th>
+                <th>Destination Location</th>
+                <th>Task Type</th>
+                <th>Created At</th>
+                <th>Created By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in pending_tasks %}
+                <tr>
+                  <td>
+                    {% if task.putaway_id %}
+                      <a href="{% url 'putaway_detail' task.putaway_id %}" class="text-decoration-none fw-bold">
+                        {{ task.putaway_id }}
+                      </a>
+                    {% else %}
+                      <span class="text-muted">No ID</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ task.pallet.pallet_no|default:"-" }}</td>
+                  <td>{{ task.source_location|default:"-" }}</td>
+                  <td>{{ task.destination_location|default:"-" }}</td>
+                  <td>{{ task.putaway_task_type|default:"-" }}</td>
+                  <td>{{ task.created_at|date:"M d, Y H:i" }}</td>
+                  <td>{{ task.created_by|default:"-" }}</td>
+                  <td>
+                    {% if task.putaway_id %}
+                      <div class="btn-group" role="group">
+                        <!-- View Details -->
+                        <a href="{% url 'putaway_detail' task.putaway_id %}" 
+                           class="btn btn-sm btn-outline-primary" title="View Details">
+                          <i class="fas fa-eye"></i>
+                        </a>
+                        
+                        <!-- Edit -->
+                        <a href="{% url 'edit_putaway' task.putaway_id %}" 
+                           class="btn btn-sm btn-outline-warning" title="Edit">
+                          <i class="fas fa-edit"></i>
+                        </a>
+                        
+                        <!-- Mark Complete -->
+                        <a href="{% url 'confirm_putaway' task.putaway_id %}" 
+                           class="btn btn-sm btn-outline-success" title="Mark Completed"
+                           onclick="return confirm('Mark task {{ task.putaway_id }} as completed?');">
+                          <i class="fas fa-check"></i>
+                        </a>
+                      </div>
+                    {% else %}
+                      <span class="text-muted small">No actions (Missing ID)</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       {% else %}
-      <div class="alert alert-info text-center">
-        <i class="fas fa-info-circle me-2"></i> No pending tasks available.
-      </div>
+        <!-- No pending tasks -->
+        <div class="text-center py-5">
+          <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+          <h5 class="mt-3 text-muted">No Pending Tasks</h5>
+          <p class="text-muted">All putaway tasks are completed!</p>
+          <a href="{% url 'putaway_task' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Create New Task
+          </a>
+        </div>
       {% endif %}
+    </div>
+    
+    <div class="card-footer">
+      <div class="row">
+        <div class="col">
+          <a href="{% url 'all_tasks' %}" class="btn btn-secondary">
+            <i class="fas fa-list me-1"></i> View All Tasks
+          </a>
+        </div>
+        <div class="col-auto">
+          <small class="text-muted">
+            Last updated: {{ now|date:"M d, Y H:i" }}
+          </small>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- Optional: Auto-refresh every 30 seconds for real-time updates -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds (optional)
+    // setTimeout(() => location.reload(), 30000);
+    
+    // Add confirmation for quick complete buttons
+    document.querySelectorAll('[title="Mark Completed"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const taskId = this.href.split('/').slice(-2, -1)[0];
+            if (!confirm(`Are you sure you want to mark task ${taskId} as completed?`)) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

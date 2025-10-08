@@ -108,7 +108,7 @@ class Truck(models.Model):
     
 
 class Category(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="categories")
+    # whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="categories")
     category = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
@@ -120,7 +120,7 @@ class Category(models.Model):
         return self.category 
     
 class SubCategory(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="subcategories")
+    # whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="subcategories")
     category = models.ForeignKey(Category, related_name="subcategories", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
@@ -128,33 +128,58 @@ class SubCategory(models.Model):
         return self.name
     
 class Bin(models.Model):
-    whs_no = models.ForeignKey(
-        Warehouse,
-        on_delete=models.CASCADE,
-        related_name="bins" 
-    )
+    # whs_no = models.ForeignKey(
+    #     Warehouse,
+    #     on_delete=models.CASCADE,
+    #     related_name="bins" 
+    # )
     bin_id = models.CharField(max_length=50, unique=True) 
     bin_type = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField()
     location = models.CharField(max_length=100, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="bins") 
     sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, related_name="bins", null=True, blank=True)
-    created_by = models.CharField(max_length=100, null=True, blank=True)
-    updated_by = models.CharField(max_length=100, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_bins")
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="updated_bins")
     existing_quantity = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True) 
+
 
     def __str__(self):
-        return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
+        return f"Bin {self.bin_id} - {self.bin_type} ({self.existing_quantity}/{self.capacity})                               "
     
+    @property
     def remaining_capacity(self):
-        return self.capacity - self.existing_quantity
+        """Always return non-negative remaining capacity."""
+        remaining = self.capacity - self.existing_quantity
+        return remaining if remaining > 0 else 0
 
-    def __str__(self):
-        return f"{self.bin_id} (Remaining: {self.remaining_capacity()}/{self.capacity})"
+    def add_quantity(self, qty):
+        """
+        Add quantity to this bin, but never exceed capacity.
+        Return actual added quantity.
+        """
+        if qty <= 0:
+            return 0
+        space_left = self.remaining_capacity
+        added = min(qty, space_left)
+        self.existing_quantity += added
+        self.save(update_fields=['existing_quantity', 'updated_at'])
+        return added
 
-
+    def remove_quantity(self, qty):
+        """Remove quantity from bin, but never below 0."""
+        if qty <= 0:
+            return 0
+        removed = min(qty, self.existing_quantity)
+        self.existing_quantity -= removed
+        self.save(update_fields=['existing_quantity', 'updated_at'])
+        return removed
+    
+    
 class Product(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="products")
+    # whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="products", null=True, blank=True)
     product_id = models.CharField(
         primary_key=True,
         max_length=50,
@@ -165,6 +190,7 @@ class Product(models.Model):
     quantity = models.IntegerField(default=0)   
     pallet_no = models.ForeignKey('Pallet', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     sku = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     unit_of_measure = models.CharField(max_length=50, default="pcs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name="products", null=True, blank=True)
@@ -222,7 +248,7 @@ def create_or_update_inventory(sender, instance, **kwargs):
 
 
 class PackingMaterial(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="packing_materials")
+    
     material = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
 
@@ -230,10 +256,11 @@ class PackingMaterial(models.Model):
         return self.material
 
 class Pallet(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="pallets")
+    
     pallet_no = models.CharField(max_length=100, unique=True, editable=False, default='') 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
     p_mat = models.ForeignKey(PackingMaterial, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     weight = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
@@ -385,7 +412,7 @@ class StockUpload(models.Model):
 
 
 class Inventory(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="inventories")
+    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE,null=True,blank=True, related_name="inventories")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     total_quantity = models.IntegerField(default=0)
     min_quantity = models.IntegerField(default=5)
@@ -467,7 +494,6 @@ class Putaway(models.Model):
     created_by = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_by = models.CharField(max_length=100, null=True, blank=True)
-    confirmed_at = models.CharField(max_length=100,null=True,blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
@@ -900,7 +926,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=15, blank=True, null=True)
     company_name = models.CharField(max_length=100, blank=True, null=True)
-    warehouse = models.ForeignKey('Warehouse',on_delete=models.SET_NULL,blank=True,null=True,related_name="profiles" )    
+    warehouse = models.ManyToManyField('Warehouse',blank=True,related_name="profiles" )    
     image = models.ImageField(upload_to='profiles/', default='profiles/default.png')
 
     def __str__(self):
@@ -929,34 +955,6 @@ class Shipment(models.Model):
 class SortStatus(models.TextChoices):
     PENDING = "Pending", "Pending"
     SORTED = "Sorted", "Sorted"
-    
-class Sorting(models.Model):
-    outbound = models.ForeignKey("OutboundDelivery",on_delete=models.CASCADE, related_name="sortings" )
-    pallet = models.ForeignKey("Pallet",on_delete=models.CASCADE, related_name="sortings")
-    so_no = models.ForeignKey("SalesOrderCreation",on_delete=models.CASCADE, related_name="sortings" )
-    product = models.ForeignKey("Product", on_delete=models.CASCADE,related_name="sortings" )
-    quantity = models.PositiveIntegerField()
-    warehouse = models.ForeignKey("Warehouse",on_delete=models.CASCADE,related_name="sortings", null=True, blank=True, default=None )
-    status = models.CharField( max_length=50,choices=SortStatus.choices,default=SortStatus.PENDING )
-    sorted_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.CharField(max_length=100, null=True, blank=True, default=None)
-    updated_by = models.CharField(max_length=100, null=True, blank=True, default=None)
-    class Meta:
-        ordering = ["-sorted_at"]
-        indexes = [
-            models.Index(fields=["status"]),
-            models.Index(fields=["outbound"]),
-        ]
-    def __str__(self):
-        return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
-
-    def __str__(self):
-        return f"{self.shipment.shipment_no} - {self.pgi.pgi_no}"
-
-class SortStatus(models.TextChoices):
-    PENDING = "Pending", "Pending"
-    SORTED = "Sorted", "Sorted"
    
 
 class Sorting(models.Model):
@@ -980,19 +978,32 @@ class Sorting(models.Model):
         ]
     def __str__(self):
         return f"Sorting #{self.id} | {self.product} x {self.quantity} ({self.get_status_display()})"
+    
+from django.contrib.auth.models import User
+from django.db import models
 
 from django.db import models
 from django.contrib.auth.models import User
 
 class BinLog(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="bin_logs")
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
     action = models.CharField(max_length=100)  
     remarks = models.TextField(blank=True, null=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='binlog_updated')  # ✅ Add this
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.bin.bin_code} - {self.action} at {self.created_at}"
+        return f"{self.bin.bin_id} - at {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
+from django.db import models
+
+class PutToLight(models.Model):
+    product_id = models.CharField(max_length=100)
+    bin_id = models.CharField(max_length=100)
+    confirm_bin_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product_id} → {self.bin_id}"

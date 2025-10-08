@@ -44,12 +44,31 @@
                                class="form-control rounded-pill" value="{{ product.unit_price }}" required>
                     </div>
 
-                    <!-- Pallet No -->
+                 <div class="form-group mb-3">
+    <label for="pallet_no"><i class="fas fa-pallet me-2 text-info"></i><b>Pallet No</b></label>
+    <select id="pallet_no" name="pallet_no" class="form-select rounded-pill">
+        <option value="">-- Select Pallet --</option>
+        {% for pallet in pallets %}
+            <option value="{{ pallet.id }}" {% if product.pallet_no and product.pallet_no.id == pallet.id %}selected{% endif %}>
+                {{ pallet.pallet_no }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
                     <div class="form-group mb-3">
-                        <label for="pallet_no"><i class="fas fa-pallet me-2 text-info"></i><b>Pallet No</b></label>
-                        <input type="text" id="pallet_no" name="pallet_no" class="form-control rounded-pill" 
-                               value="{{ product.pallet_no }}" required>
-                    </div>
+    <label for="whs_no"><i class="fas fa-warehouse me-2 text-secondary"></i><b>Warehouse</b></label>
+    <select id="whs_no" name="whs_no" class="form-select rounded-pill">
+        <option value="">-- Select Warehouse --</option>
+        {% for wh in warehouses %}
+            <option value="{{ wh.id }}" {% if product.whs_no and product.whs_no.id == wh.id %}selected{% endif %}>
+                {{ wh.whs_no }} - {{ wh.whs_name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+                    
 
                     <!-- SKU -->
                     <div class="form-group mb-3">
@@ -57,6 +76,13 @@
                         <input type="text" id="sku" name="sku" class="form-control rounded-pill" 
                                value="{{ product.sku }}" required>
                     </div>
+                <div class="form-group mb-3">
+                <label for="location">
+                    <i class="fas fa-location-dot me-2 text-dark"></i> <b>Location</b></label>
+                <input type="text" id="location" name="location" class="form-control rounded-pill" 
+                    value="{{ product.location }}" placeholder="Enter location" required>
+            </div>
+
 
                     <!-- Description -->
                     <div class="form-group mb-3">

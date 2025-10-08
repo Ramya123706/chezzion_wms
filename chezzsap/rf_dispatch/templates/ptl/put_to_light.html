@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width: 400px;">
+    <div class="card shadow-sm" style="border-radius: 12px; border: 1px solid #dee2e6;">
+        <div class="card-header text-center bg-light text-dark" style="font-size: 1.2rem; padding: 10px;">
+            <h4 style="margin: 0;">Put To Light</h4>
+        </div>
+
+        <div class="card-body" style="padding: 15px;">
+            {% if message %}
+                <div class="alert alert-success text-center">{{ message }}</div>
+            {% endif %}
+            {% if error %}
+                <div class="alert alert-danger text-center">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST" class="needs-validation" novalidate id="putToLightForm">
+                {% csrf_token %}
+
+                <!-- Product ID -->
+                <div class="mb-3">
+                    <label for="product_id" class="form-label">Product ID</label>
+                    <input 
+                        type="text" 
+                        name="product_id" 
+                        id="product_id" 
+                        class="form-control" 
+                        placeholder="Enter Product ID" 
+                        required
+                        value="{{ product_id|default_if_none:'' }}"
+                    >
+                    <div class="invalid-feedback">
+                        Please enter a Product ID.
+                    </div>
+                </div>
+
+                <!-- Suggested Bin ID -->
+                <div class="mb-3">
+                    <label for="bin_id" class="form-label">Suggested Bin ID</label>
+                    <input 
+                        type="text" 
+                        name="bin_id" 
+                        id="bin_id" 
+                        class="form-control" 
+                        placeholder="Suggested Bin ID" 
+                        readonly
+                        value="{{ suggested_bin|default_if_none:'' }}"
+                    >
+                </div>
+
+                <!-- Confirm Bin ID -->
+                <div class="mb-3">
+                    <label for="confirm_bin_id" class="form-label">Confirm Bin ID</label>
+                    <input 
+                        type="text" 
+                        name="confirm_bin_id" 
+                        id="confirm_bin_id" 
+                        class="form-control" 
+                        placeholder="Re-enter Bin ID" 
+                        required
+                        value=""
+                    >
+                    <div class="invalid-feedback">
+                        Please confirm the Bin ID.
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-light w-100">
+                        ✅ Confirm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("putToLightForm");
+    const productInput = document.getElementById("product_id");
+    const binInput = document.getElementById("bin_id");
+    const confirmInput = document.getElementById("confirm_bin_id");
+    const successAlert = document.querySelector(".alert-success");
+
+    // ✅ Auto-hide success message after 10 sec
+    if (successAlert) {
+        setTimeout(() => {
+            successAlert.style.transition = "opacity 0.5s";
+            successAlert.style.opacity = "0";
+            setTimeout(() => successAlert.remove(), 500);
+        }, 10000); // 10 seconds
+    }
+
+    // ✅ Reset inputs when success message appears
+    if (successAlert) {
+        productInput.value = "";
+        binInput.value = "";
+        confirmInput.value = "";
+    }
+
+    // ✅ Bootstrap validation (prevent submit if invalid)
+    form.addEventListener("submit", function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            form.classList.add("was-validated");
+        }
+    });
+
+    // ✅ Auto-fetch suggested bin
+    productInput.addEventListener("change", function() {
+        const productId = this.value.trim();
+        binInput.value = ""; // clear previous bin
+
+        if (productId) {
+            fetch(`/get-suggested-bin/?product_id=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.suggested_bin) {
+                    binInput.value = data.suggested_bin;
+                } else if (data.error) {
+                    binInput.value = "❌ " + data.error;
+                }
+            })
+            .catch(err => console.error("Error fetching bin:", err));
+        }
+    });
+});
+</script>
+
+{% endblock %}

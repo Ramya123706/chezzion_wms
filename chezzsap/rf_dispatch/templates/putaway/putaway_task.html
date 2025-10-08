@@ -23,32 +23,33 @@
         </ul>
 
         <div class="tab-content mt-3">
-          {% comment %} By HU {% endcomment %}
+
+          <!-- By HU -->
           <div class="tab-pane fade show active" id="hu">
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by HU" />
 
-              {% if putaway_task_type != "Putaway by Bin" %}
               <div class="mb-3">
-                <label><b>Pallet</b></label>
-                <select name="pallet" class="form-select" required>
+                <label><b>Pallet (HU)</b></label>
+                <select id="pallet_select" name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
                   <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
-              {% endif %}
 
               <div class="mb-3">
                 <label><b>Source Location</b></label>
-                <input type="text" name="source_location" class="form-control" required />
+                <input type="text" id="hu_source_location" name="source_location" class="form-control" required readonly />
               </div>
+
               <div class="mb-3">
                 <label><b>Destination Location</b></label>
                 <input type="text" name="destination_location" class="form-control" required />
               </div>
+
               <div class="mb-3">
                 <label><b>Status</b></label>
                 <select name="status" class="form-select">
@@ -56,46 +57,48 @@
                   <option value="Completed">Completed</option>
                 </select>
               </div>
+
               <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
               <button type="submit" class="btn btn-primary">Submit HU</button>
             </form>
           </div>
 
-          {% comment %} By Warehouse {% endcomment %}
+          <!-- By Warehouse -->
           <div class="tab-pane fade" id="warehouse">
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by Warehouse" />
 
-              {% if putaway_task_type != "Putaway by Bin" %}
               <div class="mb-3">
                 <label><b>Pallet</b></label>
-                <select name="pallet" class="form-select" required>
+                <select id="warehouse_pallet_select" name="pallet" class="form-select" required>
                   <option value="">--Select Pallet--</option>
                   {% for p in pallets %}
                   <option value="{{ p.id }}">{{ p.pallet_no }}</option>
                   {% endfor %}
                 </select>
               </div>
-              {% endif %}
 
               <div class="mb-3">
                 <label><b>Source Location</b></label>
-                <input type="text" name="source_location" class="form-control" required />
+                <input type="text" id="warehouse_source_location" name="source_location" class="form-control" required readonly />
               </div>
+
               <div class="mb-3">
                 <label><b>Destination Location</b></label>
                 <input type="text" name="destination_location" class="form-control" required />
               </div>
+
               <div class="mb-3">
                 <label><b>Warehouse</b></label>
-                <select name="whs_no" class="form-select" required>
+                <select id="warehouse_select" name="whs_no" class="form-select" required>
                   <option value="">--Select Warehouse--</option>
                   {% for wh in warehouses %}
                   <option value="{{ wh.whs_no }}">{{ wh.whs_no }} - {{ wh.whs_name }}</option>
                   {% endfor %}
                 </select>
               </div>
+
               <div class="mb-3">
                 <label><b>Status</b></label>
                 <select name="status" class="form-select">
@@ -103,46 +106,38 @@
                   <option value="Completed">Completed</option>
                 </select>
               </div>
+
               <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
               <button type="submit" class="btn btn-primary">Submit Warehouse</button>
             </form>
           </div>
 
-          {% comment %} By Product {% endcomment %}
+          <!-- By Product -->
           <div class="tab-pane fade" id="product">
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by Product" />
 
-              {% if putaway_task_type != "Putaway by Bin" %}
-              <div class="mb-3">
-                <label><b>Pallet</b></label>
-                <select name="pallet" class="form-select" required>
-                  <option value="">--Select Pallet--</option>
-                  {% for p in pallets %}
-                  <option value="{{ p.id }}">{{ p.pallet_no }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              {% endif %}
-
-              <div class="mb-3">
-                <label><b>Source Location</b></label>
-                <input type="text" name="source_location" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label><b>Destination Location</b></label>
-                <input type="text" name="destination_location" class="form-control" required />
-              </div>
               <div class="mb-3">
                 <label><b>Product</b></label>
-                <select name="product" class="form-select" required>
+                <select id="product_select" name="product" class="form-select" required>
                   <option value="">--Select Product--</option>
                   {% for prod in products %}
                   <option value="{{ prod.product_id }}">{{ prod.name }}</option>
                   {% endfor %}
                 </select>
               </div>
+
+              <div class="mb-3">
+                <label><b>Source Location</b></label>
+                <input type="text" id="product_source_location" name="source_location" class="form-control" required readonly />
+              </div>
+
+              <div class="mb-3">
+                <label><b>Destination Location</b></label>
+                <input type="text" name="destination_location" class="form-control" required />
+              </div>
+
               <div class="mb-3">
                 <label><b>Status</b></label>
                 <select name="status" class="form-select">
@@ -150,16 +145,18 @@
                   <option value="Completed">Completed</option>
                 </select>
               </div>
+
               <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
               <button type="submit" class="btn btn-primary">Submit Product</button>
             </form>
           </div>
 
-          {% comment %} By Bin {% endcomment %}
+          <!-- By Bin -->
           <div class="tab-pane fade" id="bin">
             <form method="post">
               {% csrf_token %}
               <input type="hidden" name="putaway_task_type" value="Putaway by Bin" />
+
               <div class="mb-3">
                 <label><b>Bin</b></label>
                 <select id="bin_select" name="bin" class="form-select" required>
@@ -172,7 +169,7 @@
 
               <div class="mb-3">
                 <label><b>Source Location</b></label>
-                <input type="text" id="source_location" name="source_location" class="form-control" required readonly />
+                <input type="text" id="bin_source_location" name="source_location" class="form-control" required readonly />
               </div>
 
               <div class="mb-3">
@@ -187,6 +184,7 @@
                   <option value="Completed">Completed</option>
                 </select>
               </div>
+
               <input type="hidden" name="putaway_id" value="{{ putaway_id }}" />
               <button type="submit" class="btn btn-primary">Submit Bin</button>
             </form>
@@ -200,29 +198,79 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const binSelect = document.getElementById("bin_select");
-    const sourceLocationInput = document.getElementById("source_location");
 
-    binSelect.addEventListener("change", function() {
-        const binId = this.value;
-        if (binId) {
-            fetch(`/get-bin-location/${binId}/`)   // Django URL
-                .then(response => response.json())
-                .then(data => {
-                    if (data.location) {
-                        sourceLocationInput.value = data.location;
-                    } else {
-                        sourceLocationInput.value = "No location set";
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching location:", error);
-                    sourceLocationInput.value = "";
-                });
-        } else {
-            sourceLocationInput.value = "";
+    // HU (Pallet) - Tab 1
+    const palletSelect = document.getElementById("pallet_select");
+    const huSource = document.getElementById("hu_source_location");
+    palletSelect?.addEventListener("change", function() {
+        const id = this.value;
+        if(id){
+            fetch(`/get-pallet-location/${id}/`)
+            .then(res => res.json())
+            .then(data => huSource.value = data.location || "No location set")
+            .catch(err => {
+                console.error('Error fetching pallet location:', err);
+                huSource.value = "";
+            });
+        } else { 
+            huSource.value = ""; 
         }
     });
+
+    // Warehouse Tab - FIXED: Listen to pallet dropdown, not warehouse dropdown
+    const warehousePalletSelect = document.getElementById("warehouse_pallet_select");
+    const warehouseSource = document.getElementById("warehouse_source_location");
+    warehousePalletSelect?.addEventListener("change", function() {
+        const id = this.value;
+        if(id){
+            fetch(`/get-pallet-location/${id}/`)
+            .then(res => res.json())
+            .then(data => warehouseSource.value = data.location || "No location set")
+            .catch(err => {
+                console.error('Error fetching warehouse pallet location:', err);
+                warehouseSource.value = "";
+            });
+        } else { 
+            warehouseSource.value = ""; 
+        }
+    });
+
+    // Product
+    const productSelect = document.getElementById("product_select");
+    const productSource = document.getElementById("product_source_location");
+    productSelect?.addEventListener("change", function() {
+        const id = this.value;
+        if(id){
+            fetch(`/get-product-location/${id}/`)
+            .then(res => res.json())
+            .then(data => productSource.value = data.location || "No location set")
+            .catch(err => {
+                console.error('Error fetching product location:', err);
+                productSource.value = "";
+            });
+        } else { 
+            productSource.value = ""; 
+        }
+    });
+
+    // Bin
+    const binSelect = document.getElementById("bin_select");
+    const binSource = document.getElementById("bin_source_location");
+    binSelect?.addEventListener("change", function() {
+        const id = this.value;
+        if(id){
+            fetch(`/get-bin-location/${id}/`)
+            .then(res => res.json())
+            .then(data => binSource.value = data.location || "No location set")
+            .catch(err => {
+                console.error('Error fetching bin location:', err);
+                binSource.value = "";
+            });
+        } else { 
+            binSource.value = ""; 
+        }
+    });
+
 });
 </script>
 

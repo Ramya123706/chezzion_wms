@@ -1,4 +1,7 @@
-{% extends "base.html" %} {% load static %} {% block content %}
+{% extends "base.html" %} 
+{% load static %} 
+
+{% block content %}
 <div class="container mt-4">
   <div class="row align-items-start">
     <!-- Left Column: Add / Update Vendor -->
@@ -47,6 +50,20 @@
             <div class="form-floating mb-3">
               <input type="email" id="email" name="email" class="form-control" placeholder="Email" required value="{{ vendor.email }}" />
               <label for="email"><i class="fas fa-envelope me-1"></i> Email</label>
+            </div>
+            
+            <!-- Warehouse -->
+            <div class="mb-3">
+              <label for="warehouse_select"><i class="fas fa-warehouse me-1 text-primary"></i> <b>Warehouse</b></label>
+              <select id="warehouse_select" name="whs_no" class="form-select" required>
+                <option value="">-- Select Warehouse --</option>
+                {% for wh in warehouses %}
+                  <option value="{{ wh.id }}" 
+                    {% if vendor.whs_no and vendor.whs_no.id == wh.id %}selected{% endif %}>
+                    {{ wh.whs_no }} - {{ wh.whs_name }}
+                  </option>
+                {% endfor %}
+              </select>
             </div>
 
             <!-- Phone -->

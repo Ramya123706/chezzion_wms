@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-
 <div class="container mt-5">
     <h2>Bin Details</h2>
 
@@ -8,48 +7,51 @@
         <div class="card-body">
             <table class="table table-borderless">
                 <tbody>
-                    <tr>
-                        <th scope="row" style="width: 500px;">Bin Number</th>
-                        <td>: {{ bin.bin_id }}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Warehouse No</th>
-                        <td>: {{ bin.whs_no_id }}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Bin Type</th>
-                        <td>: {{ bin.bin_type }}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Capacity</th>
-                        <td>: {{ bin.capacity }}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Location</th>
-                        <td>: {{ bin.location }}</td>
-                    <tr>
-                        <th scope="row">Existing Quantity</th>
-                        <td>: {{ bin.existing_quantity }}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Category</th>
-                        <td>: {{ bin.category }}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Sub Category</th>
-                        <td>: {{ bin.sub_category }}</td>
-                    </tr>
-                    
+                    <tr><th>Bin Number</th><td>: {{ bin.bin_id }}</td></tr>
+                    <tr><th>Warehouse No</th><td>: {{ bin.whs_no.whs_no }}</td></tr>
+                    <tr><th>Bin Type</th><td>: {{ bin.bin_type }}</td></tr>
+                    <tr><th>Capacity</th><td>: {{ bin.capacity }}</td></tr>
+                    <tr><th>Location</th><td>: {{ bin.location }}</td></tr>
+                    <tr><th>Existing Quantity</th><td>: {{ bin.existing_quantity }}</td></tr>
+                    <tr><th>Category</th><td>: {{ bin.category }}</td></tr>
+                    <tr><th>Sub Category</th><td>: {{ bin.sub_category.name|default:"-" }}</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <a href="{% url 'create_bin' %}" class="btn btn-secondary mt-3">
-        <i class="fas fa-arrow-left me-1"></i> Back to All Bins
-    </a>
-    <a href="{% url 'edit_bin' bin.id %}" class="btn btn-primary mt-3">
-        <i class="fas fa-edit me-1"></i> Edit Bin
-</div>
+    <a href="{% url 'create_bin' %}" class="btn btn-secondary mt-3">← Back to All Bins</a>
+    <a href="{% url 'edit_bin' bin.pk %}" class="btn btn-primary mt-3">✎ Edit Bin</a>
 
+    <!-- Bin Logs -->
+    <div class="mt-5">
+        <h3><i class="fas fa-history"></i> Bin Log</h3>
+        <table class="table table-bordered table-striped mt-3 text-center">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Bin ID</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Location</th>
+                    <th>Updated By</th>
+                    <th>Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.bin.bin_id }}</td>
+                    <td>{{ log.created_at|date:"M. d, Y" }}</td>
+                    <td>{{ log.created_at|time:"g:i a" }}</td>
+                    <td>{{ log.location|default:"-" }}</td>
+                    <td>{{ log.updated_by.username|default:"-" }}</td>
+                    <td>{{ log.updated_at|date:"M. d, Y g:i a" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No logs found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

@@ -4,53 +4,68 @@
 <div class="container vh-100 d-flex justify-content-center align-items-center">
   <div class="col-md-8 col-lg-6 bg-white p-4 rounded shadow">
 
-    <!-- Profile Header -->
     <div class="text-center mb-4">
       {% if profile.image %}
-      <img src="{{ profile.image.url }}" alt="Profile Picture" class="rounded-circle border shadow-sm"
-        style="width: 140px; height: 140px; object-fit: cover;">
+        <img src="{{ profile.image.url }}" 
+             alt="Profile Picture" 
+             class="rounded-circle border shadow-sm"
+             style="width: 140px; height: 140px; object-fit: cover;">
       {% else %}
-      <i class="fa-solid fa-circle-user fa-7x text-secondary"></i>
+        <i class="fa-solid fa-circle-user fa-7x text-secondary"></i>
       {% endif %}
     </div>
 
-    <!-- Profile Details -->
     <h4 class="text-center text-white bg-primary py-2 rounded mb-4">
       <i class="fa-solid fa-id-badge me-2"></i> Profile Details
     </h4>
 
     <form>
+      <!-- First & Last Name -->
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-user me-1"></i> First Name</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-user me-1"></i> First Name
+          </label>
           <input type="text" class="form-control" value="{{ user.first_name }}" readonly>
         </div>
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-user me-1"></i> Last Name</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-user me-1"></i> Last Name
+          </label>
           <input type="text" class="form-control" value="{{ user.last_name }}" readonly>
         </div>
       </div>
 
+      <!-- Email & Phone -->
       <div class="row">
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-envelope me-1"></i> Email</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-envelope me-1"></i> Email
+          </label>
           <input type="email" class="form-control" value="{{ user.email }}" readonly>
         </div>
         <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-phone me-1"></i> Phone No.</label>
+          <label class="form-label fw-bold">
+            <i class="fa-solid fa-phone me-1"></i> Phone No.
+          </label>
           <input type="text" class="form-control" value="{{ profile.phone }}" readonly>
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-building me-1"></i> Company</label>
-          <input type="text" class="form-control" value="{{ profile.company_name }}" readonly>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label fw-bold"><i class="fa-solid fa-warehouse me-1"></i> Warehouse</label>
-          <input type="text" class="form-control" value="{{ profile.warehouse }}" readonly>
-        </div>
+      <!-- Company -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">
+          <i class="fa-solid fa-building me-1"></i> Company
+        </label>
+        <input type="text" class="form-control" value="{{ profile.company_name }}" readonly>
+      </div>
+
+      <!-- ✅ FIXED: Display Warehouses properly -->
+      <div class="mb-3">
+        <label class="form-label fw-bold">
+          <i class="fa-solid fa-warehouse me-1"></i> Warehouses
+        </label>
+        <textarea class="form-control" rows="3" readonly>{% if profile.warehouse.count %}{% for wh in profile.warehouse.all %}{{ wh.whs_no }} - {{ wh.whs_name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}No warehouses assigned{% endif %}</textarea>
       </div>
 
       <!-- Buttons -->

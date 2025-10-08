@@ -14,7 +14,7 @@
                 <th>Email</th>
                 <th>Phone No</th>
                 <th>Company Name</th>
-                <th>Warehouse</th>
+                <th>Warehouses</th>
                 <th style="width: 200px;">Actions</th>
             </tr>
         </thead>
@@ -26,17 +26,21 @@
                     <td>{{ user.profile.phone|default:"-" }}</td>
                     <td>{{ user.profile.company_name|default:"-" }}</td>
                     <td>
-                        {% if user.profile.warehouse %}
-                            {{ user.profile.warehouse.whs_no }} - {{ user.profile.warehouse.whs_name }}
+                        {% if user.profile.warehouse.all %}
+                            {% for wh in user.profile.warehouse.all %}
+                                {{ wh.whs_no }} - {{ wh.whs_name }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                -
+                            {% endfor %}
                         {% else %}
                             -
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'user_detail' user.id %}" class="btn btn-info btn-sm rounded-3">
+                        <a href="{% url 'user_detail' user.id %}" class="btn btn-info btn-sm rounded-3 me-1">
                             <i class="bi bi-eye"></i> View
                         </a>
-                        <a href="{% url 'edit_user' user.id %}" class="btn btn-primary btn-sm rounded-3">
+                        <a href="{% url 'edit_user' user.id %}" class="btn btn-primary btn-sm rounded-3 me-1">
                             <i class="bi bi-pencil-square"></i> Edit
                         </a>
                         <a href="{% url 'delete_user' user.id %}" 

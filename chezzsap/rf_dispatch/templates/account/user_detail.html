@@ -14,9 +14,9 @@
                     <div class="row align-items-center">
                         <!-- Profile Image -->
                         <div class="col-md-4 text-center">
-                            {% if user.profile.image %}
-                                <img src="{{ user.profile.image.url }}"
-                                     alt="{{ user.username }}"
+                            {% if clicked_user.profile and clicked_user.profile.image %}
+                                <img src="{{ clicked_user.profile.image.url }}"
+                                     alt="{{ clicked_user.username }} Profile"
                                      class="img-fluid rounded-circle mb-3 shadow"
                                      style="width:160px; height:160px; object-fit:cover;">
                             {% else %}
@@ -27,39 +27,43 @@
                             {% endif %}
                         </div>
 
-                        <!-- User Info Fields -->
+                        <!-- User Info -->
                         <div class="col-md-8">
                             <table class="table table-borderless">
                                 <tbody>
                                     <tr>
                                         <td class="fw-bold text-muted" style="width:150px;">Username:</td>
-                                        <td>{{ user.username }}</td>
+                                        <td>{{ clicked_user.username }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">First Name:</td>
-                                        <td>{{ user.first_name|default:"-" }}</td>
+                                        <td>{{ clicked_user.first_name|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Last Name:</td>
-                                        <td>{{ user.last_name|default:"-" }}</td>
+                                        <td>{{ clicked_user.last_name|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Email:</td>
-                                        <td>{{ user.email|default:"-" }}</td>
+                                        <td>{{ clicked_user.email|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Phone:</td>
-                                        <td>{{ user.profile.phone|default:"-" }}</td>
+                                        <td>{{ clicked_user.profile.phone|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Company:</td>
-                                        <td>{{ user.profile.company_name|default:"-" }}</td>
+                                        <td>{{ clicked_user.profile.company_name|default:"-" }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold text-muted">Warehouse:</td>
                                         <td>
-                                            {% if user.profile.warehouse %}
-                                                {{ user.profile.warehouse.whs_no }} - {{ user.profile.warehouse.whs_name }}
+                                            {% if clicked_user.profile.warehouse.all %}
+                                                {% for wh in clicked_user.profile.warehouse.all %}
+                                                    {{ wh.whs_no }} - {{ wh.whs_name }}{% if not forloop.last %}, {% endif %}
+                                                {% empty %}
+                                                    -
+                                                {% endfor %}
                                             {% else %}
                                                 -
                                             {% endif %}
@@ -70,15 +74,15 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
+                    <!-- Buttons -->
                     <div class="mt-4 d-flex gap-2">
                         <a href="{% url 'user_list' %}" class="btn btn-secondary btn-sm rounded-3">
                             <i class="bi bi-arrow-left-circle"></i> Back to List
                         </a>
-                        <a href="{% url 'edit_user' user.id %}" class="btn btn-primary btn-sm rounded-3">
+                        <a href="{% url 'edit_user' clicked_user.id %}" class="btn btn-primary btn-sm rounded-3">
                             <i class="bi bi-pencil-square"></i> Edit
                         </a>
-                        <a href="{% url 'delete_user' user.id %}" 
+                        <a href="{% url 'delete_user' clicked_user.id %}" 
                            class="btn btn-danger btn-sm rounded-3"
                            onclick="return confirm('Are you sure you want to delete this user?');">
                             <i class="bi bi-trash"></i> Delete

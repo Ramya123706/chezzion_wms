@@ -26,44 +26,67 @@
             <div class="mb-3 text-center">
               {% if user.profile.image %}
                 <img src="{{ user.profile.image.url }}" alt="{{ user.username }}" 
-                     class="img-fluid rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover;">
+                     class="img-fluid rounded-circle mb-3 shadow"
+                     style="width:120px; height:120px; object-fit:cover;">
+              {% else %}
+                <div class="bg-light border rounded-circle d-flex align-items-center justify-content-center mb-3 shadow"
+                     style="width:120px; height:120px;">
+                  <span class="text-muted">No Image</span>
+                </div>
               {% endif %}
             </div>
 
             <!-- User Info Fields -->
+               <div class="mb-3">
+    <label class="form-label"><b>Username</b></label>
+    <input type="text" name="username" class="form-control"
+           value="{{ user.username }}" required>
+  </div>
             <div class="mb-3">
               <label class="form-label"><b>First Name</b></label>
-              <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required>
+              <input type="text" name="first_name" class="form-control" 
+                     value="{{ user.first_name|default_if_none:'' }}" required>
             </div>
             <div class="mb-3">
               <label class="form-label"><b>Last Name</b></label>
-              <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+              <input type="text" name="last_name" class="form-control" 
+                     value="{{ user.last_name|default_if_none:'' }}" required>
             </div>
             <div class="mb-3">
               <label class="form-label"><b>Email</b></label>
-              <input type="email" name="email" class="form-control" value="{{ user.email }}">
+              <input type="email" name="email" class="form-control" 
+                     value="{{ user.email|default_if_none:'' }}">
             </div>
             <div class="mb-3">
               <label class="form-label"><b>Phone</b></label>
-              <input type="text" name="phone" class="form-control" value="{{ user.profile.phone }}">
+              <input type="text" name="phone" class="form-control" 
+                     value="{{ user.profile.phone|default_if_none:'' }}">
             </div>
             <div class="mb-3">
               <label class="form-label"><b>Company Name</b></label>
-              <input type="text" name="company_name" class="form-control" value="{{ user.profile.company_name }}">
+              <input type="text" name="company_name" class="form-control" 
+                     value="{{ user.profile.company_name|default_if_none:'' }}">
             </div>
 
-            <!-- Corrected Warehouse Field -->
-            <div class="mb-3">
-              <label class="form-label"><b>Warehouse</b></label>
-              <select name="warehouse" class="form-control">
-                <option value="">-- Select Warehouse --</option>
-                {% for wh in warehouses %}
-                  <option value="{{ wh.whs_no }}" {% if user.profile.warehouse == wh %}selected{% endif %}>
-                    {{ wh.whs_no }} - {{ wh.whs_name }}
-                  </option>
-                {% endfor %}
-              </select>
-            </div>
+            <!-- Warehouse Dropdown -->
+<div class="mb-3">
+  <label class="form-label"><b>Warehouses</b></label>
+  <div class="border rounded p-2" style="max-height: 200px; overflow-y:auto;">
+    {% for wh in warehouses %}
+      <div class="form-check">
+        <input class="form-check-input" 
+               type="checkbox" 
+               name="warehouse" 
+               value="{{ wh.id }}"
+               id="wh{{ wh.id }}"
+               {% if wh in user.profile.warehouse.all %}checked{% endif %}>
+        <label class="form-check-label" for="wh{{ wh.id }}">
+          {{ wh.whs_no }} - {{ wh.whs_name }}
+        </label>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
             <!-- Profile Image Upload -->
             <div class="mb-3">
@@ -71,9 +94,9 @@
               <input type="file" name="image" class="form-control">
             </div>
 
-            <div class="mt-3">
-              <button type="submit" class="btn btn-success btn-lg rounded-3">Update</button>
-              <a href="{% url 'user_detail' user.id %}" class="btn btn-secondary btn-lg rounded-3">Cancel</a>
+            <div class="mt-3 d-flex gap-2">
+              <button type="submit" class="btn btn-success flex-fill rounded-3">Update</button>
+              <a href="{% url 'user_detail' user.id %}" class="btn btn-secondary flex-fill rounded-3">Cancel</a>
             </div>
           </form>
 

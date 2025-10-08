@@ -93,9 +93,10 @@ urlpatterns = [
     # Inventory & Bin
     path('inventory/', views.inventory_view, name='inventory'),
     path('create_bin/', views.create_bin, name='create_bin'),
-    path('bin_detail/<str:bin_id>/', views.bin_detail, name='bin_detail'),
+    # path('bin_detail/<str:bin_id>/', views.bin_detail, name='bin_detail'),
     path('bin/edit/<str:bin_id>/', views.edit_bin, name='edit_bin'),
-    # path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
+    path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
+
     path("get-bin-location/<str:bin_id>/", views.get_bin_location, name="get_bin_location"),
     path('logs/', views.bin_log_view, name='bin_log'),
 
@@ -122,7 +123,9 @@ urlpatterns = [
 
     # RF & Tasks
     path('rf_ptl/', views.rf_ptl, name="rf_plt"),
-    path('task/', views.task, name='task'),
+    path('task/', views.put_to_light_view, name='task'),
+    path("get-suggested-bin/", views.get_suggested_bin, name="get_suggested_bin"),
+
 
     # Categories
     path('add-category/', views.add_category, name='add_category'),
@@ -171,7 +174,7 @@ urlpatterns = [
     path('sales-order/edit/<str:so_no>/', views.sales_order_edit, name='sales_order_edit'),
     path('sales/<str:so_no>/delete/', views.sales_order_delete, name='sales_order_delete'),
     path("sales/<str:so_no>/pdf/", views.sales_order_pdf, name="sales_order_pdf"),
-    path("get-warehouse-address/<str:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
+    # path("get-warehouse-address/<str:whs_id>/", views.get_warehouse_address, name="get_warehouse_address"),
 
     # Outbound Delivery
     path('outbound/', views.outbound, name='outbound'),

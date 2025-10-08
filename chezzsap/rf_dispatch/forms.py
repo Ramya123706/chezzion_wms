@@ -124,6 +124,8 @@ class PalletForm(forms.ModelForm):
             # Skip boolean field so it uses 'form-check-input'
             if name != 'has_child_pallets':
                 field.widget.attrs.update({'class': 'form-control'})
+            if name == 'whs_no':   # ✅ warehouse field
+                field.widget.attrs.update({'class': 'form-select'})
             if name == 'weight':
                 field.widget.attrs.update({'id': 'id_weight'})
 
@@ -162,6 +164,7 @@ class BinForm(forms.ModelForm):
         model = Bin
         fields = '__all__'
         exclude = ["created_by", "updated_by"]
+        
 from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -352,8 +355,10 @@ class BinLogForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'bin': forms.Select(attrs={'class': 'form-control'}),
-            'action': forms.TextInput(attrs={'class': 'form-control'}),
             'warehouse': forms.TextInput(attrs={'class': 'form-control'}),
+            'source_location': forms.TextInput(attrs={'class': 'form-control'}),
+            'destination_location': forms.TextInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'created_by': forms.Select(attrs={'class': 'form-control'}),
+            'created_at': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
         }
