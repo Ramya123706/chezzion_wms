@@ -71,7 +71,6 @@ urlpatterns = [
     path('product/delete/<str:product_id>/', views.product_delete, name='product_delete'),
     path('ajax/product-suggestions/', views.product_suggestions, name='product_suggestions'),
     path('get-product-description/<int:product_id>/', views.get_product_description, name='get_product_description'),
-    
 
     # Stock Upload
     path('stock_upload/login', views.stock_upload_login, name='stock_upload_login'),
@@ -94,12 +93,12 @@ urlpatterns = [
     # Inventory & Bin
     path('inventory/', views.inventory_view, name='inventory'),
     path('create_bin/', views.create_bin, name='create_bin'),
-    path('bin_detail/<str:bin_id>/', views.bin_detail, name='bin_detail'),
+    # path('bin_detail/<str:bin_id>/', views.bin_detail, name='bin_detail'),
     path('bin/edit/<str:bin_id>/', views.edit_bin, name='edit_bin'),
-    # path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
+    path("bins/<str:bin_id>/", views.bin_detail, name="bin_detail"),
+
     path("get-bin-location/<str:bin_id>/", views.get_bin_location, name="get_bin_location"),
-    path('logs/', views.bin_log_view, name='bin_log_view'),
-   
+    path('logs/', views.bin_log_view, name='bin_log'),
 
     # Customers
     path('add_customers/', views.add_customers, name='add_customers'),
@@ -124,7 +123,9 @@ urlpatterns = [
 
     # RF & Tasks
     path('rf_ptl/', views.rf_ptl, name="rf_plt"),
-    path('task/', views.task, name='task'),
+    path('task/', views.put_to_light_view, name='task'),
+    path("get-suggested-bin/", views.get_suggested_bin, name="get_suggested_bin"),
+
 
     # Categories
     path('add-category/', views.add_category, name='add_category'),
@@ -142,19 +143,14 @@ urlpatterns = [
     path('picking/delete/<str:picking_id>/', views.delete_picking, name='delete_picking'),
     path('picking/<str:picking_id>/', views.picking_detail, name='picking_detail'),
 
-    # Putaway  
+    # Putaway
     path('putaway_task/', views.putaway_task, name='putaway_task'),
     path('putaway/tasks/', views.all_putaway_tasks, name='all_tasks'),
-    path('picking/tasks/', views.all_picking_tasks, name='all_picking_tasks'),
     path('putaway/pending/', views.putaway_pending, name='putaway_pending'),
     path('putaway/edit/<str:putaway_id>/', views.edit_putaway, name='edit_putaway'),
     path('putaway/confirm/<str:putaway_id>/', views.confirm_putaway, name='confirm_putaway'),
     path('putaway/delete/<str:putaway_id>/', views.delete_putaway, name='delete_putaway'),
     path("putaway/<str:putaway_id>/", views.putaway_detail, name="putaway_detail"),
-    path('get-pallet-location/<int:pallet_id>/', views.get_pallet_location, name='get_pallet_location'),
-    path('get-warehouse-location/<str:warehouse_id>/', views.get_warehouse_location, name='get_warehouse_location'),
-    path('get-product-location/<str:product_id>/', views.get_product_location, name='get_product_location'),
-    path('get-bin-location/<int:bin_id>/', views.get_bin_location, name='get_bin_location'),
 
     # Inbound Delivery
     path('inbound_delivery/', views.inbound_delivery, name='inbound_delivery'),
@@ -228,7 +224,6 @@ urlpatterns = [
     path('users/<int:user_id>/', views.user_detail, name='user_detail'),
     path('users/<int:user_id>/edit/', views.edit_user, name='edit_user'),
     path('users/<int:user_id>/delete/', views.delete_user, name='delete_user'),
-    path("landing/", views.user_landing, name="user_landing"),
 
     # Password Management
     path("password_change/", auth_views.PasswordChangeView.as_view(template_name="account/change_password.html"), name="password_change"),
@@ -267,5 +262,6 @@ urlpatterns = [
     # weighing_machine
     path('get-machine-weight/', views.get_machine_weight, name='get_machine_weight'),
     path("weighing/", views.weighing_page, name="weighing_page"),
+    
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

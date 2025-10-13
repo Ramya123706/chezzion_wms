@@ -125,8 +125,7 @@ def stock_upload_login(request):
     return render(request, 'stock_upload/login_in_RFUI.html')
 def stock_menu(request):
     return render(request, 'stock_upload/stock_menu.html')
-def task(request):
-    return render(request, 'rf_pick_to_light/task_solving.html')
+
 
 # -------------------------------------
 # TRUCK CHECKIN/CHECKOUT AND INSPECTION
@@ -900,10 +899,10 @@ def product_view(request):
     })
 def product_detail_view(request, product_id):
     product = get_object_or_404(Product, product_id=product_id)
-    warehouse = product.whs_no  # if this exists
+    # warehouse = product.whs_no  # if this exists
     return render(request, 'product/product_detail.html', {
         'product': product,
-        'warehouse': warehouse,
+        # 'warehouse': warehouse,
     })
 
 
@@ -935,12 +934,11 @@ from django.contrib import messages
 from .models import Product, Pallet, Category, SubCategory, Warehouse
 
 def add_product(request):
-    from rf_dispatch.models import Warehouse, Product, Pallet, Category, SubCategory
     
     pallets = Pallet.objects.all()
     categories = Category.objects.all()
     subcategories = SubCategory.objects.all()
-    warehouses = Warehouse.objects.all()
+    # warehouses = Warehouse.objects.all()
 
     if request.method == 'POST':
         name = request.POST.get('name')
@@ -954,24 +952,24 @@ def add_product(request):
         re_order_level = int(request.POST.get('re_order_level') or 0)
         unit_price = float(request.POST.get('unit_price') or 0)
         images = request.FILES.get('images')
-        warehouse_whs_no = request.POST.get('warehouse')
+        # warehouse_whs_no = request.POST.get('warehouse')
 
         pallet_id = request.POST.get('pallet')
         pallet = Pallet.objects.filter(id=pallet_id).first() if pallet_id else None
 
-        if not name or not category_id or not warehouse_whs_no:
+        if not name or not category_id:
             messages.error(request, "Please fill in required fields: Name, Category, Warehouse.")
             return render(request, 'product/add_product.html', {
                 'categories': categories,
                 'subcategories': subcategories,
                 'pallets': pallets,
-                'warehouses': warehouses,
+                # 'warehouses': warehouses,
             })
 
         try:
             category = Category.objects.get(id=category_id)
             sub_category = SubCategory.objects.filter(id=sub_category_id).first() if sub_category_id else None
-            warehouse = Warehouse.objects.get(whs_no=warehouse_whs_no)
+            # warehouse = Warehouse.objects.get(whs_no=warehouse_whs_no)
 
             product = Product.objects.create(
                 name=name,
@@ -986,7 +984,7 @@ def add_product(request):
                 re_order_level=re_order_level,
                 unit_price=unit_price,
                 images=images,
-                whs_no=warehouse
+                # whs_no=warehouse
             )
 
             messages.success(request, f"Product {product.name} added successfully!")
@@ -1003,7 +1001,7 @@ def add_product(request):
         'pallets': pallets,
         'categories': categories,
         'subcategories': subcategories,
-        'warehouses': warehouses,
+        # 'warehouses': warehouses,
     })
  
 def bulk_upload_products(request):
@@ -1567,90 +1565,94 @@ from django.contrib.auth.decorators import login_required
 from .models import Bin, Warehouse, Category, SubCategory
 from .utils import generate_bin_id  # Assuming you have this utility
 from .models import Bin, BinLog
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Bin, Category, SubCategory, BinLog
+from django.db import transaction
+
 @login_required
 def create_bin(request):
-    warehouse_list = Warehouse.objects.all()
     bins = Bin.objects.all()
     categories = Category.objects.all()
 
     if request.method == 'POST':
         try:
-            whs_key = request.POST.get('whs_no')
-            warehouse = Warehouse.objects.get(whs_no=whs_key)
+            with transaction.atomic():
+                # ✅ Get category and subcategory
+                category = get_object_or_404(Category, id=request.POST.get('category'))
+                sub_category_id = request.POST.get('subcategory')
+                sub_category = None
+                if sub_category_id:
+                    sub_category = get_object_or_404(SubCategory, id=sub_category_id)
 
-            category = Category.objects.get(id=request.POST.get('category'))
-            sub_category_id = request.POST.get('subcategory')
-            sub_category = None
-            if sub_category_id:
-                sub_category = SubCategory.objects.get(id=sub_category_id)
+                bin_id = request.POST.get('bin_id')  # hidden field for update
 
-            bin_id = request.POST.get('bin_id')  # hidden field for update
+                if bin_id:
+                    # ✅ Update existing bin
+                    bin_obj = get_object_or_404(Bin, bin_id=bin_id)
+                    bin_obj.bin_type = request.POST.get('bin_type')
+                    bin_obj.capacity = int(request.POST.get('capacity'))
+                    bin_obj.location = request.POST.get('location')
+                    bin_obj.existing_quantity = int(request.POST.get('existing_quantity') or 0)
+                    bin_obj.category = category
+                    bin_obj.sub_category = sub_category
+                    bin_obj.updated_by = request.user
+                    bin_obj.save()
 
-            if bin_id:
-                # Update existing bin
-                bin_obj = Bin.objects.get(bin_id=bin_id)
-                bin_obj.whs_no = warehouse
-                bin_obj.bin_type = request.POST.get('bin_type')
-                bin_obj.capacity = int(request.POST.get('capacity'))
-                bin_obj.location = request.POST.get('location')
-                bin_obj.existing_quantity = int(request.POST.get('existing_quantity') or 0)
-                bin_obj.category = category
-                bin_obj.sub_category = sub_category
-                bin_obj.updated_by = request.user
-                bin_obj.save()
+                    # Log update
+                    BinLog.objects.create(
+                        bin=bin_obj,
+                        action="Updated",
+                        remarks="Bin details updated.",
+                        updated_by=request.user
+                    )
 
-                # Log update
-                BinLog.objects.create(
-                    bin=bin_obj,
-                    location=bin_obj.location,
-                    updated_by=request.user
-                )
+                else:
+                    # ✅ Create new bin with generated bin_id
+                    new_bin_id = generate_bin_id()  # <---- ✅ CALL HERE
 
-            else:
-                # Create new bin
-                new_bin_id = generate_bin_id(warehouse)
-                bin_obj = Bin.objects.create(
-                    whs_no=warehouse,
-                    bin_id=new_bin_id,
-                    bin_type=request.POST.get('bin_type'),
-                    capacity=int(request.POST.get('capacity')),
-                    location=request.POST.get('location'),
-                    existing_quantity=int(request.POST.get('existing_quantity') or 0),
-                    category=category,
-                    sub_category=sub_category,
-                    created_by=request.user,
-                    updated_by=request.user
-                )
+                    bin_obj = Bin.objects.create(
+                        bin_id=new_bin_id,
+                        bin_type=request.POST.get('bin_type'),
+                        capacity=int(request.POST.get('capacity')),
+                        location=request.POST.get('location'),
+                        existing_quantity=int(request.POST.get('existing_quantity') or 0),
+                        category=category,
+                        sub_category=sub_category,
+                        created_by=request.user,
+                        updated_by=request.user
+                    )
 
-                # Log creation
-                BinLog.objects.create(
-                    bin=bin_obj,
-                    location=bin_obj.location,
-                    created_by=request.user
-                )
+                    # Log creation
+                    BinLog.objects.create(
+                        bin=bin_obj,
+                        action="Created",
+                        remarks="New bin created.",
+                        created_by=request.user
+                    )
 
-            # Redirect to bin detail page (so logs are visible immediately)
             return redirect("bin_detail", bin_id=bin_obj.bin_id)
 
         except Exception as e:
             return render(request, 'bin/create_bin.html', {
                 'error': str(e),
-                'warehouse': warehouse_list,
                 'bins': bins,
                 'categories': categories,
             })
 
     return render(request, 'bin/create_bin.html', {
-        'warehouse': warehouse_list,
         'bins': bins,
         'categories': categories,
     })
+
 
 
 def bin_detail(request, bin_id):
     bin_obj = get_object_or_404(Bin, bin_id=bin_id)
     logs = BinLog.objects.filter(bin=bin_obj).order_by('-created_at')
     return render(request, "bin_detail.html", {"bin": bin_obj, "logs": logs})
+
 
 
 def get_bin_location(request, bin_id):
@@ -1732,7 +1734,7 @@ def load_subcategories(request):
 
 @login_required
 def bin_detail(request, bin_id):
-    bin_obj = get_object_or_404(Bin, bin_id=bin_id)
+    bin_obj = get_object_or_404(Bin, pk=bin_id)
     logs = BinLog.objects.filter(bin=bin_obj).order_by('-created_at')
     return render(request, "bin/bin_detail.html", {"bin": bin_obj, "logs": logs})
 
@@ -1744,7 +1746,7 @@ from .models import Bin, Warehouse, Category, SubCategory
 from .models import BinLog
 @login_required
 def edit_bin(request, bin_id):
-    bin_obj = get_object_or_404(Bin, bin_id=bin_id)
+    bin_obj = get_object_or_404(Bin, pk=bin_id)
     categories = Category.objects.all()
     warehouses = Warehouse.objects.all()
 
@@ -3454,28 +3456,37 @@ def picking_detail(request, picking_id):
     task = get_object_or_404(Picking, picking_id=picking_id)
     return render(request, "picking/picking_detail.html", {"task": task})
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import PackingMaterial
+
 def material_create(request):
     if request.method == 'POST':
-        # Handle form submission
-        whs_no_id = request.POST.get('warehouse_id')
-        
-        if not whs_no_id:
-            messages.error(request, "Please select a warehouse")
-            return render(request, 'materials/create.html')
-        
-        material = PackingMaterial(
-            material=request.POST.get('material'),
-            description=request.POST.get('description'),
-            whs_no_id=whs_no_id
-        )
-        material.save()
-        
-        return redirect('material_list')
-    
-    else:
-        # Handle GET request (when page is first loaded)
-        return render(request, 'material/mat_creation.html')
+        # Get values from form
+        material_name = request.POST.get('p_mat', '').strip()  # updated
+        description = request.POST.get('description', '').strip()
 
+        # Validate material
+        if not material_name:
+            messages.error(request, "Material name cannot be empty!")
+            return render(request, 'material/mat_creation.html')
+
+        # Check for uniqueness
+        if PackingMaterial.objects.filter(material=material_name).exists():
+            messages.error(request, f"Material '{material_name}' already exists!")
+            return render(request, 'material/mat_creation.html')
+
+        # Save the new material
+        PackingMaterial.objects.create(
+            material=material_name,
+            description=description
+        )
+
+        messages.success(request, f"Material '{material_name}' created successfully!")
+        return redirect('material_list')
+
+    # GET request → render empty form
+    return render(request, 'material/mat_creation.html')
 
 
 def material_list(request):
@@ -4583,25 +4594,55 @@ import re
 def weighing_page(request):
     return render(request, "weighing_machine/weighing_page.html")
 
+import serial
+import time
+import re
+from django.http import JsonResponse
+import serial.tools.list_ports
+
+def detect_scale_port(baud_rate=9600, timeout=1):
+    """
+    Scan all COM ports and return the one that seems to have the weighing scale connected.
+    """
+    ports = serial.tools.list_ports.comports()
+    for port in ports:
+        try:
+            ser = serial.Serial(port.device, baud_rate, timeout=timeout)
+            time.sleep(0.2)
+            # Optional: send a request command if your scale requires it
+            # ser.write(b'P\r\n')
+            time.sleep(0.1)
+            line = ser.readline().decode('utf-8', errors='ignore').strip()
+            ser.close()
+            # Check if the response looks like a weight (numeric value)
+            if re.search(r'\d+(\.\d+)?', line):
+                return port.device
+        except:
+            continue
+    return None
+
 def get_machine_weight(request):
     """
     Fetch weight from RS232 weighing machine and return JSON.
+    Auto-detects the correct COM port.
     """
     weight_data = "0.0"
     try:
-        # Open serial port (replace COM3 and 9600 with your scale's config)
-        ser = serial.Serial('COM15', 9600, timeout=2)
-        time.sleep(0.2)  # give some time to stabilize
+        # Detect the correct scale port
+        port = detect_scale_port()
+        if not port:
+            return JsonResponse({"weight": "Error: Scale not detected."})
 
-        # Some scales need a request command, for example sending 'P\r\n'
+        # Open the detected serial port
+        ser = serial.Serial(port, 9600, timeout=2)
+        time.sleep(0.2)
+        # Optional command to request weight
         # ser.write(b'P\r\n')
         time.sleep(0.1)
-
-        # Read line from the scale
         raw_data = ser.readline().decode('utf-8', errors='ignore').strip()
         ser.close()
 
-        # Extract numeric value using regex (handles things like "+00012.34 kg")
+        # Extract numeric value
         match = re.search(r"[-+]?\d*\.\d+|\d+", raw_data)
         if match:
             weight_data = match.group()
@@ -4613,4 +4654,116 @@ def get_machine_weight(request):
 
     return JsonResponse({"weight": weight_data})
 
+
+
+# -----------
+# put to light
+# -----------
+
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Product, Bin
+from django.shortcuts import render
+from django.contrib import messages
+from .models import Product, Bin, PutToLight
+
+from django.db.models import F
+
+
+from django.db.models import F
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.db.models import F
+from .models import Product, Bin, PutToLight, BinLog
+
+@login_required
+def put_to_light_view(request):
+    suggested_bin = None
+    message = None
+    error = None
+    product_id = None
+
+    if request.method == "POST":
+        product_id = request.POST.get("product_id")
+        confirm_bin_id = request.POST.get("confirm_bin_id")
+
+        try:
+            product = get_object_or_404(Product, product_id=product_id)
+
+            # ✅ Correct capacity check
+            available_bin = Bin.objects.filter(
+                category=product.category,
+                existing_quantity__lt=F('capacity')
+            ).first()
+
+            if available_bin:
+                suggested_bin = available_bin.bin_id
+            else:
+                error = "⚠️ No space available in any bin for this product's category."
+
+        except Product.DoesNotExist:
+            error = "❌ Product ID not found!"
+            suggested_bin = None
+
+        # ✅ Confirm placement logic
+        if confirm_bin_id:
+            bin_obj = get_object_or_404(Bin, bin_id=confirm_bin_id)
+
+            if suggested_bin is None or confirm_bin_id == suggested_bin:
+                # ✅ Save record
+                PutToLight.objects.create(
+                    product_id=product.product_id,    # ✅ string
+                    bin_id=bin_obj.bin_id,            # ✅ string
+                    confirm_bin_id=confirm_bin_id
+                )
+
+                # ✅ Update bin quantity
+                bin_obj.existing_quantity = F('existing_quantity') + 1
+                bin_obj.save()
+                bin_obj.refresh_from_db()
+
+                # ✅ Log it
+                BinLog.objects.create(
+                    bin=bin_obj,
+                    action="Put-To-Light",
+                    remarks=f"Product {product.product_id} placed into bin.",
+                    updated_by=request.user
+                )
+
+                message = f"✅ Product {product_id} successfully placed in Bin {confirm_bin_id}."
+            else:
+                error = f"❌ Wrong Bin entered. Suggested Bin is {suggested_bin}."
+
+    return render(request, "ptl/put_to_light.html", {
+        "product_id": product_id,
+        "suggested_bin": suggested_bin,
+        "message": message,
+        "error": error
+    })
+
+
+def get_suggested_bin(request):
+    product_id = request.GET.get("product_id")
+    if not product_id:
+        return JsonResponse({"error": "No product ID provided."}, status=400)
+
+    try:
+        product = Product.objects.get(product_id=product_id)
+    except Product.DoesNotExist:
+        return JsonResponse({"error": "Product not found."}, status=404)
+
+    available_bin = Bin.objects.filter(
+        category=product.category,
+        existing_quantity__lt=F('capacity')
+    ).first()
+
+    if available_bin:
+        return JsonResponse({"suggested_bin": available_bin.bin_id})
+    else:
+        return JsonResponse({"error": "No space available in any bin for this product's category."})
 

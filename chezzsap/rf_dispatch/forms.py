@@ -164,6 +164,7 @@ class BinForm(forms.ModelForm):
         model = Bin
         fields = '__all__'
         exclude = ["created_by", "updated_by"]
+        
 from .models import Category
 class CategoryForm(forms.ModelForm):
     class Meta:

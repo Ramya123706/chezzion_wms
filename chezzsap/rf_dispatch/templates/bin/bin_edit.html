@@ -9,7 +9,7 @@
           <h5 class="mb-0">Edit Bin</h5>
         </div>
         <div class="card-body">
-          <form method="post" action="{% url 'edit_bin' bin.bin_id %}">
+          <form method="post" action="{% url 'edit_bin' bin.id %}">
             {% csrf_token %}
             {% if error %}
             <div class="alert alert-danger">

@@ -108,7 +108,7 @@ class Truck(models.Model):
     
 
 class Category(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="categories")
+    # whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="categories")
     category = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     created_by = models.CharField(max_length=100, null=True, blank=True)
@@ -120,7 +120,7 @@ class Category(models.Model):
         return self.category 
     
 class SubCategory(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="subcategories")
+    # whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="subcategories")
     category = models.ForeignKey(Category, related_name="subcategories", on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
@@ -128,11 +128,11 @@ class SubCategory(models.Model):
         return self.name
     
 class Bin(models.Model):
-    whs_no = models.ForeignKey(
-        Warehouse,
-        on_delete=models.CASCADE,
-        related_name="bins" 
-    )
+    # whs_no = models.ForeignKey(
+    #     Warehouse,
+    #     on_delete=models.CASCADE,
+    #     related_name="bins" 
+    # )
     bin_id = models.CharField(max_length=50, unique=True) 
     bin_type = models.CharField(max_length=50)
     capacity = models.PositiveIntegerField()
@@ -147,7 +147,7 @@ class Bin(models.Model):
 
 
     def __str__(self):
-        return f"Bin {self.bin_id} in Warehouse {self.whs_no}"
+        return f"Bin {self.bin_id} - {self.bin_type} ({self.existing_quantity}/{self.capacity})                               "
     
     @property
     def remaining_capacity(self):
@@ -155,9 +155,31 @@ class Bin(models.Model):
         remaining = self.capacity - self.existing_quantity
         return remaining if remaining > 0 else 0
 
+    def add_quantity(self, qty):
+        """
+        Add quantity to this bin, but never exceed capacity.
+        Return actual added quantity.
+        """
+        if qty <= 0:
+            return 0
+        space_left = self.remaining_capacity
+        added = min(qty, space_left)
+        self.existing_quantity += added
+        self.save(update_fields=['existing_quantity', 'updated_at'])
+        return added
 
+    def remove_quantity(self, qty):
+        """Remove quantity from bin, but never below 0."""
+        if qty <= 0:
+            return 0
+        removed = min(qty, self.existing_quantity)
+        self.existing_quantity -= removed
+        self.save(update_fields=['existing_quantity', 'updated_at'])
+        return removed
+    
+    
 class Product(models.Model):
-    whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="products", null=True, blank=True)
+    # whs_no = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name="products", null=True, blank=True)
     product_id = models.CharField(
         primary_key=True,
         max_length=50,
@@ -226,7 +248,7 @@ def create_or_update_inventory(sender, instance, **kwargs):
 
 
 class PackingMaterial(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="packing_materials")
+    
     material = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
 
@@ -234,7 +256,7 @@ class PackingMaterial(models.Model):
         return self.material
 
 class Pallet(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="pallets")
+    
     pallet_no = models.CharField(max_length=100, unique=True, editable=False, default='') 
     parent_pallet = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_pallets')
     product = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
@@ -964,13 +986,24 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class BinLog(models.Model):
-    whs_no = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name="bin_logs")
     bin = models.ForeignKey(Bin, on_delete=models.CASCADE, related_name='logs')
     action = models.CharField(max_length=100)  
     remarks = models.TextField(blank=True, null=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='binlog_updated')  # ✅ Add this
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.bin.bin_id} - at {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
 
+
+from django.db import models
+
+class PutToLight(models.Model):
+    product_id = models.CharField(max_length=100)
+    bin_id = models.CharField(max_length=100)
+    confirm_bin_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.product_id} → {self.bin_id}"
